@@ -527,7 +527,67 @@ async function loadUsers(){
   document.getElementById('users-count').textContent=count+t('usersCount');
   const div=document.getElementById('users-table');
   if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">👥</div><h4>'+t('noData')+'</h4></div>';return;}
-  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.fullName')+'</th><th>'+t('cols.email')+'</th><th>'+t('cols.phone')+'</th><th>'+t('cols.role')+'</th></tr></thead><tbody>'+data.map((u,i)=>'<tr><td style="color:var(--text3)">'+(i+1)+'</td><td><strong>'+u.fullName+'</strong></td><td style="direction:ltr;text-align:right">'+u.email+'</td><td>'+(u.phoneNumber||'—')+'</td><td>'+roleBadge(u.roleType)+'</td></tr>').join('')+'</tbody></table>';
+  const roleColors={Admin:'badge-red',Parent:'badge-blue',Driver:'badge-green',Employee:'badge-purple'};
+  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.fullName')+'</th><th>'+t('cols.email')+'</th><th>'+t('cols.phone')+'</th><th>'+t('cols.role')+'</th><th>'+(currentLang==='ar'?'إجراءات':'Actions')+'</th></tr></thead><tbody>'+
+    data.map((u,i)=>'<tr>'+
+      '<td style="color:var(--text3)">'+(i+1)+'</td>'+
+      '<td><strong>'+u.fullName+'</strong></td>'+
+      '<td style="direction:ltr">'+u.email+'</td>'+
+      '<td>'+(u.phoneNumber||'—')+'</td>'+
+      '<td>'+roleBadge(u.roleType)+'</td>'+
+      '<td><div style="display:flex;gap:0.4rem">'+
+        '<button onclick="viewUser(''+u.id+'')" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'عرض':'View')+'</button>'+
+        '<button onclick="editUser(''+u.id+'',''+u.fullName+'',''+u.phoneNumber+'',''+u.roleType+'')" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.08);color:#2563eb;cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'تعديل':'Edit')+'</button>'+
+        '<button onclick="deleteUser(''+u.id+'',''+u.fullName+'')" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'حذف':'Delete')+'</button>'+
+      '</div></td>'+
+    '</tr>').join('')+
+  '</tbody></table>';
+}
+
+async function viewUser(id){
+  const data=await api('/api/users/'+id);
+  if(!data)return;
+  const ar=currentLang==='ar';
+  const msg=
+    (ar?'الاسم: ':'Name: ')+data.fullName+'\n'+
+    (ar?'البريد: ':'Email: ')+data.email+'\n'+
+    (ar?'الهاتف: ':'Phone: ')+(data.phoneNumber||'—')+'\n'+
+    (ar?'الدور: ':'Role: ')+data.roleType+'\n'+
+    (ar?'العنوان: ':'Address: ')+(data.address||'—');
+  alert(msg);
+}
+
+async function editUser(id, fullName, phone, role){
+  const ar=currentLang==='ar';
+  const newName  = prompt((ar?'الاسم الكامل:':'Full Name:'), fullName);
+  if(!newName) return;
+  const newPhone = prompt((ar?'رقم الهاتف:':'Phone:'), phone||'');
+  const newRole  = prompt((ar?'الدور (Admin/Parent/Driver/Employee):':'Role (Admin/Parent/Driver/Employee):'), role);
+  const newPass  = prompt((ar?'كلمة المرور الجديدة (اتركها فارغة للإبقاء على الحالية):':'New password (leave empty to keep current):'), '');
+
+  const body={fullName:newName, phoneNumber:newPhone, roleType:newRole};
+  if(newPass) body.newPassword=newPass;
+
+  const result=await api('/api/users/'+id,'PUT',body);
+  if(result){
+    showToast('✅ '+(ar?'تم تحديث المستخدم':'User updated'),'success');
+    loadUsers();
+  } else {
+    showToast(ar?'فشل التحديث':'Update failed','error');
+  }
+}
+
+async function deleteUser(id, name){
+  const ar=currentLang==='ar';
+  const confirm=window.confirm((ar?'هل تريد حذف المستخدم: ':'Delete user: ')+name+'?');
+  if(!confirm) return;
+  const result=await api('/api/users/'+id,'DELETE');
+  if(result){
+    showToast('✅ '+(ar?'تم حذف المستخدم':'User deleted'),'success');
+    loadUsers();
+  } else {
+    showToast(ar?'فشل الحذف':'Delete failed','error');
+  }
 }
 
 async function registerUser(){
