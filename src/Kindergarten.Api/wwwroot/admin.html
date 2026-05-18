@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KMS Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;
+      --primary:#f97316;--primary2:#ea580c;--primary3:#fff7ed;
+      --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--purple:#a855f7;
+      --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;}
+    .sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--text);display:flex;flex-direction:column;z-index:100;}
+    .sidebar::before{content:'';position:absolute;top:-100px;right:-100px;width:300px;height:300px;background:radial-gradient(circle,rgba(249,115,22,0.15),transparent 70%);pointer-events:none;}
+    .logo{padding:1.5rem 1.5rem 1rem;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0.5rem;}
+    .logo-icon{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+    .logo-text h1{color:white;font-size:0.95rem;font-weight:800;}
+    .logo-text p{color:rgba(255,255,255,0.4);font-size:0.65rem;}
+    .nav-section{padding:0 0.8rem;margin-bottom:0.5rem;}
+    .nav-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.25);padding:0.5rem 0.7rem 0.3rem;}
+    .nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:0.83rem;font-weight:500;transition:all 0.15s;border:none;background:none;width:100%;text-align:left;margin-bottom:1px;}
+    .nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.9);}
+    .nav-item.active{background:var(--primary);color:white;}
+    .nav-item .icon{font-size:1rem;width:20px;text-align:center;}
+    .nav-badge{margin-left:auto;background:rgba(255,255,255,0.15);color:white;padding:0.1rem 0.45rem;border-radius:50px;font-size:0.65rem;font-weight:700;}
+    .sidebar-footer{margin-top:auto;padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,0.06);}
+    .api-status{display:flex;align-items:center;gap:0.5rem;font-size:0.72rem;color:rgba(255,255,255,0.4);}
+    .api-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
+    .api-dot.red{background:var(--red);box-shadow:0 0 6px var(--red);animation:none;}
+    .main{margin-left:240px;min-height:100vh;display:flex;flex-direction:column;}
+    .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+    .topbar-left h2{font-size:1rem;font-weight:700;}
+    .topbar-left p{font-size:0.75rem;color:var(--text3);}
+    .topbar-right{display:flex;align-items:center;gap:0.8rem;}
+    .btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;font-family:'Outfit',sans-serif;}
+    .btn-primary{background:var(--primary);color:white;}
+    .btn-primary:hover{background:var(--primary2);}
+    .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+    .btn-ghost:hover{background:var(--surface2);}
+    .btn-sm{padding:0.3rem 0.7rem;font-size:0.75rem;}
+    .avatar{width:34px;height:34px;background:var(--primary3);border:2px solid var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--primary2);cursor:pointer;}
+    .page{display:none;padding:2rem;}
+    .page.active{display:block;animation:fadeIn 0.3s ease;}
+    .login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);position:fixed;inset:0;z-index:999;}
+    .login-box{background:white;border-radius:20px;padding:2.5rem;width:380px;box-shadow:0 25px 50px rgba(0,0,0,0.3);}
+    .login-logo{display:flex;align-items:center;gap:0.8rem;margin-bottom:2rem;}
+    .login-logo .icon{width:44px;height:44px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+    .login-logo h1{font-size:1.1rem;font-weight:800;}
+    .login-logo p{font-size:0.72rem;color:var(--text3);}
+    .login-box h2{font-size:1.4rem;font-weight:800;margin-bottom:0.3rem;}
+    .login-box .sub{color:var(--text2);font-size:0.85rem;margin-bottom:1.5rem;}
+    .form-group{margin-bottom:1rem;}
+    .form-group label{display:block;font-size:0.78rem;font-weight:600;color:var(--text2);margin-bottom:0.4rem;}
+    .form-group input{width:100%;padding:0.65rem 0.9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.85rem;outline:none;transition:border-color 0.15s;}
+    .form-group input:focus{border-color:var(--primary);}
+    .login-btn{width:100%;padding:0.75rem;background:var(--primary);color:white;border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;margin-top:0.5rem;}
+    .login-btn:hover{background:var(--primary2);}
+    .login-btn:disabled{background:var(--text3);cursor:not-allowed;}
+    .login-error{background:#fef2f2;border:1px solid #fecaca;color:var(--red);padding:0.6rem 0.9rem;border-radius:8px;font-size:0.8rem;margin-top:0.8rem;display:none;}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.3rem 1.5rem;position:relative;overflow:hidden;}
+    .stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:0.8rem;}
+    .stat-num{font-size:1.9rem;font-weight:900;line-height:1;margin-bottom:0.3rem;}
+    .stat-label{font-size:0.78rem;color:var(--text2);font-weight:500;}
+    .table-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;}
+    .table-head{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .table-head h3{font-size:0.88rem;font-weight:700;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{background:var(--surface2);padding:0.7rem 1.2rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);border-bottom:1px solid var(--border);}
+    tbody td{padding:0.8rem 1.2rem;font-size:0.82rem;color:var(--text2);border-bottom:1px solid var(--border);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover td{background:var(--surface2);}
+    .badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.6rem;border-radius:50px;font-size:0.7rem;font-weight:700;}
+    .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+    .badge-green{background:#dcfce7;color:#16a34a;}
+    .badge-blue{background:#dbeafe;color:#2563eb;}
+    .badge-orange{background:#fff7ed;color:#ea580c;}
+    .badge-red{background:#fee2e2;color:#dc2626;}
+    .badge-gray{background:#f1f5f9;color:#64748b;}
+    .loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--text3);gap:0.5rem;font-size:0.82rem;}
+    .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;}
+    .empty{text-align:center;padding:3rem;color:var(--text3);}
+    .empty .emoji{font-size:2.5rem;margin-bottom:0.8rem;}
+    .empty h4{font-size:0.88rem;font-weight:600;color:var(--text2);margin-bottom:0.3rem;}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+    .section-header h3{font-size:0.95rem;font-weight:700;}
+    .section-header p{font-size:0.75rem;color:var(--text3);}
+    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;}
+    .form-card h3{font-size:0.9rem;font-weight:700;margin-bottom:1.2rem;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+    .form-row.full{grid-template-columns:1fr;}
+    .form-field label{display:block;font-size:0.75rem;font-weight:600;color:var(--text2);margin-bottom:0.35rem;}
+    .form-field input,.form-field select{width:100%;padding:0.55rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.83rem;color:var(--text);outline:none;background:white;transition:border-color 0.15s;}
+    .form-field input:focus,.form-field select:focus{border-color:var(--primary);}
+    .trip-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:1rem;border-left:4px solid var(--primary);}
+    .trip-card.completed{border-left-color:var(--green);}
+    .trip-card.inprogress{border-left-color:var(--blue);}
+    .trip-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;}
+    .trip-header h4{font-size:0.88rem;font-weight:700;}
+    .trip-meta{display:flex;gap:1rem;margin-bottom:0.8rem;}
+    .trip-meta span{font-size:0.75rem;color:var(--text2);}
+    .child-row{display:flex;align-items:center;justify-content:space-between;padding:0.4rem 0.7rem;background:var(--surface2);border-radius:7px;margin-bottom:0.3rem;font-size:0.78rem;}
+    #toast{position:fixed;bottom:2rem;right:2rem;background:var(--text);color:white;padding:0.8rem 1.2rem;border-radius:10px;font-size:0.82rem;font-weight:500;box-shadow:0 10px 25px rgba(0,0,0,0.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 0.3s;}
+    #toast.show{transform:translateY(0);opacity:1;}
+    #toast.success{background:#16a34a;}
+    #toast.error{background:var(--red);}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+    @keyframes spin{to{transform:rotate(360deg);}}
+  </style>
+</head>
+<body>
+
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">🏫</div>
+      <div><h1>KMS Admin</h1><p>Kindergarten Management System</p></div>
+    </div>
+    <h2>Welcome back</h2>
+    <p class="sub">Sign in to your admin dashboard</p>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="loginEmail" value="admin@kms-staging.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" value="Admin@123456">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🏫</div>
+    <div class="logo-text"><h1>KMS Admin</h1><p>MANAGEMENT SYSTEM</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <button class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></button>
+    <button class="nav-item" onclick="showPage('children')"><span class="icon">👶</span><span>Children</span><span class="nav-badge" id="childrenBadge">0</span></button>
+    <button class="nav-item" onclick="showPage('trips')"><span class="icon">🚌</span><span>Trips</span></button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Finance</div>
+    <button class="nav-item" onclick="showPage('subscriptions')"><span class="icon">💳</span><span>Subscriptions</span></button>
+    <button class="nav-item" onclick="showPage('payments')"><span class="icon">💰</span><span>Payments</span></button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">System</div>
+    <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span>Users</span></button>
+    <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span>Real-Time</span></button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="api-status">
+      <div class="api-dot" id="apiDot"></div>
+      <span id="apiStatusText">Connecting...</span>
+    </div>
+  </div>
+</aside>
+
+<div class="main" id="mainContent" style="display:none;">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2 id="pageTitle">Dashboard</h2>
+      <p id="pageSubtitle">Welcome to KMS Admin Panel</p>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="refreshCurrentPage()">🔄 Refresh</button>
+      <button class="btn btn-primary btn-sm" onclick="showPage('children')">+ Add Child</button>
+      <div class="avatar" id="userAvatar" onclick="doLogout()" title="Logout">A</div>
+    </div>
+  </div>
+
+  <div class="page active" id="page-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:#fff7ed">👶</div><div class="stat-num" id="stat-children">—</div><div class="stat-label">Total Children</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#eff6ff">🚌</div><div class="stat-num" id="stat-trips">—</div><div class="stat-label">Total Trips</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4">💳</div><div class="stat-num" id="stat-subscriptions">—</div><div class="stat-label">Subscriptions</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#faf5ff">👥</div><div class="stat-num" id="stat-users">—</div><div class="stat-label">Registered Users</div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="section-header"><div><h3>Recent Children</h3></div></div>
+        <div class="table-card"><div id="dash-children-list"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+      </div>
+      <div>
+        <div class="section-header"><div><h3>Subscriptions Overview</h3></div></div>
+        <div class="table-card"><div id="dash-subs-list"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-children">
+    <div class="form-card">
+      <h3>➕ Add New Child</h3>
+      <div class="form-row">
+        <div class="form-field"><label>Child Name</label><input type="text" id="childName" placeholder="Full name"></div>
+        <div class="form-field"><label>Date of Birth</label><input type="date" id="childDob"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Class</label><select id="childClass"><option value="KG1">KG 1</option><option value="KG2">KG 2</option><option value="KG3">KG 3</option></select></div>
+        <div class="form-field"><label>Health Notes</label><input type="text" id="childHealth" placeholder="Any allergies or notes"></div>
+      </div>
+      <button class="btn btn-primary" onclick="createChild()">Add Child</button>
+    </div>
+    <div class="section-header"><div><h3>All Children</h3><p id="children-count">Loading...</p></div></div>
+    <div class="table-card"><div id="children-table"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+  </div>
+
+  <div class="page" id="page-trips">
+    <div class="section-header">
+      <div><h3>All Trips</h3><p id="trips-count">Loading...</p></div>
+      <button class="btn btn-primary btn-sm" onclick="loadTrips()">🔄 Refresh</button>
+    </div>
+    <div id="trips-list"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+  </div>
+
+  <div class="page" id="page-subscriptions">
+    <div class="form-card">
+      <h3>➕ Create Subscription</h3>
+      <div class="form-row">
+        <div class="form-field"><label>Child</label><select id="subChild"></select></div>
+        <div class="form-field"><label>Type</label><select id="subType"><option value="Daily">Daily</option><option value="Monthly" selected>Monthly</option><option value="Yearly">Yearly</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Price (SAR)</label><input type="number" id="subPrice" value="500"></div>
+        <div class="form-field"><label>Start Date</label><input type="date" id="subStart"></div>
+      </div>
+      <div class="form-row full"><div class="form-field"><label>End Date</label><input type="date" id="subEnd"></div></div>
+      <button class="btn btn-primary" onclick="createSubscription()">Create Subscription</button>
+    </div>
+    <div class="section-header"><div><h3>All Subscriptions</h3><p id="subs-count">Loading...</p></div></div>
+    <div class="table-card"><div id="subs-table"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+  </div>
+
+  <div class="page" id="page-payments">
+    <div class="form-card">
+      <h3>💰 Record Payment</h3>
+      <div class="form-row">
+        <div class="form-field"><label>Subscription ID</label><input type="number" id="paySubId" placeholder="1"></div>
+        <div class="form-field"><label>Amount (SAR)</label><input type="number" id="payAmount" value="500"></div>
+      </div>
+      <div class="form-row full"><div class="form-field"><label>Method</label><select id="payMethod"><option value="Cash">Cash</option><option value="Transfer">Bank Transfer</option><option value="Online">Online</option></select></div></div>
+      <button class="btn btn-primary" onclick="recordPayment()">Record Payment</button>
+    </div>
+    <div class="section-header"><div><h3>Payment History</h3></div></div>
+    <div class="table-card"><div id="payments-table"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+  </div>
+
+  <div class="page" id="page-users">
+    <div class="form-card">
+      <h3>➕ Register New User</h3>
+      <div class="form-row">
+        <div class="form-field"><label>Full Name</label><input type="text" id="newUserName"></div>
+        <div class="form-field"><label>Email</label><input type="email" id="newUserEmail"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Password</label><input type="password" id="newUserPass"></div>
+        <div class="form-field"><label>Phone</label><input type="text" id="newUserPhone"></div>
+      </div>
+      <div class="form-row full"><div class="form-field"><label>Role</label><select id="newUserRole"><option value="Parent">Parent</option><option value="Driver">Driver</option><option value="Admin">Admin</option><option value="Employee">Employee</option></select></div></div>
+      <button class="btn btn-primary" onclick="registerUser()">Register User</button>
+    </div>
+    <div class="section-header"><div><h3>System Info</h3><p id="users-count">Loading...</p></div></div>
+    <div class="table-card"><div id="users-table"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+  </div>
+
+  <div class="page" id="page-signalr">
+    <div class="form-card">
+      <h3>📡 Real-Time Monitor — SignalR Hub</h3>
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem;">Live connection to SignalR hub at <code style="font-family:'JetBrains Mono',monospace;background:#f1f5f9;padding:0.1rem 0.4rem;border-radius:4px;">/hubs/trip</code></p>
+      <div style="display:flex;gap:0.8rem;align-items:center;">
+        <button class="btn btn-primary btn-sm" onclick="connectSignalR()">🔌 Connect</button>
+        <button class="btn btn-ghost btn-sm" onclick="disconnectSignalR()">⛔ Disconnect</button>
+        <span id="signalr-status" class="badge badge-gray">Disconnected</span>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-head"><h3>Live Events Log</h3></div>
+      <div id="signalr-log" style="padding:1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;height:350px;overflow-y:auto;color:var(--text2);">
+        <div style="color:var(--text3);text-align:center;padding:2rem;">Click Connect to start listening...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API='https://kms-api-staging-kg01.azurewebsites.net';
+let token=localStorage.getItem('kms_token');
+let currentPage='dashboard';
+let signalrConnection=null;
+
+window.onload=async()=>{
+  if(token){await initDashboard();}
+  const today=new Date().toISOString().split('T')[0];
+  const next=new Date(Date.now()+30*24*60*60*1000).toISOString().split('T')[0];
+  const s=document.getElementById('subStart');const e=document.getElementById('subEnd');
+  if(s)s.value=today;if(e)e.value=next;
+};
+
+async function api(path,method='GET',body=null){
+  const opts={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}};
+  if(body)opts.body=JSON.stringify(body);
+  try{
+    const res=await fetch(API+path,opts);
+    if(res.status===401){doLogout();return null;}
+    if(res.status===204)return{};
+    return await res.json();
+  }catch(e){return null;}
+}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value;
+  const pass=document.getElementById('loginPassword').value;
+  const btn=document.getElementById('loginBtn');
+  const err=document.getElementById('loginError');
+  btn.disabled=true;btn.textContent='Signing in...';err.style.display='none';
+  try{
+    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const data=await res.json();
+    if(data.token){
+      token=data.token;
+      localStorage.setItem('kms_token',token);
+      localStorage.setItem('kms_user',JSON.stringify(data));
+      await initDashboard();
+    }else{err.textContent=data.message||'Invalid email or password';err.style.display='block';}
+  }catch(e){err.textContent='Cannot connect to server';err.style.display='block';}
+  btn.disabled=false;btn.textContent='Sign In';
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginPage').style.display!=='none')doLogin();});
+
+async function initDashboard(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('mainContent').style.display='flex';
+  const user=JSON.parse(localStorage.getItem('kms_user')||'{}');
+  if(user.fullName){
+    document.getElementById('userAvatar').textContent=user.fullName[0].toUpperCase();
+    document.getElementById('userAvatar').title=user.fullName+' ('+user.role+') — Click to logout';
+  }
+  await checkApiStatus();
+  await loadDashboard();
+  setInterval(checkApiStatus,30000);
+}
+
+function doLogout(){localStorage.removeItem('kms_token');localStorage.removeItem('kms_user');token=null;document.getElementById('loginPage').style.display='flex';document.getElementById('mainContent').style.display='none';}
+
+async function checkApiStatus(){
+  try{
+    const res=await fetch(API+'/health');const data=await res.json();
+    document.getElementById('apiDot').className='api-dot';
+    document.getElementById('apiStatusText').textContent='API Live · '+data.env;
+  }catch{
+    document.getElementById('apiDot').className='api-dot red';
+    document.getElementById('apiStatusText').textContent='API Offline';
+  }
+}
+
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
+  const titles={dashboard:['Dashboard','Overview of KMS system'],children:['Children','Manage registered children'],trips:['Trips','View and manage school trips'],subscriptions:['Subscriptions','Manage transport subscriptions'],payments:['Payments','Track payment records'],users:['Users','Manage system users'],signalr:['Real-Time Monitor','Live SignalR connection']};
+  if(titles[page]){document.getElementById('pageTitle').textContent=titles[page][0];document.getElementById('pageSubtitle').textContent=titles[page][1];}
+  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers};
+  if(loaders[page])loaders[page]();
+}
+
+function refreshCurrentPage(){showPage(currentPage);}
+
+async function loadDashboard(){
+  const [children,subs]=await Promise.all([api('/api/children'),api('/api/subscriptions')]);
+  const cCount=Array.isArray(children)?children.length:0;
+  const sCount=Array.isArray(subs)?subs.length:0;
+  document.getElementById('stat-children').textContent=cCount;
+  document.getElementById('stat-subscriptions').textContent=sCount;
+  document.getElementById('childrenBadge').textContent=cCount;
+  try{const r=await fetch(API+'/dbtest');const d=await r.json();document.getElementById('stat-users').textContent=d.userCount;}catch{}
+  const childDiv=document.getElementById('dash-children-list');
+  if(!children||children.length===0){childDiv.innerHTML='<div class="empty"><div class="emoji">👶</div><h4>No children yet</h4></div>';}
+  else{childDiv.innerHTML='<table><thead><tr><th>Name</th><th>Class</th><th>Parent</th></tr></thead><tbody>'+children.slice(0,5).map(c=>'<tr><td><strong>'+c.name+'</strong></td><td><span class="badge badge-blue">'+c.class+'</span></td><td>'+c.parentName+'</td></tr>').join('')+'</tbody></table>';}
+  const subsDiv=document.getElementById('dash-subs-list');
+  if(!subs||subs.length===0){subsDiv.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>No subscriptions yet</h4></div>';}
+  else{subsDiv.innerHTML='<table><thead><tr><th>Child</th><th>Type</th><th>Status</th></tr></thead><tbody>'+subs.slice(0,5).map(s=>'<tr><td>'+s.childName+'</td><td><span class="badge badge-blue">'+s.type+'</span></td><td><span class="badge '+(s.paymentStatus==='Paid'?'badge-green':'badge-orange')+'">'+s.paymentStatus+'</span></td></tr>').join('')+'</tbody></table>';}
+  document.getElementById('stat-trips').textContent='—';
+}
+
+async function loadChildren(){
+  const data=await api('/api/children');
+  const count=Array.isArray(data)?data.length:0;
+  document.getElementById('children-count').textContent=count+' children registered';
+  document.getElementById('childrenBadge').textContent=count;
+  const div=document.getElementById('children-table');
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">👶</div><h4>No children yet</h4></div>';return;}
+  div.innerHTML='<table><thead><tr><th>#</th><th>Name</th><th>Date of Birth</th><th>Class</th><th>Parent</th><th>Health Notes</th></tr></thead><tbody>'+data.map(c=>'<tr><td style="color:var(--text3)">#'+c.id+'</td><td><strong>'+c.name+'</strong></td><td>'+new Date(c.birthDate).toLocaleDateString()+'</td><td><span class="badge badge-blue">'+c.class+'</span></td><td>'+c.parentName+'</td><td style="color:var(--text3)">'+(c.healthNotes||'—')+'</td></tr>').join('')+'</tbody></table>';
+}
+
+async function createChild(){
+  const name=document.getElementById('childName').value;
+  const dob=document.getElementById('childDob').value;
+  const cls=document.getElementById('childClass').value;
+  const health=document.getElementById('childHealth').value;
+  if(!name||!dob){showToast('Please fill name and date of birth','error');return;}
+  const result=await api('/api/children','POST',{name,birthDate:dob,class:cls,healthNotes:health});
+  if(result?.id){showToast('✅ Child "'+name+'" added!','success');document.getElementById('childName').value='';document.getElementById('childDob').value='';loadChildren();}
+  else showToast('Failed to add child','error');
+}
+
+async function loadTrips(){
+  const data=await api('/api/trips/driver');
+  const div=document.getElementById('trips-list');
+  const trips=Array.isArray(data)?data:(data?.id?[data]:[]);
+  document.getElementById('trips-count').textContent=trips.length+' trips recorded';
+  if(trips.length===0){div.innerHTML='<div class="empty"><div class="emoji">🚌</div><h4>No trips yet</h4><p>Trips will appear here once drivers start their routes</p></div>';return;}
+  div.innerHTML=trips.map(t=>'<div class="trip-card '+t.status.toLowerCase()+'"><div class="trip-header"><h4>Trip #'+t.id+' — '+(t.direction==='ToKindergarten'?'🏫 To School':'🏠 To Home')+'</h4><span class="badge '+(t.status==='Completed'?'badge-green':t.status==='InProgress'?'badge-blue':'badge-orange')+'">'+t.status+'</span></div><div class="trip-meta"><span>🚗 '+t.driverName+'</span><span>📅 '+new Date(t.date).toLocaleDateString()+'</span>'+(t.startTime?'<span>▶️ '+new Date(t.startTime).toLocaleTimeString()+'</span>':'')+(t.endTime?'<span>⏹️ '+new Date(t.endTime).toLocaleTimeString()+'</span>':'')+'</div>'+t.children.map(c=>'<div class="child-row"><span>👤 '+c.childName+'</span><div style="display:flex;gap:0.5rem"><span class="badge '+(c.pickupStatus==='PickedUp'?'badge-green':'badge-gray')+'">Pickup: '+c.pickupStatus+'</span><span class="badge '+(c.dropoffStatus==='DroppedOff'?'badge-green':'badge-gray')+'">Drop: '+c.dropoffStatus+'</span></div></div>').join('')+'</div>').join('');
+}
+
+async function loadSubscriptions(){
+  const data=await api('/api/subscriptions');
+  const count=Array.isArray(data)?data.length:0;
+  document.getElementById('subs-count').textContent=count+' subscriptions';
+  const children=await api('/api/children');
+  const sel=document.getElementById('subChild');
+  if(children&&children.length>0)sel.innerHTML=children.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  const div=document.getElementById('subs-table');
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>No subscriptions yet</h4></div>';return;}
+  div.innerHTML='<table><thead><tr><th>#</th><th>Child</th><th>Type</th><th>Price</th><th>Period</th><th>Status</th></tr></thead><tbody>'+data.map(s=>'<tr><td style="color:var(--text3)">#'+s.id+'</td><td><strong>'+s.childName+'</strong></td><td><span class="badge badge-blue">'+s.type+'</span></td><td style="font-weight:700;color:var(--primary2)">SAR '+s.price.toFixed(2)+'</td><td>'+new Date(s.startDate).toLocaleDateString()+' → '+new Date(s.endDate).toLocaleDateString()+'</td><td><span class="badge '+(s.paymentStatus==='Paid'?'badge-green':s.paymentStatus==='Overdue'?'badge-red':'badge-orange')+'">'+s.paymentStatus+'</span></td></tr>').join('')+'</tbody></table>';
+}
+
+async function createSubscription(){
+  const childId=document.getElementById('subChild').value;
+  const type=document.getElementById('subType').value;
+  const price=parseFloat(document.getElementById('subPrice').value);
+  const startDate=document.getElementById('subStart').value;
+  const endDate=document.getElementById('subEnd').value;
+  if(!childId||!price||!startDate||!endDate){showToast('Please fill all fields','error');return;}
+  const result=await api('/api/subscriptions','POST',{childId:parseInt(childId),type,price,startDate,endDate});
+  if(result?.id){showToast('✅ Subscription created for '+result.childName+'!','success');loadSubscriptions();}
+  else showToast('Failed to create subscription','error');
+}
+
+async function loadPayments(){
+  const data=await api('/api/payments/subscription/1');
+  const div=document.getElementById('payments-table');
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💰</div><h4>No payments yet</h4></div>';return;}
+  div.innerHTML='<table><thead><tr><th>#</th><th>Subscription</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead><tbody>'+data.map(p=>'<tr><td style="color:var(--text3)">#'+p.id+'</td><td>#'+p.subscriptionId+'</td><td style="font-weight:700;color:var(--green)">SAR '+p.amount.toFixed(2)+'</td><td><span class="badge badge-blue">'+p.method+'</span></td><td>'+new Date(p.paymentDate).toLocaleString()+'</td></tr>').join('')+'</tbody></table>';
+}
+
+async function recordPayment(){
+  const subId=parseInt(document.getElementById('paySubId').value);
+  const amount=parseFloat(document.getElementById('payAmount').value);
+  const method=document.getElementById('payMethod').value;
+  if(!subId||!amount){showToast('Please fill all fields','error');return;}
+  const result=await api('/api/payments','POST',{subscriptionId:subId,amount,method});
+  if(result?.id){showToast('✅ Payment of SAR '+amount+' recorded!','success');loadPayments();}
+  else showToast('Failed to record payment','error');
+}
+
+async function loadUsers(){
+  try{
+    const res=await fetch(API+'/dbtest');const data=await res.json();
+    document.getElementById('stat-users').textContent=data.userCount;
+    document.getElementById('users-count').textContent=data.userCount+' users in system';
+    document.getElementById('users-table').innerHTML='<div style="padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:0.5rem">👥</div><h4 style="font-size:0.88rem;font-weight:700;margin-bottom:0.3rem">'+data.userCount+' Users Registered</h4><p style="font-size:0.78rem;color:var(--text3)">Connected to: <code style="font-family:monospace">'+data.database+'</code> on <code style="font-family:monospace">'+data.server+'</code></p></div>';
+  }catch{document.getElementById('users-table').innerHTML='<div class="empty"><div class="emoji">👥</div><h4>Could not load users</h4></div>';}
+}
+
+async function registerUser(){
+  const fullName=document.getElementById('newUserName').value;
+  const email=document.getElementById('newUserEmail').value;
+  const password=document.getElementById('newUserPass').value;
+  const phoneNumber=document.getElementById('newUserPhone').value;
+  const roleType=document.getElementById('newUserRole').value;
+  if(!fullName||!email||!password){showToast('Please fill required fields','error');return;}
+  const result=await api('/api/auth/register','POST',{fullName,email,password,phoneNumber,roleType});
+  if(result?.token){showToast('✅ User "'+fullName+'" registered as '+roleType+'!','success');loadUsers();}
+  else showToast(result?.message||'Registration failed','error');
+}
+
+function connectSignalR(){
+  if(typeof signalR==='undefined'){
+    const script=document.createElement('script');
+    script.src='https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js';
+    script.onload=()=>startSignalRConnection();
+    document.head.appendChild(script);
+  }else{startSignalRConnection();}
+}
+
+function startSignalRConnection(){
+  const log=document.getElementById('signalr-log');
+  const status=document.getElementById('signalr-status');
+  signalrConnection=new signalR.HubConnectionBuilder()
+    .withUrl(API+'/hubs/trip',{accessTokenFactory:()=>token})
+    .withAutomaticReconnect().build();
+  signalrConnection.on('LocationUpdated',(tripId,lat,lng)=>addLog(log,'📍 Location — Trip #'+tripId+' | Lat: '+lat.toFixed(4)+', Lng: '+lng.toFixed(4),'blue'));
+  signalrConnection.on('ChildStatusUpdated',(tripId,childId,s)=>addLog(log,'👤 Child Status — Trip #'+tripId+' | Child #'+childId+' → '+s,'green'));
+  signalrConnection.on('TripStatusUpdated',(tripId,s)=>addLog(log,'🚌 Trip Status — Trip #'+tripId+' → '+s,'orange'));
+  signalrConnection.start()
+    .then(()=>{status.className='badge badge-green';status.textContent='Connected';log.innerHTML='';addLog(log,'✅ Connected to SignalR Hub — Listening for real-time events...','green');})
+    .catch(err=>{status.className='badge badge-red';status.textContent='Failed';addLog(log,'❌ Connection failed: '+err.message,'red');});
+}
+
+function disconnectSignalR(){
+  if(signalrConnection){signalrConnection.stop();document.getElementById('signalr-status').className='badge badge-gray';document.getElementById('signalr-status').textContent='Disconnected';addLog(document.getElementById('signalr-log'),'⛔ Disconnected','red');}
+}
+
+function addLog(container,message,color='gray'){
+  const colors={blue:'#3b82f6',green:'#22c55e',orange:'#f97316',red:'#ef4444',gray:'#94a3b8'};
+  const time=new Date().toLocaleTimeString();
+  const div=document.createElement('div');
+  div.style.cssText='color:'+colors[color]+';padding:0.3rem 0;border-bottom:1px solid #f1f5f9';
+  div.textContent='['+time+'] '+message;
+  container.insertBefore(div,container.firstChild);
+}
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show '+type;
+  setTimeout(()=>t.className='',3000);
+}
+</script>
+</body>
+</html>
