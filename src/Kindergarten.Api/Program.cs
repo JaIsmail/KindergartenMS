@@ -104,6 +104,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 app.UseCors("AllowAll");
+app.UseStaticFiles();
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -139,5 +140,9 @@ app.MapGet("/dbtest", async (ApplicationDbContext db) =>
 });
 
 app.MapHub<TripHub>("/hubs/trip");
+
+
+// ── Admin Dashboard
+app.MapGet("/admin", () => Results.Redirect("/admin/index.html"));
 
 app.Run();
