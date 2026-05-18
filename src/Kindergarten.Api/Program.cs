@@ -104,6 +104,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 app.UseCors("AllowAll");
+
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAuthentication();
