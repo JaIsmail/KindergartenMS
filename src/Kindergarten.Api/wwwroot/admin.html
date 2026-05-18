@@ -469,12 +469,16 @@ async function recordPayment(){
 }
 
 async function loadUsers(){
-  try{
-    const res=await fetch(API+'/dbtest');const data=await res.json();
-    document.getElementById('stat-users').textContent=data.userCount;
-    document.getElementById('users-count').textContent=data.userCount+' users in system';
-    document.getElementById('users-table').innerHTML='<div style="padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:0.5rem">👥</div><h4 style="font-size:0.88rem;font-weight:700;margin-bottom:0.3rem">'+data.userCount+' Users Registered</h4><p style="font-size:0.78rem;color:var(--text3)">Connected to: <code style="font-family:monospace">'+data.database+'</code> on <code style="font-family:monospace">'+data.server+'</code></p></div>';
-  }catch{document.getElementById('users-table').innerHTML='<div class="empty"><div class="emoji">👥</div><h4>Could not load users</h4></div>';}
+  const data=await api('/api/users');
+  const count=Array.isArray(data)?data.length:0;
+  document.getElementById('stat-users').textContent=count;
+  document.getElementById('users-count').textContent=count+' users registered';
+  const div=document.getElementById('users-table');
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">👥</div><h4>No users yet</h4></div>';return;}
+  const roleColors={'Admin':'badge-red','Parent':'badge-blue','Driver':'badge-green','Employee':'badge-purple'};
+  div.innerHTML='<table><thead><tr><th>#</th><th>Full Name</th><th>Email</th><th>Phone</th><th>Role</th></tr></thead><tbody>'+
+    data.map((u,i)=>'<tr><td style="color:var(--text3)">'+(i+1)+'</td><td><strong>'+u.fullName+'</strong></td><td>'+u.email+'</td><td>'+(u.phoneNumber||'—')+'</td><td><span class="badge '+(roleColors[u.roleType]||'badge-gray')+'">'+u.roleType+'</span></td></tr>').join('')+
+    '</tbody></table>';
 }
 
 async function registerUser(){
