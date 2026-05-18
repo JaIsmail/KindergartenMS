@@ -143,6 +143,5 @@ app.MapHub<TripHub>("/hubs/trip");
 
 
 // ── Admin Dashboard
-app.MapGet("/admin", () => Results.Redirect("/admin.html"));
 
 app.Run();
