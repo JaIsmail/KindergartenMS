@@ -13,7 +13,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ── Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)
+    ));
 
 // ── Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -21,7 +27,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 // ── JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+var jwtKey = builder.Configuration["Jwt__Key"]
+          ?? builder.Configuration["Jwt:Key"]
+          ?? "KMS@JwtSecretKey#2025Kindergarten!Secure32Chars";
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -35,9 +44,10 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience         = true,
         ValidateLifetime         = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer              = builder.Configuration["Jwt:Issuer"],
-        ValidAudience            = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        ValidIssuer              = "KindergartenApi",
+        ValidAudience            = "KindergartenApp",
+        IssuerSigningKey         = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwtKey))
     };
 });
 
@@ -87,6 +97,26 @@ app.MapGet("/health", () => new {
     version = "2.0.0",
     env     = app.Environment.EnvironmentName,
     time    = DateTime.UtcNow
+});
+
+// ── DB Test endpoint
+app.MapGet("/dbtest", async (ApplicationDbContext db) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        var userCount  = canConnect ? await db.Users.CountAsync() : -1;
+        return Results.Ok(new {
+            canConnect,
+            userCount,
+            database = db.Database.GetDbConnection().Database,
+            server   = db.Database.GetDbConnection().DataSource
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
 });
 
 app.Run();
