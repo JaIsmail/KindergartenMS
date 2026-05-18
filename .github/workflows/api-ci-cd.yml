@@ -1,0 +1,105 @@
+name: KMS API — CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Publish
+        run: dotnet publish src/Kindergarten.Api/Kindergarten.Api.csproj -c Release -o ./publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kms-api
+          path: ./publish
+
+  deploy-staging:
+    name: Deploy → Staging
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kms-api
+          path: ./publish
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set App Settings
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_STAGING }}
+          app-settings-json: |
+            [
+              {"name":"ConnectionStrings__DefaultConnection","value":"${{ secrets.SQL_CONNECTION_STAGING }}","slotSetting":false},
+              {"name":"Jwt__Key","value":"${{ secrets.JWT_KEY }}","slotSetting":false},
+              {"name":"ASPNETCORE_ENVIRONMENT","value":"Staging","slotSetting":false}
+            ]
+
+      - name: Deploy to Staging
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_STAGING }}
+          package: ./publish
+
+  deploy-prod:
+    name: Deploy → Production
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kms-api
+          path: ./publish
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set App Settings
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_PROD }}
+          app-settings-json: |
+            [
+              {"name":"ConnectionStrings__DefaultConnection","value":"${{ secrets.SQL_CONNECTION_PROD }}","slotSetting":false},
+              {"name":"Jwt__Key","value":"${{ secrets.JWT_KEY }}","slotSetting":false},
+              {"name":"ASPNETCORE_ENVIRONMENT","value":"Production","slotSetting":false}
+            ]
+
+      - name: Deploy to Production
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_PROD }}
+          package: ./publish
