@@ -41,25 +41,25 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: kms-api
-          path: ./publish
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore
+        run: dotnet restore
+      - uses: actions/download-artifact@v4
+        with:
+          name: kms-api
+          path: ./publish
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Run EF Migrations (Staging)
+      - name: Run EF Migrations Staging
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet tool install --global dotnet-ef
-          dotnet ef database update \
-            --project src/Kindergarten.Infrastructure/Kindergarten.Infrastructure.csproj \
-            --startup-project src/Kindergarten.Api/Kindergarten.Api.csproj
+          dotnet ef database update --project src/Kindergarten.Infrastructure/Kindergarten.Infrastructure.csproj --startup-project src/Kindergarten.Api/Kindergarten.Api.csproj
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.SQL_CONNECTION_STAGING }}
       - name: Deploy to Staging
@@ -75,25 +75,25 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: kms-api
-          path: ./publish
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore
+        run: dotnet restore
+      - uses: actions/download-artifact@v4
+        with:
+          name: kms-api
+          path: ./publish
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Run EF Migrations (Production)
+      - name: Run EF Migrations Production
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet tool install --global dotnet-ef
-          dotnet ef database update \
-            --project src/Kindergarten.Infrastructure/Kindergarten.Infrastructure.csproj \
-            --startup-project src/Kindergarten.Api/Kindergarten.Api.csproj
+          dotnet ef database update --project src/Kindergarten.Infrastructure/Kindergarten.Infrastructure.csproj --startup-project src/Kindergarten.Api/Kindergarten.Api.csproj
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.SQL_CONNECTION_PROD }}
       - name: Deploy to Production
