@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kindergarten.Maui.Views.Auth.LoginPage"
+             BackgroundColor="#0f172a"
+             Shell.NavBarIsVisible="False">
+
+  <ScrollView>
+    <VerticalStackLayout Padding="32" Spacing="24" VerticalOptions="Center">
+
+      <!-- Logo -->
+      <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+        <Frame BackgroundColor="#f97316" CornerRadius="16" Padding="16" HorizontalOptions="Center">
+          <Label Text="🏫" FontSize="40" HorizontalOptions="Center"/>
+        </Frame>
+        <Label Text="KMS" FontSize="28" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+        <Label x:Name="SubtitleLabel" Text="نظام إدارة الروضة" FontSize="14" TextColor="#94a3b8" HorizontalOptions="Center"/>
+      </VerticalStackLayout>
+
+      <!-- Language Toggle -->
+      <HorizontalStackLayout HorizontalOptions="Center" Spacing="0">
+        <Button x:Name="ArBtn" Text="AR" BackgroundColor="#f97316" TextColor="White"
+                CornerRadius="8" Padding="12,6" FontSize="13" FontAttributes="Bold"
+                Clicked="OnArClicked"/>
+        <Button x:Name="EnBtn" Text="EN" BackgroundColor="#1e293b" TextColor="#94a3b8"
+                CornerRadius="8" Padding="12,6" FontSize="13" FontAttributes="Bold"
+                Clicked="OnEnClicked"/>
+      </HorizontalStackLayout>
+
+      <!-- Form Card -->
+      <Frame BackgroundColor="#1e293b" CornerRadius="16" Padding="24" BorderColor="#334155">
+        <VerticalStackLayout Spacing="16">
+
+          <Label x:Name="WelcomeLabel" Text="مرحباً بعودتك" FontSize="22"
+                 FontAttributes="Bold" TextColor="White"/>
+          <Label x:Name="SignInLabel" Text="سجّل دخولك للمتابعة" FontSize="14" TextColor="#94a3b8"/>
+
+          <!-- Email -->
+          <VerticalStackLayout Spacing="6">
+            <Label x:Name="EmailLabel" Text="البريد الإلكتروني" FontSize="13"
+                   FontAttributes="Bold" TextColor="#94a3b8"/>
+            <Frame BackgroundColor="#0f172a" CornerRadius="10" Padding="0" BorderColor="#334155">
+              <Entry x:Name="EmailEntry" Placeholder="admin@kms.com"
+                     PlaceholderColor="#475569" TextColor="White"
+                     BackgroundColor="Transparent" Margin="12,8"
+                     Keyboard="Email"/>
+            </Frame>
+          </VerticalStackLayout>
+
+          <!-- Password -->
+          <VerticalStackLayout Spacing="6">
+            <Label x:Name="PasswordLabel" Text="كلمة المرور" FontSize="13"
+                   FontAttributes="Bold" TextColor="#94a3b8"/>
+            <Frame BackgroundColor="#0f172a" CornerRadius="10" Padding="0" BorderColor="#334155">
+              <Entry x:Name="PasswordEntry" IsPassword="True"
+                     PlaceholderColor="#475569" TextColor="White"
+                     BackgroundColor="Transparent" Margin="12,8"/>
+            </Frame>
+          </VerticalStackLayout>
+
+          <!-- Error -->
+          <Label x:Name="ErrorLabel" Text="" TextColor="#ef4444" FontSize="13"
+                 IsVisible="False" HorizontalOptions="Center"/>
+
+          <!-- Login Button -->
+          <Button x:Name="LoginButton" Text="تسجيل الدخول"
+                  BackgroundColor="#f97316" TextColor="White"
+                  CornerRadius="12" FontSize="16" FontAttributes="Bold"
+                  HeightRequest="52" Clicked="OnLoginClicked"/>
+
+        </VerticalStackLayout>
+      </Frame>
+
+    </VerticalStackLayout>
+  </ScrollView>
+</ContentPage>

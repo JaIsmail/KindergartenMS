@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kindergarten.Maui.Views.Driver.DriverTripsPage"
+             BackgroundColor="#f0f4f8">
+
+  <Shell.TitleView>
+    <Label Text="رحلاتي" TextColor="White" FontSize="18"
+           FontAttributes="Bold" VerticalOptions="Center"/>
+  </Shell.TitleView>
+
+  <RefreshView x:Name="RefreshView" Refreshing="OnRefreshing">
+    <ScrollView>
+      <VerticalStackLayout Padding="16" Spacing="16">
+
+        <!-- Active Trip Banner -->
+        <Frame x:Name="ActiveTripFrame" IsVisible="False"
+               BackgroundColor="#3b82f6" CornerRadius="16" Padding="20" BorderColor="Transparent">
+          <VerticalStackLayout Spacing="8">
+            <Label x:Name="ActiveTripLabel" Text="رحلة جارية" FontSize="18"
+                   FontAttributes="Bold" TextColor="White"/>
+            <Label x:Name="ActiveTripIdLabel" Text="" FontSize="14" TextColor="#dbeafe"/>
+            <Button x:Name="EndTripButton" Text="إنهاء الرحلة"
+                    BackgroundColor="White" TextColor="#3b82f6"
+                    CornerRadius="10" FontAttributes="Bold"
+                    Clicked="OnEndTripClicked"/>
+          </VerticalStackLayout>
+        </Frame>
+
+        <!-- Trips List -->
+        <Label x:Name="TripsLabel" Text="جميع الرحلات" FontSize="18"
+               FontAttributes="Bold" TextColor="#0f172a"/>
+
+        <CollectionView x:Name="TripsList" SelectionMode="None">
+          <CollectionView.ItemTemplate>
+            <DataTemplate>
+              <Frame BackgroundColor="White" CornerRadius="14" Padding="16"
+                     BorderColor="#e2e8f0" Margin="0,0,0,8">
+                <VerticalStackLayout Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="{Binding Direction}"
+                           FontSize="15" FontAttributes="Bold" TextColor="#0f172a"/>
+                    <Label Grid.Column="1" Text="{Binding Status}"
+                           FontSize="12" FontAttributes="Bold" TextColor="#f97316"/>
+                  </Grid>
+                  <Label Text="{Binding Date, StringFormat='{0:dd/MM/yyyy}'}"
+                         FontSize="13" TextColor="#64748b"/>
+
+                  <!-- Children in trip -->
+                  <CollectionView ItemsSource="{Binding Children}" SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,4">
+                          <Label Grid.Column="0" Text="{Binding ChildName}"
+                                 FontSize="13" TextColor="#475569"/>
+                          <Label Grid.Column="1" Text="{Binding PickupStatus}"
+                                 FontSize="11" TextColor="#22c55e" Margin="0,0,8,0"/>
+                          <Label Grid.Column="2" Text="{Binding DropoffStatus}"
+                                 FontSize="11" TextColor="#3b82f6"/>
+                        </Grid>
+                      </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                  </CollectionView>
+
+                  <!-- Start Button (only for Created trips) -->
+                  <Button Text="بدء الرحلة" BackgroundColor="#f97316" TextColor="White"
+                          CornerRadius="10" FontAttributes="Bold" HeightRequest="44"
+                          IsVisible="{Binding Status, Converter={StaticResource StatusToBoolConverter}}"
+                          CommandParameter="{Binding Id}"
+                          Clicked="OnStartTripClicked"/>
+                </VerticalStackLayout>
+              </Frame>
+            </DataTemplate>
+          </CollectionView.ItemTemplate>
+        </CollectionView>
+
+      </VerticalStackLayout>
+    </ScrollView>
+  </RefreshView>
+</ContentPage>

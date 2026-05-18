@@ -1,0 +1,12 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kindergarten.Maui.App">
+  <Application.Resources>
+    <ResourceDictionary>
+      <Color x:Key="Primary">#f97316</Color>
+      <Color x:Key="PrimaryDark">#ea580c</Color>
+      <Color x:Key="Secondary">#0f172a</Color>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

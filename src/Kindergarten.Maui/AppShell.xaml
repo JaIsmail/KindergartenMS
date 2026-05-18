@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:auth="clr-namespace:Kindergarten.Maui.Views.Auth"
+       xmlns:parent="clr-namespace:Kindergarten.Maui.Views.Parent"
+       xmlns:driver="clr-namespace:Kindergarten.Maui.Views.Driver"
+       xmlns:employee="clr-namespace:Kindergarten.Maui.Views.Employee"
+       x:Class="Kindergarten.Maui.AppShell"
+       Shell.NavBarBackgroundColor="#f97316"
+       Shell.NavBarHasShadow="True"
+       Shell.TitleColor="White">
+
+  <!-- Login (default) -->
+  <ShellContent Route="login" ContentTemplate="{DataTemplate auth:LoginPage}" Shell.NavBarIsVisible="False"/>
+
+  <!-- Parent -->
+  <TabBar Route="parent">
+    <ShellContent Route="dashboard" Title="الرئيسية" Icon="home.png"
+                  ContentTemplate="{DataTemplate parent:ParentDashboardPage}"/>
+  </TabBar>
+
+  <!-- Driver -->
+  <TabBar Route="driver">
+    <ShellContent Route="trips" Title="الرحلات" Icon="bus.png"
+                  ContentTemplate="{DataTemplate driver:DriverTripsPage}"/>
+  </TabBar>
+
+  <!-- Employee -->
+  <TabBar Route="employee">
+    <ShellContent Route="attendance" Title="الحضور" Icon="clock.png"
+                  ContentTemplate="{DataTemplate employee:EmployeeAttendancePage}"/>
+  </TabBar>
+
+</Shell>
