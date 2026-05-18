@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Kindergarten.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +54,8 @@ builder.Services.AddAuthentication(options =>
 
 // ── Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IChildService, ChildService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -121,5 +124,7 @@ app.MapGet("/dbtest", async (ApplicationDbContext db) =>
         return Results.Problem(ex.Message);
     }
 });
+
+app.MapHub<TripHub>("/hubs/trip");
 
 app.Run();
