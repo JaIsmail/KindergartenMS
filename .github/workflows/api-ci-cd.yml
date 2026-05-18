@@ -1,17 +1,13 @@
 name: KMS API — CI/CD
-
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
-
 env:
   DOTNET_VERSION: '9.0.x'
-
 jobs:
-
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
@@ -21,10 +17,13 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      - name: Restore
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --no-restore -c Release
+      - name: Restore API projects only
+        run: |
+          dotnet restore src/Kindergarten.Core/Kindergarten.Core.csproj
+          dotnet restore src/Kindergarten.Infrastructure/Kindergarten.Infrastructure.csproj
+          dotnet restore src/Kindergarten.Api/Kindergarten.Api.csproj
+      - name: Build API only
+        run: dotnet build src/Kindergarten.Api/Kindergarten.Api.csproj --no-restore -c Release
       - name: Publish
         run: dotnet publish src/Kindergarten.Api/Kindergarten.Api.csproj -c Release -o ./publish
       - name: Upload artifact
@@ -32,9 +31,8 @@ jobs:
         with:
           name: kms-api
           path: ./publish
-
   deploy-staging:
-    name: Deploy → Staging
+    name: Deploy to Staging
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -67,9 +65,8 @@ jobs:
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_STAGING }}
           package: ./publish
-
   deploy-prod:
-    name: Deploy → Production
+    name: Deploy to Production
     needs: deploy-staging
     runs-on: ubuntu-latest
     environment: production
