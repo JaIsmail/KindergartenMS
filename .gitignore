@@ -1,0 +1,22 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+*.swp
+
+## Secrets — NEVER commit these
+appsettings.Development.json
+appsettings.Production.json
+*.pfx
+*.key
+
+## Build outputs
+publish/
+*.nupkg
+
+## OS
+.DS_Store
+Thumbs.db
