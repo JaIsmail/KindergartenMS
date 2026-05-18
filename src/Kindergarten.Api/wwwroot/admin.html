@@ -642,9 +642,9 @@ async function loadUsers(){
     btn.addEventListener('click',()=>{
       const action=btn.dataset.action;
       const id=btn.dataset.id;
-      if(action==='view') viewUser(id);
-      else if(action==='edit') editUser(id,btn.dataset.name,btn.dataset.phone,btn.dataset.role);
-      else if(action==='delete') deleteUser(id,btn.dataset.name);
+      if(action==='view') openViewModal(id);
+      else if(action==='edit') openEditModal(id,btn.dataset.name,btn.dataset.phone,btn.dataset.role);
+      else if(action==='delete') openDeleteModal(id,btn.dataset.name);
     });
   });
 }
