@@ -1,7 +1,7 @@
 using System.Text;
 using Kindergarten.Core.Entities;
-using Kindergarten.Core.Interfaces;
 using Kindergarten.Infrastructure.Data;
+using Kindergarten.Core.Interfaces;
 using Kindergarten.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -53,6 +53,9 @@ builder.Services.AddAuthentication(options =>
 
 // ── Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IChildService, ChildService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // ── Controllers + Swagger
 builder.Services.AddControllers();
