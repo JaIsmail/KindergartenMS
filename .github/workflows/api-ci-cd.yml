@@ -45,8 +45,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      - name: Restore
-        run: dotnet restore
+      - name: Restore API only
+        run: dotnet restore src/Kindergarten.Api/Kindergarten.Api.csproj
       - uses: actions/download-artifact@v4
         with:
           name: kms-api
@@ -79,8 +79,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      - name: Restore
-        run: dotnet restore
+      - name: Restore API only
+        run: dotnet restore src/Kindergarten.Api/Kindergarten.Api.csproj
       - uses: actions/download-artifact@v4
         with:
           name: kms-api
