@@ -1,341 +1,410 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KMS Admin Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;
-      --primary:#f97316;--primary2:#ea580c;--primary3:#fff7ed;
-      --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--purple:#a855f7;
-      --text:#0f172a;--text2:#475569;--text3:#94a3b8;
-    }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;}
-    .sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--text);display:flex;flex-direction:column;z-index:100;}
-    .sidebar::before{content:'';position:absolute;top:-100px;right:-100px;width:300px;height:300px;background:radial-gradient(circle,rgba(249,115,22,0.15),transparent 70%);pointer-events:none;}
-    .logo{padding:1.5rem 1.5rem 1rem;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0.5rem;}
-    .logo-icon{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
-    .logo-text h1{color:white;font-size:0.95rem;font-weight:800;}
-    .logo-text p{color:rgba(255,255,255,0.4);font-size:0.65rem;}
-    .nav-section{padding:0 0.8rem;margin-bottom:0.5rem;}
-    .nav-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.25);padding:0.5rem 0.7rem 0.3rem;}
-    .nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:0.83rem;font-weight:500;transition:all 0.15s;border:none;background:none;width:100%;text-align:left;margin-bottom:1px;}
-    .nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.9);}
-    .nav-item.active{background:var(--primary);color:white;}
-    .nav-item .icon{font-size:1rem;width:20px;text-align:center;}
-    .nav-badge{margin-left:auto;background:rgba(255,255,255,0.15);color:white;padding:0.1rem 0.45rem;border-radius:50px;font-size:0.65rem;font-weight:700;}
-    .sidebar-footer{margin-top:auto;padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,0.06);}
-    .api-status{display:flex;align-items:center;gap:0.5rem;font-size:0.72rem;color:rgba(255,255,255,0.4);}
-    .api-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
-    .api-dot.red{background:var(--red);box-shadow:0 0 6px var(--red);animation:none;}
-    .main{margin-left:240px;min-height:100vh;display:flex;flex-direction:column;}
-    .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
-    .topbar-left h2{font-size:1rem;font-weight:700;}
-    .topbar-left p{font-size:0.75rem;color:var(--text3);}
-    .topbar-right{display:flex;align-items:center;gap:0.8rem;}
-    .btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;font-family:'Outfit',sans-serif;}
-    .btn-primary{background:var(--primary);color:white;}
-    .btn-primary:hover{background:var(--primary2);}
-    .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
-    .btn-ghost:hover{background:var(--surface2);}
-    .btn-sm{padding:0.3rem 0.7rem;font-size:0.75rem;}
-    .avatar{width:34px;height:34px;background:var(--primary3);border:2px solid var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--primary2);cursor:pointer;}
-    .page{display:none;padding:2rem;}
-    .page.active{display:block;animation:fadeIn 0.3s ease;}
-    .login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);position:fixed;inset:0;z-index:999;}
-    .login-box{background:white;border-radius:20px;padding:2.5rem;width:380px;box-shadow:0 25px 50px rgba(0,0,0,0.3);}
-    .login-logo{display:flex;align-items:center;gap:0.8rem;margin-bottom:2rem;}
-    .login-logo .icon{width:44px;height:44px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
-    .login-logo h1{font-size:1.1rem;font-weight:800;}
-    .login-logo p{font-size:0.72rem;color:var(--text3);}
-    .login-box h2{font-size:1.4rem;font-weight:800;margin-bottom:0.3rem;}
-    .login-box .sub{color:var(--text2);font-size:0.85rem;margin-bottom:1.5rem;}
-    .form-group{margin-bottom:1rem;}
-    .form-group label{display:block;font-size:0.78rem;font-weight:600;color:var(--text2);margin-bottom:0.4rem;}
-    .form-group input{width:100%;padding:0.65rem 0.9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.85rem;outline:none;transition:border-color 0.15s;}
-    .form-group input:focus{border-color:var(--primary);}
-    .login-btn{width:100%;padding:0.75rem;background:var(--primary);color:white;border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;margin-top:0.5rem;}
-    .login-btn:hover{background:var(--primary2);}
-    .login-btn:disabled{background:var(--text3);cursor:not-allowed;}
-    .login-error{background:#fef2f2;border:1px solid #fecaca;color:var(--red);padding:0.6rem 0.9rem;border-radius:8px;font-size:0.8rem;margin-top:0.8rem;display:none;}
-    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem;}
-    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.3rem 1.5rem;position:relative;overflow:hidden;}
-    .stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:0.8rem;}
-    .stat-num{font-size:1.9rem;font-weight:900;line-height:1;margin-bottom:0.3rem;}
-    .stat-label{font-size:0.78rem;color:var(--text2);font-weight:500;}
-    .table-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;}
-    .table-head{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-    .table-head h3{font-size:0.88rem;font-weight:700;}
-    table{width:100%;border-collapse:collapse;}
-    thead th{background:var(--surface2);padding:0.7rem 1.2rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);border-bottom:1px solid var(--border);}
-    tbody td{padding:0.8rem 1.2rem;font-size:0.82rem;color:var(--text2);border-bottom:1px solid var(--border);vertical-align:middle;}
-    tbody tr:last-child td{border-bottom:none;}
-    tbody tr:hover td{background:var(--surface2);}
-    .badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.6rem;border-radius:50px;font-size:0.7rem;font-weight:700;}
-    .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
-    .badge-green{background:#dcfce7;color:#16a34a;}
-    .badge-blue{background:#dbeafe;color:#2563eb;}
-    .badge-orange{background:#fff7ed;color:#ea580c;}
-    .badge-red{background:#fee2e2;color:#dc2626;}
-    .badge-gray{background:#f1f5f9;color:#64748b;}
-    .loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--text3);gap:0.5rem;font-size:0.82rem;}
-    .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;}
-    .empty{text-align:center;padding:3rem;color:var(--text3);}
-    .empty .emoji{font-size:2.5rem;margin-bottom:0.8rem;}
-    .empty h4{font-size:0.88rem;font-weight:600;color:var(--text2);margin-bottom:0.3rem;}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
-    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
-    .section-header h3{font-size:0.95rem;font-weight:700;}
-    .section-header p{font-size:0.75rem;color:var(--text3);}
-    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;}
-    .form-card h3{font-size:0.9rem;font-weight:700;margin-bottom:1.2rem;}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
-    .form-row.full{grid-template-columns:1fr;}
-    .form-field label{display:block;font-size:0.75rem;font-weight:600;color:var(--text2);margin-bottom:0.35rem;}
-    .form-field input,.form-field select{width:100%;padding:0.55rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.83rem;color:var(--text);outline:none;background:white;transition:border-color 0.15s;}
-    .form-field input:focus,.form-field select:focus{border-color:var(--primary);}
-    .trip-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:1rem;border-left:4px solid var(--primary);}
-    .trip-card.completed{border-left-color:var(--green);}
-    .trip-card.inprogress{border-left-color:var(--blue);}
-    .trip-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;}
-    .trip-header h4{font-size:0.88rem;font-weight:700;}
-    .trip-meta{display:flex;gap:1rem;margin-bottom:0.8rem;}
-    .trip-meta span{font-size:0.75rem;color:var(--text2);}
-    .child-row{display:flex;align-items:center;justify-content:space-between;padding:0.4rem 0.7rem;background:var(--surface2);border-radius:7px;margin-bottom:0.3rem;font-size:0.78rem;}
-    #toast{position:fixed;bottom:2rem;right:2rem;background:var(--text);color:white;padding:0.8rem 1.2rem;border-radius:10px;font-size:0.82rem;font-weight:500;box-shadow:0 10px 25px rgba(0,0,0,0.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 0.3s;}
-    #toast.show{transform:translateY(0);opacity:1;}
-    #toast.success{background:#16a34a;}
-    #toast.error{background:var(--red);}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-    @keyframes spin{to{transform:rotate(360deg);}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMS — نظام إدارة الروضة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;--primary:#f97316;--primary2:#ea580c;--primary3:#fff7ed;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--purple:#a855f7;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html[lang="ar"]{direction:rtl;} html[lang="en"]{direction:ltr;}
+body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;line-height:1.7;}
+html[lang="en"] body{font-family:'Outfit',sans-serif;}
+.sidebar{position:fixed;top:0;right:0;width:240px;height:100vh;background:var(--text);display:flex;flex-direction:column;z-index:100;}
+html[lang="en"] .sidebar{right:auto;left:0;}
+.logo{padding:1.5rem 1.5rem 1rem;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0.5rem;}
+.logo-icon{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.logo-text h1{color:white;font-size:0.95rem;font-weight:800;}
+.logo-text p{color:rgba(255,255,255,0.4);font-size:0.65rem;}
+.nav-section{padding:0 0.8rem;margin-bottom:0.5rem;}
+.nav-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.25);padding:0.5rem 0.7rem 0.3rem;}
+.nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:0.83rem;font-weight:500;transition:all 0.15s;border:none;background:none;width:100%;text-align:right;margin-bottom:1px;font-family:inherit;}
+html[lang="en"] .nav-item{text-align:left;}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.9);}
+.nav-item.active{background:var(--primary);color:white;}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-right:auto;background:rgba(255,255,255,0.15);color:white;padding:0.1rem 0.45rem;border-radius:50px;font-size:0.65rem;font-weight:700;}
+html[lang="en"] .nav-badge{margin-right:0;margin-left:auto;}
+.sidebar-footer{margin-top:auto;padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,0.06);}
+.api-status{display:flex;align-items:center;gap:0.5rem;font-size:0.72rem;color:rgba(255,255,255,0.4);}
+.api-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
+.api-dot.red{background:var(--red);box-shadow:0 0 6px var(--red);animation:none;}
+.main{margin-right:240px;min-height:100vh;display:flex;flex-direction:column;}
+html[lang="en"] .main{margin-right:0;margin-left:240px;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-left h2{font-size:1rem;font-weight:700;}
+.topbar-left p{font-size:0.75rem;color:var(--text3);}
+.topbar-right{display:flex;align-items:center;gap:0.8rem;}
+.lang-toggle{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.lang-btn{padding:0.3rem 0.7rem;font-size:0.75rem;font-weight:700;border:none;background:none;cursor:pointer;transition:all 0.15s;font-family:inherit;}
+.lang-btn.active{background:var(--primary);color:white;}
+.lang-btn:not(.active){color:var(--text2);}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;font-family:inherit;}
+.btn-primary{background:var(--primary);color:white;}
+.btn-primary:hover{background:var(--primary2);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface2);}
+.btn-sm{padding:0.3rem 0.7rem;font-size:0.75rem;}
+.avatar{width:34px;height:34px;background:var(--primary3);border:2px solid var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--primary2);cursor:pointer;}
+.page{display:none;padding:2rem;}
+.page.active{display:block;animation:fadeIn 0.3s ease;}
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);position:fixed;inset:0;z-index:999;}
+.login-box{background:white;border-radius:20px;padding:2.5rem;width:400px;box-shadow:0 25px 50px rgba(0,0,0,0.3);}
+.login-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+.login-logo{display:flex;align-items:center;gap:0.8rem;}
+.login-logo .icon{width:44px;height:44px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.login-logo h1{font-size:1rem;font-weight:800;}
+.login-logo p{font-size:0.7rem;color:var(--text3);}
+.login-lang{display:flex;background:#f1f5f9;border-radius:8px;overflow:hidden;}
+.login-lang button{padding:0.3rem 0.7rem;font-size:0.75rem;font-weight:700;border:none;background:none;cursor:pointer;font-family:inherit;}
+.login-lang button.active{background:var(--primary);color:white;border-radius:7px;}
+.login-box h2{font-size:1.4rem;font-weight:800;margin-bottom:0.3rem;}
+.login-box .sub{color:var(--text2);font-size:0.85rem;margin-bottom:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.78rem;font-weight:600;color:var(--text2);margin-bottom:0.4rem;}
+.form-group input{width:100%;padding:0.65rem 0.9rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;outline:none;transition:border-color 0.15s;direction:ltr;}
+.form-group input:focus{border-color:var(--primary);}
+.login-btn{width:100%;padding:0.75rem;background:var(--primary);color:white;border:none;border-radius:10px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;margin-top:0.5rem;}
+.login-btn:hover{background:var(--primary2);}
+.login-btn:disabled{background:var(--text3);cursor:not-allowed;}
+.login-error{background:#fef2f2;border:1px solid #fecaca;color:var(--red);padding:0.6rem 0.9rem;border-radius:8px;font-size:0.8rem;margin-top:0.8rem;display:none;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.3rem 1.5rem;}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:0.8rem;}
+.stat-num{font-size:1.9rem;font-weight:900;line-height:1;margin-bottom:0.3rem;}
+.stat-label{font-size:0.78rem;color:var(--text2);font-weight:500;}
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;}
+.table-head{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-head h3{font-size:0.88rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--surface2);padding:0.7rem 1.2rem;text-align:right;font-size:0.72rem;font-weight:700;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);}
+html[lang="en"] thead th{text-align:left;}
+tbody td{padding:0.8rem 1.2rem;font-size:0.82rem;color:var(--text2);border-bottom:1px solid var(--border);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--surface2);}
+.badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.6rem;border-radius:50px;font-size:0.7rem;font-weight:700;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.badge-green{background:#dcfce7;color:#16a34a;}
+.badge-blue{background:#dbeafe;color:#2563eb;}
+.badge-orange{background:#fff7ed;color:#ea580c;}
+.badge-red{background:#fee2e2;color:#dc2626;}
+.badge-gray{background:#f1f5f9;color:#64748b;}
+.badge-purple{background:#f3e8ff;color:#9333ea;}
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--text3);gap:0.5rem;font-size:0.82rem;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;}
+.empty{text-align:center;padding:3rem;color:var(--text3);}
+.empty .emoji{font-size:2.5rem;margin-bottom:0.8rem;}
+.empty h4{font-size:0.88rem;font-weight:600;color:var(--text2);margin-bottom:0.3rem;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.section-header h3{font-size:0.95rem;font-weight:700;}
+.section-header p{font-size:0.75rem;color:var(--text3);}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;}
+.form-card h3{font-size:0.9rem;font-weight:700;margin-bottom:1.2rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.form-row.full{grid-template-columns:1fr;}
+.form-field label{display:block;font-size:0.75rem;font-weight:600;color:var(--text2);margin-bottom:0.35rem;}
+.form-field input,.form-field select{width:100%;padding:0.55rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.83rem;color:var(--text);outline:none;background:white;transition:border-color 0.15s;}
+.form-field input{direction:ltr;}
+.form-field input:focus,.form-field select:focus{border-color:var(--primary);}
+.trip-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:1rem;border-right:4px solid var(--primary);}
+html[lang="en"] .trip-card{border-right:none;border-left:4px solid var(--primary);}
+.trip-card.completed{border-color:var(--green);}
+.trip-card.inprogress{border-color:var(--blue);}
+.trip-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;}
+.trip-header h4{font-size:0.88rem;font-weight:700;}
+.trip-meta{display:flex;gap:1rem;margin-bottom:0.8rem;flex-wrap:wrap;}
+.trip-meta span{font-size:0.75rem;color:var(--text2);}
+.child-row{display:flex;align-items:center;justify-content:space-between;padding:0.4rem 0.7rem;background:var(--surface2);border-radius:7px;margin-bottom:0.3rem;font-size:0.78rem;}
+#toast{position:fixed;bottom:2rem;left:2rem;background:var(--text);color:white;padding:0.8rem 1.2rem;border-radius:10px;font-size:0.82rem;font-weight:500;box-shadow:0 10px 25px rgba(0,0,0,0.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 0.3s;}
+html[lang="en"] #toast{left:auto;right:2rem;}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.success{background:#16a34a;}
+#toast.error{background:var(--red);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:900px){.sidebar{width:60px;}.sidebar .logo-text,.sidebar .nav-item span,.sidebar .nav-label,.sidebar .nav-badge,.sidebar-footer span{display:none;}.nav-item{justify-content:center;padding:0.7rem;}.main{margin-right:60px;}html[lang="en"] .main{margin-left:60px;margin-right:0;}.grid-2{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+</style>
 </head>
 <body>
-
 <div class="login-page" id="loginPage">
   <div class="login-box">
-    <div class="login-logo">
-      <div class="icon">🏫</div>
-      <div><h1>KMS Admin</h1><p>Kindergarten Management System</p></div>
+    <div class="login-top">
+      <div class="login-logo"><div class="icon">🏫</div><div><h1>KMS Admin</h1><p data-ar="نظام إدارة الروضة" data-en="Kindergarten Management System">نظام إدارة الروضة</p></div></div>
+      <div class="login-lang"><button id="loginLangAr" class="active" onclick="setLang('ar')">عر</button><button id="loginLangEn" onclick="setLang('en')">EN</button></div>
     </div>
-    <h2>Welcome back</h2>
-    <p class="sub">Sign in to your admin dashboard</p>
-    <div class="form-group">
-      <label>Email Address</label>
-      <input type="email" id="loginEmail" value="admin@kms-staging.com">
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="loginPassword" value="Admin@123456">
-    </div>
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <h2 id="loginTitle">مرحباً بعودتك</h2>
+    <p class="sub" id="loginSub">سجّل دخولك إلى لوحة الإدارة</p>
+    <div class="form-group"><label id="labelEmail">البريد الإلكتروني</label><input type="email" id="loginEmail" value="admin@kms-staging.com"></div>
+    <div class="form-group"><label id="labelPassword">كلمة المرور</label><input type="password" id="loginPassword" value="Admin@123456"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">تسجيل الدخول</button>
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
 
-<aside class="sidebar" id="sidebar">
-  <div class="logo">
-    <div class="logo-icon">🏫</div>
-    <div class="logo-text"><h1>KMS Admin</h1><p>MANAGEMENT SYSTEM</p></div>
+<aside class="sidebar">
+  <div class="logo"><div class="logo-icon">🏫</div><div class="logo-text"><h1>KMS</h1><p data-ar="إدارة الروضة" data-en="Management">إدارة الروضة</p></div></div>
+  <div class="nav-section">
+    <div class="nav-label" data-ar="الرئيسية" data-en="Main">الرئيسية</div>
+    <button class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span data-ar="لوحة التحكم" data-en="Dashboard">لوحة التحكم</span></button>
+    <button class="nav-item" onclick="showPage('children')"><span class="icon">👶</span><span data-ar="الأطفال" data-en="Children">الأطفال</span><span class="nav-badge" id="childrenBadge">0</span></button>
+    <button class="nav-item" onclick="showPage('trips')"><span class="icon">🚌</span><span data-ar="الرحلات" data-en="Trips">الرحلات</span></button>
   </div>
   <div class="nav-section">
-    <div class="nav-label">Main</div>
-    <button class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></button>
-    <button class="nav-item" onclick="showPage('children')"><span class="icon">👶</span><span>Children</span><span class="nav-badge" id="childrenBadge">0</span></button>
-    <button class="nav-item" onclick="showPage('trips')"><span class="icon">🚌</span><span>Trips</span></button>
+    <div class="nav-label" data-ar="المالية" data-en="Finance">المالية</div>
+    <button class="nav-item" onclick="showPage('subscriptions')"><span class="icon">💳</span><span data-ar="الاشتراكات" data-en="Subscriptions">الاشتراكات</span></button>
+    <button class="nav-item" onclick="showPage('payments')"><span class="icon">💰</span><span data-ar="المدفوعات" data-en="Payments">المدفوعات</span></button>
   </div>
   <div class="nav-section">
-    <div class="nav-label">Finance</div>
-    <button class="nav-item" onclick="showPage('subscriptions')"><span class="icon">💳</span><span>Subscriptions</span></button>
-    <button class="nav-item" onclick="showPage('payments')"><span class="icon">💰</span><span>Payments</span></button>
+    <div class="nav-label" data-ar="النظام" data-en="System">النظام</div>
+    <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
+    <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
   </div>
-  <div class="nav-section">
-    <div class="nav-label">System</div>
-    <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span>Users</span></button>
-    <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span>Real-Time</span></button>
-  </div>
-  <div class="sidebar-footer">
-    <div class="api-status">
-      <div class="api-dot" id="apiDot"></div>
-      <span id="apiStatusText">Connecting...</span>
-    </div>
-  </div>
+  <div class="sidebar-footer"><div class="api-status"><div class="api-dot" id="apiDot"></div><span id="apiStatusText">جاري الاتصال...</span></div></div>
 </aside>
 
 <div class="main" id="mainContent" style="display:none;">
   <div class="topbar">
-    <div class="topbar-left">
-      <h2 id="pageTitle">Dashboard</h2>
-      <p id="pageSubtitle">Welcome to KMS Admin Panel</p>
-    </div>
+    <div class="topbar-left"><h2 id="pageTitle">لوحة التحكم</h2><p id="pageSubtitle">مرحباً بك</p></div>
     <div class="topbar-right">
-      <button class="btn btn-ghost btn-sm" onclick="refreshCurrentPage()">🔄 Refresh</button>
-      <button class="btn btn-primary btn-sm" onclick="showPage('children')">+ Add Child</button>
-      <div class="avatar" id="userAvatar" onclick="doLogout()" title="Logout">A</div>
+      <div class="lang-toggle"><button class="lang-btn active" id="langArBtn" onclick="setLang('ar')">عر</button><button class="lang-btn" id="langEnBtn" onclick="setLang('en')">EN</button></div>
+      <button class="btn btn-ghost btn-sm" id="btnRefresh" onclick="refreshCurrentPage()">🔄 تحديث</button>
+      <button class="btn btn-primary btn-sm" id="btnAddChild" onclick="showPage('children')">+ إضافة طفل</button>
+      <div class="avatar" id="userAvatar" onclick="doLogout()">A</div>
     </div>
   </div>
 
   <div class="page active" id="page-dashboard">
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon" style="background:#fff7ed">👶</div><div class="stat-num" id="stat-children">—</div><div class="stat-label">Total Children</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#eff6ff">🚌</div><div class="stat-num" id="stat-trips">—</div><div class="stat-label">Total Trips</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4">💳</div><div class="stat-num" id="stat-subscriptions">—</div><div class="stat-label">Subscriptions</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#faf5ff">👥</div><div class="stat-num" id="stat-users">—</div><div class="stat-label">Registered Users</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#fff7ed">👶</div><div class="stat-num" id="stat-children">—</div><div class="stat-label" id="lbl-children">إجمالي الأطفال</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#eff6ff">🚌</div><div class="stat-num" id="stat-trips">—</div><div class="stat-label" id="lbl-trips">إجمالي الرحلات</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4">💳</div><div class="stat-num" id="stat-subscriptions">—</div><div class="stat-label" id="lbl-subs">الاشتراكات</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#faf5ff">👥</div><div class="stat-num" id="stat-users">—</div><div class="stat-label" id="lbl-users">المستخدمون</div></div>
     </div>
     <div class="grid-2">
-      <div>
-        <div class="section-header"><div><h3>Recent Children</h3></div></div>
-        <div class="table-card"><div id="dash-children-list"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
-      </div>
-      <div>
-        <div class="section-header"><div><h3>Subscriptions Overview</h3></div></div>
-        <div class="table-card"><div id="dash-subs-list"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
-      </div>
+      <div><div class="section-header"><div><h3 id="h-recent-children">آخر الأطفال</h3></div></div><div class="table-card"><div id="dash-children-list"><div class="loading"><div class="spinner"></div></div></div></div></div>
+      <div><div class="section-header"><div><h3 id="h-recent-subs">الاشتراكات الأخيرة</h3></div></div><div class="table-card"><div id="dash-subs-list"><div class="loading"><div class="spinner"></div></div></div></div></div>
     </div>
   </div>
 
   <div class="page" id="page-children">
     <div class="form-card">
-      <h3>➕ Add New Child</h3>
+      <h3 id="h-add-child">➕ إضافة طفل جديد</h3>
       <div class="form-row">
-        <div class="form-field"><label>Child Name</label><input type="text" id="childName" placeholder="Full name"></div>
-        <div class="form-field"><label>Date of Birth</label><input type="date" id="childDob"></div>
+        <div class="form-field"><label id="lbl-child-name">اسم الطفل</label><input type="text" id="childName" placeholder="الاسم الكامل"></div>
+        <div class="form-field"><label id="lbl-child-dob">تاريخ الميلاد</label><input type="date" id="childDob"></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label>Class</label><select id="childClass"><option value="KG1">KG 1</option><option value="KG2">KG 2</option><option value="KG3">KG 3</option></select></div>
-        <div class="form-field"><label>Health Notes</label><input type="text" id="childHealth" placeholder="Any allergies or notes"></div>
+        <div class="form-field"><label id="lbl-child-class">الفصل</label><select id="childClass"><option value="KG1">KG 1</option><option value="KG2">KG 2</option><option value="KG3">KG 3</option></select></div>
+        <div class="form-field"><label id="lbl-child-health">ملاحظات صحية</label><input type="text" id="childHealth" placeholder="أي حساسية أو ملاحظات"></div>
       </div>
-      <button class="btn btn-primary" onclick="createChild()">Add Child</button>
+      <button class="btn btn-primary" id="btn-add-child" onclick="createChild()">إضافة طفل</button>
     </div>
-    <div class="section-header"><div><h3>All Children</h3><p id="children-count">Loading...</p></div></div>
-    <div class="table-card"><div id="children-table"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+    <div class="section-header"><div><h3 id="h-all-children">جميع الأطفال</h3><p id="children-count">جاري التحميل...</p></div></div>
+    <div class="table-card"><div id="children-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
   <div class="page" id="page-trips">
     <div class="section-header">
-      <div><h3>All Trips</h3><p id="trips-count">Loading...</p></div>
-      <button class="btn btn-primary btn-sm" onclick="loadTrips()">🔄 Refresh</button>
+      <div><h3 id="h-all-trips">جميع الرحلات</h3><p id="trips-count">جاري التحميل...</p></div>
+      <button class="btn btn-primary btn-sm" id="btn-refresh-trips" onclick="loadTrips()">🔄 تحديث</button>
     </div>
-    <div id="trips-list"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+    <div id="trips-list"><div class="loading"><div class="spinner"></div></div></div>
   </div>
 
   <div class="page" id="page-subscriptions">
     <div class="form-card">
-      <h3>➕ Create Subscription</h3>
+      <h3 id="h-create-sub">➕ إنشاء اشتراك</h3>
       <div class="form-row">
-        <div class="form-field"><label>Child</label><select id="subChild"></select></div>
-        <div class="form-field"><label>Type</label><select id="subType"><option value="Daily">Daily</option><option value="Monthly" selected>Monthly</option><option value="Yearly">Yearly</option></select></div>
+        <div class="form-field"><label id="lbl-sub-child">الطفل</label><select id="subChild"></select></div>
+        <div class="form-field"><label id="lbl-sub-type">النوع</label><select id="subType"><option value="Daily" id="opt-daily">يومي</option><option value="Monthly" selected id="opt-monthly">شهري</option><option value="Yearly" id="opt-yearly">سنوي</option></select></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label>Price (SAR)</label><input type="number" id="subPrice" value="500"></div>
-        <div class="form-field"><label>Start Date</label><input type="date" id="subStart"></div>
+        <div class="form-field"><label id="lbl-sub-price">السعر (ريال)</label><input type="number" id="subPrice" value="500"></div>
+        <div class="form-field"><label id="lbl-sub-start">تاريخ البداية</label><input type="date" id="subStart"></div>
       </div>
-      <div class="form-row full"><div class="form-field"><label>End Date</label><input type="date" id="subEnd"></div></div>
-      <button class="btn btn-primary" onclick="createSubscription()">Create Subscription</button>
+      <div class="form-row full"><div class="form-field"><label id="lbl-sub-end">تاريخ الانتهاء</label><input type="date" id="subEnd"></div></div>
+      <button class="btn btn-primary" id="btn-create-sub" onclick="createSubscription()">إنشاء اشتراك</button>
     </div>
-    <div class="section-header"><div><h3>All Subscriptions</h3><p id="subs-count">Loading...</p></div></div>
-    <div class="table-card"><div id="subs-table"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+    <div class="section-header"><div><h3 id="h-all-subs">جميع الاشتراكات</h3><p id="subs-count">جاري التحميل...</p></div></div>
+    <div class="table-card"><div id="subs-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
   <div class="page" id="page-payments">
     <div class="form-card">
-      <h3>💰 Record Payment</h3>
+      <h3 id="h-record-pay">💰 تسجيل دفعة</h3>
       <div class="form-row">
-        <div class="form-field"><label>Subscription ID</label><input type="number" id="paySubId" placeholder="1"></div>
-        <div class="form-field"><label>Amount (SAR)</label><input type="number" id="payAmount" value="500"></div>
+        <div class="form-field"><label id="lbl-pay-sub">رقم الاشتراك</label><input type="number" id="paySubId" placeholder="1"></div>
+        <div class="form-field"><label id="lbl-pay-amount">المبلغ (ريال)</label><input type="number" id="payAmount" value="500"></div>
       </div>
-      <div class="form-row full"><div class="form-field"><label>Method</label><select id="payMethod"><option value="Cash">Cash</option><option value="Transfer">Bank Transfer</option><option value="Online">Online</option></select></div></div>
-      <button class="btn btn-primary" onclick="recordPayment()">Record Payment</button>
+      <div class="form-row full"><div class="form-field"><label id="lbl-pay-method">طريقة الدفع</label><select id="payMethod"><option value="Cash" id="opt-cash">نقداً</option><option value="Transfer" id="opt-transfer">تحويل بنكي</option><option value="Online" id="opt-online">دفع إلكتروني</option></select></div></div>
+      <button class="btn btn-primary" id="btn-record-pay" onclick="recordPayment()">تسجيل الدفعة</button>
     </div>
-    <div class="section-header"><div><h3>Payment History</h3></div></div>
-    <div class="table-card"><div id="payments-table"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+    <div class="section-header"><div><h3 id="h-pay-history">سجل المدفوعات</h3></div></div>
+    <div class="table-card"><div id="payments-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
   <div class="page" id="page-users">
     <div class="form-card">
-      <h3>➕ Register New User</h3>
+      <h3 id="h-reg-user">➕ تسجيل مستخدم جديد</h3>
       <div class="form-row">
-        <div class="form-field"><label>Full Name</label><input type="text" id="newUserName"></div>
-        <div class="form-field"><label>Email</label><input type="email" id="newUserEmail"></div>
+        <div class="form-field"><label id="lbl-user-name">الاسم الكامل</label><input type="text" id="newUserName"></div>
+        <div class="form-field"><label id="lbl-user-email">البريد الإلكتروني</label><input type="email" id="newUserEmail"></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label>Password</label><input type="password" id="newUserPass"></div>
-        <div class="form-field"><label>Phone</label><input type="text" id="newUserPhone"></div>
+        <div class="form-field"><label id="lbl-user-pass">كلمة المرور</label><input type="password" id="newUserPass"></div>
+        <div class="form-field"><label id="lbl-user-phone">رقم الهاتف</label><input type="text" id="newUserPhone"></div>
       </div>
-      <div class="form-row full"><div class="form-field"><label>Role</label><select id="newUserRole"><option value="Parent">Parent</option><option value="Driver">Driver</option><option value="Admin">Admin</option><option value="Employee">Employee</option></select></div></div>
-      <button class="btn btn-primary" onclick="registerUser()">Register User</button>
+      <div class="form-row full"><div class="form-field"><label id="lbl-user-role">الدور</label><select id="newUserRole"><option value="Parent" id="opt-parent">ولي أمر</option><option value="Driver" id="opt-driver">سائق</option><option value="Admin" id="opt-admin">مدير</option><option value="Employee" id="opt-employee">موظف</option></select></div></div>
+      <button class="btn btn-primary" id="btn-reg-user" onclick="registerUser()">تسجيل المستخدم</button>
     </div>
-    <div class="section-header"><div><h3>System Info</h3><p id="users-count">Loading...</p></div></div>
-    <div class="table-card"><div id="users-table"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+    <div class="section-header"><div><h3 id="h-all-users">المستخدمون</h3><p id="users-count">جاري التحميل...</p></div></div>
+    <div class="table-card"><div id="users-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
   <div class="page" id="page-signalr">
     <div class="form-card">
-      <h3>📡 Real-Time Monitor — SignalR Hub</h3>
-      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem;">Live connection to SignalR hub at <code style="font-family:'JetBrains Mono',monospace;background:#f1f5f9;padding:0.1rem 0.4rem;border-radius:4px;">/hubs/trip</code></p>
-      <div style="display:flex;gap:0.8rem;align-items:center;">
-        <button class="btn btn-primary btn-sm" onclick="connectSignalR()">🔌 Connect</button>
-        <button class="btn btn-ghost btn-sm" onclick="disconnectSignalR()">⛔ Disconnect</button>
-        <span id="signalr-status" class="badge badge-gray">Disconnected</span>
+      <h3 id="h-signalr">📡 مراقب الوقت الفعلي</h3>
+      <div style="display:flex;gap:0.8rem;align-items:center;margin-top:0.8rem;">
+        <button class="btn btn-primary btn-sm" id="btn-connect" onclick="connectSignalR()">🔌 اتصال</button>
+        <button class="btn btn-ghost btn-sm" id="btn-disconnect" onclick="disconnectSignalR()">⛔ قطع</button>
+        <span id="signalr-status" class="badge badge-gray">غير متصل</span>
       </div>
     </div>
     <div class="table-card">
-      <div class="table-head"><h3>Live Events Log</h3></div>
-      <div id="signalr-log" style="padding:1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;height:350px;overflow-y:auto;color:var(--text2);">
-        <div style="color:var(--text3);text-align:center;padding:2rem;">Click Connect to start listening...</div>
-      </div>
+      <div class="table-head"><h3 id="h-log">سجل الأحداث</h3></div>
+      <div id="signalr-log" style="padding:1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;height:350px;overflow-y:auto;color:var(--text2);direction:ltr;text-align:left;"><div style="color:var(--text3);text-align:center;padding:2rem;">Click Connect...</div></div>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
-
 <script>
 const API='https://kms-api-staging-kg01.azurewebsites.net';
 let token=localStorage.getItem('kms_token');
 let currentPage='dashboard';
+let currentLang=localStorage.getItem('kms_lang')||'ar';
 let signalrConnection=null;
 
+const T={
+ar:{
+  pages:{dashboard:'لوحة التحكم',children:'الأطفال',trips:'الرحلات',subscriptions:'الاشتراكات',payments:'المدفوعات',users:'المستخدمون',signalr:'الوقت الفعلي'},
+  subs:{dashboard:'نظرة عامة على النظام',children:'إدارة الأطفال المسجلين',trips:'عرض وإدارة الرحلات',subscriptions:'إدارة اشتراكات النقل',payments:'تتبع سجلات الدفع',users:'إدارة مستخدمي النظام',signalr:'اتصال SignalR المباشر'},
+  apiLive:'متصل',apiOffline:'غير متصل',loading:'جاري التحميل...',noData:'لا توجد بيانات',
+  refresh:'🔄 تحديث',addChild:'+ إضافة طفل',logout:'تسجيل الخروج',
+  loginTitle:'مرحباً بعودتك',loginSub:'سجّل دخولك إلى لوحة الإدارة',
+  labelEmail:'البريد الإلكتروني',labelPassword:'كلمة المرور',loginBtn:'تسجيل الدخول',
+  childrenCount:' طفل',subsCount:' اشتراك',usersCount:' مستخدم',tripsCount:' رحلة',
+  toSchool:'🏫 إلى الروضة',toHome:'🏠 إلى المنزل',
+  status:{Created:'تم الإنشاء',InProgress:'جارية',Completed:'مكتملة',Pending:'معلق',PickedUp:'تم الاستلام',DroppedOff:'تم التوصيل',Missed:'فائت',Paid:'مدفوع',Overdue:'متأخر'},
+  roles:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'},
+  methods:{Cash:'نقداً',Transfer:'تحويل بنكي',Online:'دفع إلكتروني'},
+  cols:{id:'#',name:'الاسم',dob:'تاريخ الميلاد',class:'الفصل',parent:'ولي الأمر',health:'ملاحظات',child:'الطفل',type:'النوع',price:'السعر',period:'الفترة',status:'الحالة',sub:'الاشتراك',amount:'المبلغ',method:'الدفع',date:'التاريخ',fullName:'الاسم',email:'البريد',phone:'الهاتف',role:'الدور'},
+  err:{fill:'يرجى ملء جميع الحقول',failed:'فشلت العملية',noConn:'لا يمكن الاتصال بالخادم',wrongPass:'بيانات الدخول غير صحيحة'},
+  succ:{child:'تمت إضافة الطفل بنجاح',sub:'تم إنشاء الاشتراك بنجاح',pay:'تم تسجيل الدفعة بنجاح',user:'تم تسجيل المستخدم بنجاح'},
+  forms:{addChild:'➕ إضافة طفل جديد',childName:'اسم الطفل',childDob:'تاريخ الميلاد',childClass:'الفصل',childHealth:'ملاحظات صحية',addChildBtn:'إضافة طفل',allChildren:'جميع الأطفال',
+    createSub:'➕ إنشاء اشتراك',subChild:'الطفل',subType:'النوع',subPrice:'السعر (ريال)',subStart:'تاريخ البداية',subEnd:'تاريخ الانتهاء',createSubBtn:'إنشاء اشتراك',allSubs:'جميع الاشتراكات',
+    recordPay:'💰 تسجيل دفعة',paySub:'رقم الاشتراك',payAmount:'المبلغ (ريال)',payMethod:'طريقة الدفع',recordPayBtn:'تسجيل الدفعة',payHistory:'سجل المدفوعات',
+    regUser:'➕ تسجيل مستخدم جديد',userName:'الاسم الكامل',userEmail:'البريد الإلكتروني',userPass:'كلمة المرور',userPhone:'رقم الهاتف',userRole:'الدور',regUserBtn:'تسجيل المستخدم',allUsers:'المستخدمون',
+    signalrTitle:'📡 مراقب الوقت الفعلي',connect:'🔌 اتصال',disconnect:'⛔ قطع',logTitle:'سجل الأحداث',connected:'متصل',disconnected:'غير متصل',
+    recentChildren:'آخر الأطفال',recentSubs:'الاشتراكات الأخيرة',
+    daily:'يومي',monthly:'شهري',yearly:'سنوي',
+    cash:'نقداً',transfer:'تحويل بنكي',online:'دفع إلكتروني',
+    parent:'ولي أمر',driver:'سائق',admin:'مدير',employee:'موظف',
+    statChildren:'إجمالي الأطفال',statTrips:'إجمالي الرحلات',statSubs:'الاشتراكات',statUsers:'المستخدمون'}
+},
+en:{
+  pages:{dashboard:'Dashboard',children:'Children',trips:'Trips',subscriptions:'Subscriptions',payments:'Payments',users:'Users',signalr:'Real-Time'},
+  subs:{dashboard:'System overview',children:'Manage registered children',trips:'View and manage trips',subscriptions:'Manage subscriptions',payments:'Track payment records',users:'Manage system users',signalr:'Live SignalR connection'},
+  apiLive:'Live',apiOffline:'Offline',loading:'Loading...',noData:'No data found',
+  refresh:'🔄 Refresh',addChild:'+ Add Child',logout:'Logout',
+  loginTitle:'Welcome back',loginSub:'Sign in to your admin dashboard',
+  labelEmail:'Email Address',labelPassword:'Password',loginBtn:'Sign In',
+  childrenCount:' children',subsCount:' subscriptions',usersCount:' users',tripsCount:' trips',
+  toSchool:'🏫 To School',toHome:'🏠 To Home',
+  status:{Created:'Created',InProgress:'In Progress',Completed:'Completed',Pending:'Pending',PickedUp:'Picked Up',DroppedOff:'Dropped Off',Missed:'Missed',Paid:'Paid',Overdue:'Overdue'},
+  roles:{Admin:'Admin',Parent:'Parent',Driver:'Driver',Employee:'Employee'},
+  methods:{Cash:'Cash',Transfer:'Bank Transfer',Online:'Online'},
+  cols:{id:'#',name:'Name',dob:'Date of Birth',class:'Class',parent:'Parent',health:'Health Notes',child:'Child',type:'Type',price:'Price',period:'Period',status:'Status',sub:'Subscription',amount:'Amount',method:'Method',date:'Date',fullName:'Full Name',email:'Email',phone:'Phone',role:'Role'},
+  err:{fill:'Please fill all required fields',failed:'Operation failed',noConn:'Cannot connect to server',wrongPass:'Invalid email or password'},
+  succ:{child:'Child added successfully',sub:'Subscription created',pay:'Payment recorded',user:'User registered'},
+  forms:{addChild:'➕ Add New Child',childName:'Child Name',childDob:'Date of Birth',childClass:'Class',childHealth:'Health Notes',addChildBtn:'Add Child',allChildren:'All Children',
+    createSub:'➕ Create Subscription',subChild:'Child',subType:'Type',subPrice:'Price (SAR)',subStart:'Start Date',subEnd:'End Date',createSubBtn:'Create Subscription',allSubs:'All Subscriptions',
+    recordPay:'💰 Record Payment',paySub:'Subscription ID',payAmount:'Amount (SAR)',payMethod:'Payment Method',recordPayBtn:'Record Payment',payHistory:'Payment History',
+    regUser:'➕ Register New User',userName:'Full Name',userEmail:'Email',userPass:'Password',userPhone:'Phone',userRole:'Role',regUserBtn:'Register User',allUsers:'System Users',
+    signalrTitle:'📡 Real-Time Monitor — SignalR',connect:'🔌 Connect',disconnect:'⛔ Disconnect',logTitle:'Live Events Log',connected:'Connected',disconnected:'Disconnected',
+    recentChildren:'Recent Children',recentSubs:'Recent Subscriptions',
+    daily:'Daily',monthly:'Monthly',yearly:'Yearly',
+    cash:'Cash',transfer:'Bank Transfer',online:'Online',
+    parent:'Parent',driver:'Driver',admin:'Admin',employee:'Employee',
+    statChildren:'Total Children',statTrips:'Total Trips',statSubs:'Subscriptions',statUsers:'Registered Users'}
+}};
+
+function t(path){const keys=path.split('.');let o=T[currentLang];for(const k of keys)o=o?.[k];return o||path;}
+
+function setLang(lang){
+  currentLang=lang;
+  localStorage.setItem('kms_lang',lang);
+  document.documentElement.lang=lang;
+  ['langArBtn','loginLangAr'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',lang==='ar');});
+  ['langEnBtn','loginLangEn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',lang==='en');});
+  document.querySelectorAll('[data-ar]').forEach(el=>{const v=el.getAttribute('data-'+lang);if(v)el.textContent=v;});
+  applyTranslations();
+  if(document.getElementById('mainContent').style.display!=='none')showPage(currentPage);
+}
+
+function applyTranslations(){
+  const f=t('forms');
+  const sets=[
+    ['loginTitle',t('loginTitle')],['loginSub',t('loginSub')],['labelEmail',t('labelEmail')],['labelPassword',t('labelPassword')],['loginBtn',t('loginBtn')],
+    ['btnRefresh',t('refresh')],['btnAddChild',t('addChild')],
+    ['lbl-children',f.statChildren],['lbl-trips',f.statTrips],['lbl-subs',f.statSubs],['lbl-users',f.statUsers],
+    ['h-recent-children',f.recentChildren],['h-recent-subs',f.recentSubs],
+    ['h-add-child',f.addChild],['lbl-child-name',f.childName],['lbl-child-dob',f.childDob],['lbl-child-class',f.childClass],['lbl-child-health',f.childHealth],['btn-add-child',f.addChildBtn],['h-all-children',f.allChildren],
+    ['h-create-sub',f.createSub],['lbl-sub-child',f.subChild],['lbl-sub-type',f.subType],['lbl-sub-price',f.subPrice],['lbl-sub-start',f.subStart],['lbl-sub-end',f.subEnd],['btn-create-sub',f.createSubBtn],['h-all-subs',f.allSubs],
+    ['opt-daily',f.daily],['opt-monthly',f.monthly],['opt-yearly',f.yearly],
+    ['h-record-pay',f.recordPay],['lbl-pay-sub',f.paySub],['lbl-pay-amount',f.payAmount],['lbl-pay-method',f.payMethod],['btn-record-pay',f.recordPayBtn],['h-pay-history',f.payHistory],
+    ['opt-cash',f.cash],['opt-transfer',f.transfer],['opt-online',f.online],
+    ['h-reg-user',f.regUser],['lbl-user-name',f.userName],['lbl-user-email',f.userEmail],['lbl-user-pass',f.userPass],['lbl-user-phone',f.userPhone],['lbl-user-role',f.userRole],['btn-reg-user',f.regUserBtn],['h-all-users',f.allUsers],
+    ['opt-parent',f.parent],['opt-driver',f.driver],['opt-admin',f.admin],['opt-employee',f.employee],
+    ['h-signalr',f.signalrTitle],['btn-connect',f.connect],['btn-disconnect',f.disconnect],['h-log',f.logTitle],
+  ];
+  sets.forEach(([id,val])=>{const el=document.getElementById(id);if(el&&val)el.textContent=val;});
+  const childNameInput=document.getElementById('childName');
+  if(childNameInput)childNameInput.placeholder=currentLang==='ar'?'الاسم الكامل':'Full name';
+  const childHealthInput=document.getElementById('childHealth');
+  if(childHealthInput)childHealthInput.placeholder=currentLang==='ar'?'أي حساسية أو ملاحظات':'Any allergies or notes';
+}
+
+async function api(path,method='GET',body=null){
+  const opts={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Accept-Language':currentLang}};
+  if(body)opts.body=JSON.stringify(body);
+  try{const res=await fetch(API+path,opts);if(res.status===401){doLogout();return null;}if(res.status===204)return{};return await res.json();}catch{return null;}
+}
+
 window.onload=async()=>{
-  if(token){await initDashboard();}
+  setLang(currentLang);
+  if(token)await initDashboard();
   const today=new Date().toISOString().split('T')[0];
   const next=new Date(Date.now()+30*24*60*60*1000).toISOString().split('T')[0];
   const s=document.getElementById('subStart');const e=document.getElementById('subEnd');
   if(s)s.value=today;if(e)e.value=next;
 };
 
-async function api(path,method='GET',body=null){
-  const opts={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}};
-  if(body)opts.body=JSON.stringify(body);
-  try{
-    const res=await fetch(API+path,opts);
-    if(res.status===401){doLogout();return null;}
-    if(res.status===204)return{};
-    return await res.json();
-  }catch(e){return null;}
-}
-
 async function doLogin(){
   const email=document.getElementById('loginEmail').value;
   const pass=document.getElementById('loginPassword').value;
   const btn=document.getElementById('loginBtn');
   const err=document.getElementById('loginError');
-  btn.disabled=true;btn.textContent='Signing in...';err.style.display='none';
+  btn.disabled=true;btn.textContent=t('loading');err.style.display='none';
   try{
-    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json','Accept-Language':currentLang},body:JSON.stringify({email,password:pass})});
     const data=await res.json();
-    if(data.token){
-      token=data.token;
-      localStorage.setItem('kms_token',token);
-      localStorage.setItem('kms_user',JSON.stringify(data));
-      await initDashboard();
-    }else{err.textContent=data.message||'Invalid email or password';err.style.display='block';}
-  }catch(e){err.textContent='Cannot connect to server';err.style.display='block';}
-  btn.disabled=false;btn.textContent='Sign In';
+    if(data.token){token=data.token;localStorage.setItem('kms_token',token);localStorage.setItem('kms_user',JSON.stringify(data));await initDashboard();}
+    else{err.textContent=data.message||t('err.wrongPass');err.style.display='block';}
+  }catch{err.textContent=t('err.noConn');err.style.display='block';}
+  btn.disabled=false;btn.textContent=t('loginBtn');
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginPage').style.display!=='none')doLogin();});
@@ -344,26 +413,16 @@ async function initDashboard(){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('mainContent').style.display='flex';
   const user=JSON.parse(localStorage.getItem('kms_user')||'{}');
-  if(user.fullName){
-    document.getElementById('userAvatar').textContent=user.fullName[0].toUpperCase();
-    document.getElementById('userAvatar').title=user.fullName+' ('+user.role+') — Click to logout';
-  }
-  await checkApiStatus();
-  await loadDashboard();
+  if(user.fullName){document.getElementById('userAvatar').textContent=user.fullName[0].toUpperCase();}
+  await checkApiStatus();await loadDashboard();
   setInterval(checkApiStatus,30000);
 }
 
 function doLogout(){localStorage.removeItem('kms_token');localStorage.removeItem('kms_user');token=null;document.getElementById('loginPage').style.display='flex';document.getElementById('mainContent').style.display='none';}
 
 async function checkApiStatus(){
-  try{
-    const res=await fetch(API+'/health');const data=await res.json();
-    document.getElementById('apiDot').className='api-dot';
-    document.getElementById('apiStatusText').textContent='API Live · '+data.env;
-  }catch{
-    document.getElementById('apiDot').className='api-dot red';
-    document.getElementById('apiStatusText').textContent='API Offline';
-  }
+  try{const res=await fetch(API+'/health');const data=await res.json();document.getElementById('apiDot').className='api-dot';document.getElementById('apiStatusText').textContent=t('apiLive')+' · '+data.env;}
+  catch{document.getElementById('apiDot').className='api-dot red';document.getElementById('apiStatusText').textContent=t('apiOffline');}
 }
 
 function showPage(page){
@@ -372,168 +431,134 @@ function showPage(page){
   document.getElementById('page-'+page).classList.add('active');
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
-  const titles={dashboard:['Dashboard','Overview of KMS system'],children:['Children','Manage registered children'],trips:['Trips','View and manage school trips'],subscriptions:['Subscriptions','Manage transport subscriptions'],payments:['Payments','Track payment records'],users:['Users','Manage system users'],signalr:['Real-Time Monitor','Live SignalR connection']};
-  if(titles[page]){document.getElementById('pageTitle').textContent=titles[page][0];document.getElementById('pageSubtitle').textContent=titles[page][1];}
+  document.getElementById('pageTitle').textContent=t('pages.'+page);
+  document.getElementById('pageSubtitle').textContent=t('subs.'+page);
   const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers};
   if(loaders[page])loaders[page]();
 }
-
 function refreshCurrentPage(){showPage(currentPage);}
 
+function statusBadge(s){const m={Created:'badge-orange',InProgress:'badge-blue',Completed:'badge-green',Pending:'badge-orange',PickedUp:'badge-green',DroppedOff:'badge-green',Missed:'badge-red',Paid:'badge-green',Overdue:'badge-red'};return'<span class="badge '+(m[s]||'badge-gray')+'">'+(t('status.'+s)||s)+'</span>';}
+function roleBadge(r){const m={Admin:'badge-red',Parent:'badge-blue',Driver:'badge-green',Employee:'badge-purple'};return'<span class="badge '+(m[r]||'badge-gray')+'">'+(t('roles.'+r)||r)+'</span>';}
+function formatPrice(p){return currentLang==='ar'?p.toFixed(2)+' ريال':'SAR '+p.toFixed(2);}
+function formatDate(d){return new Date(d).toLocaleDateString(currentLang==='ar'?'ar-SA':'en-US');}
+function formatDateTime(d){return new Date(d).toLocaleString(currentLang==='ar'?'ar-SA':'en-US');}
+
 async function loadDashboard(){
-  const [children,subs]=await Promise.all([api('/api/children'),api('/api/subscriptions')]);
+  const[children,subs]=await Promise.all([api('/api/children'),api('/api/subscriptions')]);
   const cCount=Array.isArray(children)?children.length:0;
   const sCount=Array.isArray(subs)?subs.length:0;
   document.getElementById('stat-children').textContent=cCount;
   document.getElementById('stat-subscriptions').textContent=sCount;
   document.getElementById('childrenBadge').textContent=cCount;
+  document.getElementById('stat-trips').textContent='—';
   try{const r=await fetch(API+'/dbtest');const d=await r.json();document.getElementById('stat-users').textContent=d.userCount;}catch{}
   const childDiv=document.getElementById('dash-children-list');
-  if(!children||children.length===0){childDiv.innerHTML='<div class="empty"><div class="emoji">👶</div><h4>No children yet</h4></div>';}
-  else{childDiv.innerHTML='<table><thead><tr><th>Name</th><th>Class</th><th>Parent</th></tr></thead><tbody>'+children.slice(0,5).map(c=>'<tr><td><strong>'+c.name+'</strong></td><td><span class="badge badge-blue">'+c.class+'</span></td><td>'+c.parentName+'</td></tr>').join('')+'</tbody></table>';}
+  if(!children||children.length===0){childDiv.innerHTML='<div class="empty"><div class="emoji">👶</div><h4>'+t('noData')+'</h4></div>';}
+  else{childDiv.innerHTML='<table><thead><tr><th>'+t('cols.name')+'</th><th>'+t('cols.class')+'</th><th>'+t('cols.parent')+'</th></tr></thead><tbody>'+children.slice(0,5).map(c=>'<tr><td><strong>'+c.name+'</strong></td><td><span class="badge badge-blue">'+c.class+'</span></td><td>'+c.parentName+'</td></tr>').join('')+'</tbody></table>';}
   const subsDiv=document.getElementById('dash-subs-list');
-  if(!subs||subs.length===0){subsDiv.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>No subscriptions yet</h4></div>';}
-  else{subsDiv.innerHTML='<table><thead><tr><th>Child</th><th>Type</th><th>Status</th></tr></thead><tbody>'+subs.slice(0,5).map(s=>'<tr><td>'+s.childName+'</td><td><span class="badge badge-blue">'+s.type+'</span></td><td><span class="badge '+(s.paymentStatus==='Paid'?'badge-green':'badge-orange')+'">'+s.paymentStatus+'</span></td></tr>').join('')+'</tbody></table>';}
-  document.getElementById('stat-trips').textContent='—';
+  if(!subs||subs.length===0){subsDiv.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>'+t('noData')+'</h4></div>';}
+  else{subsDiv.innerHTML='<table><thead><tr><th>'+t('cols.child')+'</th><th>'+t('cols.type')+'</th><th>'+t('cols.status')+'</th></tr></thead><tbody>'+subs.slice(0,5).map(s=>'<tr><td>'+s.childName+'</td><td><span class="badge badge-blue">'+s.type+'</span></td><td>'+statusBadge(s.paymentStatus)+'</td></tr>').join('')+'</tbody></table>';}
 }
 
 async function loadChildren(){
-  const data=await api('/api/children');
-  const count=Array.isArray(data)?data.length:0;
-  document.getElementById('children-count').textContent=count+' children registered';
+  const data=await api('/api/children');const count=Array.isArray(data)?data.length:0;
+  document.getElementById('children-count').textContent=count+t('childrenCount');
   document.getElementById('childrenBadge').textContent=count;
   const div=document.getElementById('children-table');
-  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">👶</div><h4>No children yet</h4></div>';return;}
-  div.innerHTML='<table><thead><tr><th>#</th><th>Name</th><th>Date of Birth</th><th>Class</th><th>Parent</th><th>Health Notes</th></tr></thead><tbody>'+data.map(c=>'<tr><td style="color:var(--text3)">#'+c.id+'</td><td><strong>'+c.name+'</strong></td><td>'+new Date(c.birthDate).toLocaleDateString()+'</td><td><span class="badge badge-blue">'+c.class+'</span></td><td>'+c.parentName+'</td><td style="color:var(--text3)">'+(c.healthNotes||'—')+'</td></tr>').join('')+'</tbody></table>';
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">👶</div><h4>'+t('noData')+'</h4></div>';return;}
+  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.name')+'</th><th>'+t('cols.dob')+'</th><th>'+t('cols.class')+'</th><th>'+t('cols.parent')+'</th><th>'+t('cols.health')+'</th></tr></thead><tbody>'+data.map(c=>'<tr><td style="color:var(--text3)">#'+c.id+'</td><td><strong>'+c.name+'</strong></td><td>'+formatDate(c.birthDate)+'</td><td><span class="badge badge-blue">'+c.class+'</span></td><td>'+c.parentName+'</td><td style="color:var(--text3)">'+(c.healthNotes||'—')+'</td></tr>').join('')+'</tbody></table>';
 }
 
 async function createChild(){
-  const name=document.getElementById('childName').value;
-  const dob=document.getElementById('childDob').value;
-  const cls=document.getElementById('childClass').value;
-  const health=document.getElementById('childHealth').value;
-  if(!name||!dob){showToast('Please fill name and date of birth','error');return;}
+  const name=document.getElementById('childName').value;const dob=document.getElementById('childDob').value;
+  const cls=document.getElementById('childClass').value;const health=document.getElementById('childHealth').value;
+  if(!name||!dob){showToast(t('err.fill'),'error');return;}
   const result=await api('/api/children','POST',{name,birthDate:dob,class:cls,healthNotes:health});
-  if(result?.id){showToast('✅ Child "'+name+'" added!','success');document.getElementById('childName').value='';document.getElementById('childDob').value='';loadChildren();}
-  else showToast('Failed to add child','error');
+  if(result?.id){showToast('✅ '+t('succ.child'),'success');document.getElementById('childName').value='';document.getElementById('childDob').value='';loadChildren();}
+  else showToast(t('err.failed'),'error');
 }
 
 async function loadTrips(){
-  const data=await api('/api/trips/driver');
-  const div=document.getElementById('trips-list');
+  const data=await api('/api/trips/driver');const div=document.getElementById('trips-list');
   const trips=Array.isArray(data)?data:(data?.id?[data]:[]);
-  document.getElementById('trips-count').textContent=trips.length+' trips recorded';
-  if(trips.length===0){div.innerHTML='<div class="empty"><div class="emoji">🚌</div><h4>No trips yet</h4><p>Trips will appear here once drivers start their routes</p></div>';return;}
-  div.innerHTML=trips.map(t=>'<div class="trip-card '+t.status.toLowerCase()+'"><div class="trip-header"><h4>Trip #'+t.id+' — '+(t.direction==='ToKindergarten'?'🏫 To School':'🏠 To Home')+'</h4><span class="badge '+(t.status==='Completed'?'badge-green':t.status==='InProgress'?'badge-blue':'badge-orange')+'">'+t.status+'</span></div><div class="trip-meta"><span>🚗 '+t.driverName+'</span><span>📅 '+new Date(t.date).toLocaleDateString()+'</span>'+(t.startTime?'<span>▶️ '+new Date(t.startTime).toLocaleTimeString()+'</span>':'')+(t.endTime?'<span>⏹️ '+new Date(t.endTime).toLocaleTimeString()+'</span>':'')+'</div>'+t.children.map(c=>'<div class="child-row"><span>👤 '+c.childName+'</span><div style="display:flex;gap:0.5rem"><span class="badge '+(c.pickupStatus==='PickedUp'?'badge-green':'badge-gray')+'">Pickup: '+c.pickupStatus+'</span><span class="badge '+(c.dropoffStatus==='DroppedOff'?'badge-green':'badge-gray')+'">Drop: '+c.dropoffStatus+'</span></div></div>').join('')+'</div>').join('');
+  document.getElementById('trips-count').textContent=trips.length+t('tripsCount');
+  if(trips.length===0){div.innerHTML='<div class="empty"><div class="emoji">🚌</div><h4>'+t('noData')+'</h4></div>';return;}
+  div.innerHTML=trips.map(tr=>'<div class="trip-card '+tr.status.toLowerCase()+'"><div class="trip-header"><h4>#'+tr.id+' — '+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+'</h4>'+statusBadge(tr.status)+'</div><div class="trip-meta"><span>🚗 '+tr.driverName+'</span><span>📅 '+formatDate(tr.date)+'</span>'+(tr.startTime?'<span>▶️ '+formatDateTime(tr.startTime)+'</span>':'')+(tr.endTime?'<span>⏹️ '+formatDateTime(tr.endTime)+'</span>':'')+'</div>'+tr.children.map(c=>'<div class="child-row"><span>👤 '+c.childName+'</span><div style="display:flex;gap:0.5rem">'+statusBadge(c.pickupStatus)+statusBadge(c.dropoffStatus)+'</div></div>').join('')+'</div>').join('');
 }
 
 async function loadSubscriptions(){
-  const data=await api('/api/subscriptions');
-  const count=Array.isArray(data)?data.length:0;
-  document.getElementById('subs-count').textContent=count+' subscriptions';
+  const data=await api('/api/subscriptions');const count=Array.isArray(data)?data.length:0;
+  document.getElementById('subs-count').textContent=count+t('subsCount');
   const children=await api('/api/children');
   const sel=document.getElementById('subChild');
   if(children&&children.length>0)sel.innerHTML=children.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
   const div=document.getElementById('subs-table');
-  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>No subscriptions yet</h4></div>';return;}
-  div.innerHTML='<table><thead><tr><th>#</th><th>Child</th><th>Type</th><th>Price</th><th>Period</th><th>Status</th></tr></thead><tbody>'+data.map(s=>'<tr><td style="color:var(--text3)">#'+s.id+'</td><td><strong>'+s.childName+'</strong></td><td><span class="badge badge-blue">'+s.type+'</span></td><td style="font-weight:700;color:var(--primary2)">SAR '+s.price.toFixed(2)+'</td><td>'+new Date(s.startDate).toLocaleDateString()+' → '+new Date(s.endDate).toLocaleDateString()+'</td><td><span class="badge '+(s.paymentStatus==='Paid'?'badge-green':s.paymentStatus==='Overdue'?'badge-red':'badge-orange')+'">'+s.paymentStatus+'</span></td></tr>').join('')+'</tbody></table>';
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>'+t('noData')+'</h4></div>';return;}
+  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.child')+'</th><th>'+t('cols.type')+'</th><th>'+t('cols.price')+'</th><th>'+t('cols.period')+'</th><th>'+t('cols.status')+'</th></tr></thead><tbody>'+data.map(s=>'<tr><td style="color:var(--text3)">#'+s.id+'</td><td><strong>'+s.childName+'</strong></td><td><span class="badge badge-blue">'+s.type+'</span></td><td style="font-weight:700;color:var(--primary2)">'+formatPrice(s.price)+'</td><td>'+formatDate(s.startDate)+' → '+formatDate(s.endDate)+'</td><td>'+statusBadge(s.paymentStatus)+'</td></tr>').join('')+'</tbody></table>';
 }
 
 async function createSubscription(){
-  const childId=document.getElementById('subChild').value;
-  const type=document.getElementById('subType').value;
-  const price=parseFloat(document.getElementById('subPrice').value);
-  const startDate=document.getElementById('subStart').value;
-  const endDate=document.getElementById('subEnd').value;
-  if(!childId||!price||!startDate||!endDate){showToast('Please fill all fields','error');return;}
+  const childId=document.getElementById('subChild').value;const type=document.getElementById('subType').value;
+  const price=parseFloat(document.getElementById('subPrice').value);const startDate=document.getElementById('subStart').value;const endDate=document.getElementById('subEnd').value;
+  if(!childId||!price||!startDate||!endDate){showToast(t('err.fill'),'error');return;}
   const result=await api('/api/subscriptions','POST',{childId:parseInt(childId),type,price,startDate,endDate});
-  if(result?.id){showToast('✅ Subscription created for '+result.childName+'!','success');loadSubscriptions();}
-  else showToast('Failed to create subscription','error');
+  if(result?.id){showToast('✅ '+t('succ.sub'),'success');loadSubscriptions();}
+  else showToast(t('err.failed'),'error');
 }
 
 async function loadPayments(){
-  const data=await api('/api/payments/subscription/1');
-  const div=document.getElementById('payments-table');
-  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💰</div><h4>No payments yet</h4></div>';return;}
-  div.innerHTML='<table><thead><tr><th>#</th><th>Subscription</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead><tbody>'+data.map(p=>'<tr><td style="color:var(--text3)">#'+p.id+'</td><td>#'+p.subscriptionId+'</td><td style="font-weight:700;color:var(--green)">SAR '+p.amount.toFixed(2)+'</td><td><span class="badge badge-blue">'+p.method+'</span></td><td>'+new Date(p.paymentDate).toLocaleString()+'</td></tr>').join('')+'</tbody></table>';
+  const data=await api('/api/payments/subscription/1');const div=document.getElementById('payments-table');
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💰</div><h4>'+t('noData')+'</h4></div>';return;}
+  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.sub')+'</th><th>'+t('cols.amount')+'</th><th>'+t('cols.method')+'</th><th>'+t('cols.date')+'</th></tr></thead><tbody>'+data.map(p=>'<tr><td style="color:var(--text3)">#'+p.id+'</td><td>#'+p.subscriptionId+'</td><td style="font-weight:700;color:var(--green)">'+formatPrice(p.amount)+'</td><td><span class="badge badge-blue">'+(t('methods.'+p.method)||p.method)+'</span></td><td>'+formatDateTime(p.paymentDate)+'</td></tr>').join('')+'</tbody></table>';
 }
 
 async function recordPayment(){
-  const subId=parseInt(document.getElementById('paySubId').value);
-  const amount=parseFloat(document.getElementById('payAmount').value);
-  const method=document.getElementById('payMethod').value;
-  if(!subId||!amount){showToast('Please fill all fields','error');return;}
+  const subId=parseInt(document.getElementById('paySubId').value);const amount=parseFloat(document.getElementById('payAmount').value);const method=document.getElementById('payMethod').value;
+  if(!subId||!amount){showToast(t('err.fill'),'error');return;}
   const result=await api('/api/payments','POST',{subscriptionId:subId,amount,method});
-  if(result?.id){showToast('✅ Payment of SAR '+amount+' recorded!','success');loadPayments();}
-  else showToast('Failed to record payment','error');
+  if(result?.id){showToast('✅ '+t('succ.pay'),'success');loadPayments();}
+  else showToast(t('err.failed'),'error');
 }
 
 async function loadUsers(){
-  const data=await api('/api/users');
-  const count=Array.isArray(data)?data.length:0;
+  const data=await api('/api/users');const count=Array.isArray(data)?data.length:0;
   document.getElementById('stat-users').textContent=count;
-  document.getElementById('users-count').textContent=count+' users registered';
+  document.getElementById('users-count').textContent=count+t('usersCount');
   const div=document.getElementById('users-table');
-  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">👥</div><h4>No users yet</h4></div>';return;}
-  const roleColors={'Admin':'badge-red','Parent':'badge-blue','Driver':'badge-green','Employee':'badge-purple'};
-  div.innerHTML='<table><thead><tr><th>#</th><th>Full Name</th><th>Email</th><th>Phone</th><th>Role</th></tr></thead><tbody>'+
-    data.map((u,i)=>'<tr><td style="color:var(--text3)">'+(i+1)+'</td><td><strong>'+u.fullName+'</strong></td><td>'+u.email+'</td><td>'+(u.phoneNumber||'—')+'</td><td><span class="badge '+(roleColors[u.roleType]||'badge-gray')+'">'+u.roleType+'</span></td></tr>').join('')+
-    '</tbody></table>';
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">👥</div><h4>'+t('noData')+'</h4></div>';return;}
+  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.fullName')+'</th><th>'+t('cols.email')+'</th><th>'+t('cols.phone')+'</th><th>'+t('cols.role')+'</th></tr></thead><tbody>'+data.map((u,i)=>'<tr><td style="color:var(--text3)">'+(i+1)+'</td><td><strong>'+u.fullName+'</strong></td><td style="direction:ltr;text-align:right">'+u.email+'</td><td>'+(u.phoneNumber||'—')+'</td><td>'+roleBadge(u.roleType)+'</td></tr>').join('')+'</tbody></table>';
 }
 
 async function registerUser(){
-  const fullName=document.getElementById('newUserName').value;
-  const email=document.getElementById('newUserEmail').value;
-  const password=document.getElementById('newUserPass').value;
-  const phoneNumber=document.getElementById('newUserPhone').value;
-  const roleType=document.getElementById('newUserRole').value;
-  if(!fullName||!email||!password){showToast('Please fill required fields','error');return;}
+  const fullName=document.getElementById('newUserName').value;const email=document.getElementById('newUserEmail').value;
+  const password=document.getElementById('newUserPass').value;const phoneNumber=document.getElementById('newUserPhone').value;const roleType=document.getElementById('newUserRole').value;
+  if(!fullName||!email||!password){showToast(t('err.fill'),'error');return;}
   const result=await api('/api/auth/register','POST',{fullName,email,password,phoneNumber,roleType});
-  if(result?.token){showToast('✅ User "'+fullName+'" registered as '+roleType+'!','success');loadUsers();}
-  else showToast(result?.message||'Registration failed','error');
+  if(result?.token){showToast('✅ '+t('succ.user'),'success');loadUsers();}
+  else showToast(result?.message||t('err.failed'),'error');
 }
 
 function connectSignalR(){
-  if(typeof signalR==='undefined'){
-    const script=document.createElement('script');
-    script.src='https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js';
-    script.onload=()=>startSignalRConnection();
-    document.head.appendChild(script);
-  }else{startSignalRConnection();}
+  if(typeof signalR==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js';s.onload=()=>startSR();document.head.appendChild(s);}
+  else startSR();
 }
-
-function startSignalRConnection(){
-  const log=document.getElementById('signalr-log');
-  const status=document.getElementById('signalr-status');
-  signalrConnection=new signalR.HubConnectionBuilder()
-    .withUrl(API+'/hubs/trip',{accessTokenFactory:()=>token})
-    .withAutomaticReconnect().build();
-  signalrConnection.on('LocationUpdated',(tripId,lat,lng)=>addLog(log,'📍 Location — Trip #'+tripId+' | Lat: '+lat.toFixed(4)+', Lng: '+lng.toFixed(4),'blue'));
-  signalrConnection.on('ChildStatusUpdated',(tripId,childId,s)=>addLog(log,'👤 Child Status — Trip #'+tripId+' | Child #'+childId+' → '+s,'green'));
-  signalrConnection.on('TripStatusUpdated',(tripId,s)=>addLog(log,'🚌 Trip Status — Trip #'+tripId+' → '+s,'orange'));
+function startSR(){
+  const log=document.getElementById('signalr-log');const status=document.getElementById('signalr-status');
+  signalrConnection=new signalR.HubConnectionBuilder().withUrl(API+'/hubs/trip',{accessTokenFactory:()=>token}).withAutomaticReconnect().build();
+  signalrConnection.on('LocationUpdated',(id,lat,lng)=>addLog(log,'📍 Trip #'+id+' | '+lat.toFixed(4)+', '+lng.toFixed(4),'blue'));
+  signalrConnection.on('ChildStatusUpdated',(id,cid,s)=>addLog(log,'👤 Trip #'+id+' Child #'+cid+' → '+s,'green'));
+  signalrConnection.on('TripStatusUpdated',(id,s)=>addLog(log,'🚌 Trip #'+id+' → '+s,'orange'));
   signalrConnection.start()
-    .then(()=>{status.className='badge badge-green';status.textContent='Connected';log.innerHTML='';addLog(log,'✅ Connected to SignalR Hub — Listening for real-time events...','green');})
-    .catch(err=>{status.className='badge badge-red';status.textContent='Failed';addLog(log,'❌ Connection failed: '+err.message,'red');});
+    .then(()=>{status.className='badge badge-green';status.textContent=t('forms.connected');log.innerHTML='';addLog(log,'✅ Connected','green');})
+    .catch(e=>{status.className='badge badge-red';status.textContent='Error';addLog(log,'❌ '+e.message,'red');});
 }
-
 function disconnectSignalR(){
-  if(signalrConnection){signalrConnection.stop();document.getElementById('signalr-status').className='badge badge-gray';document.getElementById('signalr-status').textContent='Disconnected';addLog(document.getElementById('signalr-log'),'⛔ Disconnected','red');}
+  if(signalrConnection){signalrConnection.stop();document.getElementById('signalr-status').className='badge badge-gray';document.getElementById('signalr-status').textContent=t('forms.disconnected');addLog(document.getElementById('signalr-log'),'⛔ Disconnected','red');}
 }
+function addLog(c,msg,color){const colors={blue:'#3b82f6',green:'#22c55e',orange:'#f97316',red:'#ef4444',gray:'#94a3b8'};const d=document.createElement('div');d.style.cssText='color:'+colors[color]+';padding:0.3rem 0;border-bottom:1px solid #f1f5f9';d.textContent='['+new Date().toLocaleTimeString()+'] '+msg;c.insertBefore(d,c.firstChild);}
 
-function addLog(container,message,color='gray'){
-  const colors={blue:'#3b82f6',green:'#22c55e',orange:'#f97316',red:'#ef4444',gray:'#94a3b8'};
-  const time=new Date().toLocaleTimeString();
-  const div=document.createElement('div');
-  div.style.cssText='color:'+colors[color]+';padding:0.3rem 0;border-bottom:1px solid #f1f5f9';
-  div.textContent='['+time+'] '+message;
-  container.insertBefore(div,container.firstChild);
-}
-
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className='show '+type;
-  setTimeout(()=>t.className='',3000);
-}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+type;setTimeout(()=>t.className='',3000);}
 </script>
 </body>
 </html>
