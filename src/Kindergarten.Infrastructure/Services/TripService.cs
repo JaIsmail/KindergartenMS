@@ -104,6 +104,12 @@ public class TripService : ITripService
         return true;
     }
 
+    public async Task<string?> GetChildParentIdAsync(int childId)
+    {
+        var child = await _db.Children.FindAsync(childId);
+        return child?.ParentId;
+    }
+
     private static TripResponseDto MapToDto(Trip t) => new()
     {
         Id         = t.Id,

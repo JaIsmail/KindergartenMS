@@ -11,4 +11,5 @@ public interface ITripService
     Task<TripResponseDto?>             EndTripAsync(int id);
     Task<bool>                         UpdateChildStatusAsync(UpdateChildStatusDto dto);
     Task<bool>                         SaveLocationAsync(UpdateLocationDto dto);
+    Task<string?>                      GetChildParentIdAsync(int childId);
 }
