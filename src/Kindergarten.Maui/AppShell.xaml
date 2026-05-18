@@ -6,9 +6,7 @@
        xmlns:driver="clr-namespace:Kindergarten.Maui.Views.Driver"
        xmlns:employee="clr-namespace:Kindergarten.Maui.Views.Employee"
        x:Class="Kindergarten.Maui.AppShell"
-       Shell.NavBarBackgroundColor="#f97316"
-       Shell.NavBarHasShadow="True"
-       Shell.TitleColor="White">
+>
 
   <!-- Login (default) -->
   <ShellContent Route="login" ContentTemplate="{DataTemplate auth:LoginPage}" Shell.NavBarIsVisible="False"/>
