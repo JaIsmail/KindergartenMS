@@ -536,12 +536,22 @@ async function loadUsers(){
       '<td>'+(u.phoneNumber||'—')+'</td>'+
       '<td>'+roleBadge(u.roleType)+'</td>'+
       '<td><div style="display:flex;gap:0.4rem">'+
-        '<button onclick="viewUser(''+u.id+'')" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'عرض':'View')+'</button>'+
-        '<button onclick="editUser(''+u.id+'',''+u.fullName+'',''+u.phoneNumber+'',''+u.roleType+'')" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.08);color:#2563eb;cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'تعديل':'Edit')+'</button>'+
-        '<button onclick="deleteUser(''+u.id+'',''+u.fullName+'')" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'حذف':'Delete')+'</button>'+
+        '<button data-id="'+u.id+'" data-action="view" class="user-action-btn" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'عرض':'View')+'</button>'+
+        '<button data-id="'+u.id+'" data-name="'+u.fullName+'" data-phone="'+(u.phoneNumber||'')+'" data-role="'+u.roleType+'" data-action="edit" class="user-action-btn" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.08);color:#2563eb;cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'تعديل':'Edit')+'</button>'+
+        '<button data-id="'+u.id+'" data-name="'+u.fullName+'" data-action="delete" class="user-action-btn" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'حذف':'Delete')+'</button>'+
       '</div></td>'+
     '</tr>').join('')+
   '</tbody></table>';
+  // Attach event listeners after rendering
+  document.querySelectorAll('.user-action-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const action=btn.dataset.action;
+      const id=btn.dataset.id;
+      if(action==='view') viewUser(id);
+      else if(action==='edit') editUser(id,btn.dataset.name,btn.dataset.phone,btn.dataset.role);
+      else if(action==='delete') deleteUser(id,btn.dataset.name);
+    });
+  });
 }
 
 async function viewUser(id){
