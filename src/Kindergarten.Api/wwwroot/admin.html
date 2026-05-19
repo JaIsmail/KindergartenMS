@@ -631,9 +631,9 @@ async function loadUsers(){
       '<td>'+(u.phoneNumber||'—')+'</td>'+
       '<td>'+roleBadge(u.roleType)+'</td>'+
       '<td><div style="display:flex;gap:0.4rem">'+
-        '<button data-id="'+u.id+'" data-action="view" class="user-action-btn" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'عرض':'View')+'</button>'+
-        '<button data-id="'+u.id+'" data-name="'+u.fullName+'" data-phone="'+(u.phoneNumber||'')+'" data-role="'+u.roleType+'" data-action="edit" class="user-action-btn" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.08);color:#2563eb;cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'تعديل':'Edit')+'</button>'+
-        '<button data-id="'+u.id+'" data-name="'+u.fullName+'" data-action="delete" class="user-action-btn" style="padding:0.2rem 0.6rem;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;cursor:pointer;font-size:0.72rem;font-family:inherit">'+(currentLang==='ar'?'حذف':'Delete')+'</button>'+
+        '<button data-id="'+u.id+'" data-action="view" class="user-action-btn icon-btn icon-btn-view" title="'+(currentLang==='ar'?'عرض':'View')+'">👁️</button>'+
+        '<button data-id="'+u.id+'" data-action="edit" class="user-action-btn icon-btn icon-btn-edit" title="'+(currentLang==='ar'?'تعديل':'Edit')+'">✏️</button>'+
+        '<button data-id="'+u.id+'" data-name="'+u.fullName+'" data-action="delete" class="user-action-btn icon-btn icon-btn-delete" title="'+(currentLang==='ar'?'حذف':'Delete')+'">🗑️</button>'+
       '</div></td>'+
     '</tr>').join('')+
   '</tbody></table>';
