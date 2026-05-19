@@ -41,7 +41,7 @@ public partial class DriverTripsPage : ContentPage
                 var card = new Border
                 {
                     BackgroundColor = Colors.White,
-                    StrokeCornerRadius = 14,
+                    StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 14 },
                     Stroke = Color.FromArgb("#e2e8f0"),
                     Padding = new Thickness(16)
                 };
