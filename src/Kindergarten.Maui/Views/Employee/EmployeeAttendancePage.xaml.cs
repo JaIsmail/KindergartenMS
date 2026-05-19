@@ -1,6 +1,4 @@
 using Kindergarten.Maui.Services;
-using Plugin.Fingerprint;
-using Plugin.Fingerprint.Abstractions;
 
 namespace Kindergarten.Maui.Views.Employee;
 
@@ -16,7 +14,7 @@ public partial class EmployeeAttendancePage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        DateLabel.Text = DateTime.Now.ToString("dddd، dd MMMM yyyy");
+        DateLabel.Text = DateTime.Now.ToString("dd/MM/yyyy");
         await LoadAttendanceAsync();
     }
 
@@ -24,9 +22,7 @@ public partial class EmployeeAttendancePage : ContentPage
     {
         var records = await _api.GetMyAttendanceAsync();
         if (records == null) return;
-
         AttendanceList.ItemsSource = records;
-
         var today = records.FirstOrDefault(r => r.Date.Date == DateTime.UtcNow.Date);
         if (today != null)
         {
@@ -38,28 +34,18 @@ public partial class EmployeeAttendancePage : ContentPage
 
     async void OnCheckInClicked(object sender, EventArgs e)
     {
-        // Biometric verification
-        var isAvailable = await CrossFingerprint.Current.IsAvailableAsync();
-        if (isAvailable)
-        {
-            var request = new AuthenticationRequestConfiguration(
-                "تسجيل الحضور",
-                "استخدم بصمتك لتسجيل الحضور");
-            var result = await CrossFingerprint.Current.AuthenticateAsync(request);
-
-            if (!result.Authenticated)
-            {
-                await DisplayAlert("❌", "فشل التحقق من البصمة", "موافق");
-                return;
-            }
-        }
+        bool confirm = await DisplayAlert(
+            "تسجيل الحضور",
+            "هل تريد تسجيل حضورك؟",
+            "نعم", "لا");
+        if (!confirm) return;
 
         CheckInButton.IsEnabled = false;
         var attendance = await _api.CheckInAsync();
         if (attendance != null)
         {
             CheckInTimeLabel.Text = attendance.CheckInTime?.ToLocalTime().ToString("HH:mm") ?? "--:--";
-            StatusLabel.Text      = attendance.Status;
+            StatusLabel.Text = attendance.Status;
             await DisplayAlert("✅", "تم تسجيل حضورك بنجاح", "موافق");
             await LoadAttendanceAsync();
         }
@@ -77,7 +63,7 @@ public partial class EmployeeAttendancePage : ContentPage
         if (attendance != null)
         {
             CheckOutTimeLabel.Text = attendance.CheckOutTime?.ToLocalTime().ToString("HH:mm") ?? "--:--";
-            await DisplayAlert("✅", $"تم تسجيل انصرافك — ساعات العمل: {attendance.WorkingHours}", "موافق");
+            await DisplayAlert("✅", $"تم تسجيل انصرافك", "موافق");
             await LoadAttendanceAsync();
         }
         else
