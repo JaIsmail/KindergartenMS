@@ -15,15 +15,11 @@ public class ApiService
 
     public ApiService()
     {
-#if ANDROID
-        var handler = new Xamarin.Android.Net.AndroidMessageHandler
+        var handler = new HttpClientHandler
         {
             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
         };
         _client = new HttpClient(handler)
-#else
-        _client = new HttpClient()
-#endif
         {
             BaseAddress = new Uri(Constants.ApiBaseUrl),
             Timeout     = TimeSpan.FromSeconds(30)
