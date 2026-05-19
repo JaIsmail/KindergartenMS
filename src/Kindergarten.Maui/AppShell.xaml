@@ -19,34 +19,24 @@
     </ResourceDictionary>
   </Shell.Resources>
 
-  <!-- Login (default) -->
-  <ShellContent
-    Route="login"
-    ContentTemplate="{DataTemplate auth:LoginPage}"
-    Shell.NavBarIsVisible="False"/>
+  <!-- Login -->
+  <ShellContent Route="login"
+                ContentTemplate="{DataTemplate auth:LoginPage}"
+                Shell.NavBarIsVisible="False"/>
 
-  <!-- Parent -->
-  <TabBar Route="parent">
-    <Tab Title="الرئيسية" Icon="home.png">
-      <ShellContent Route="dashboard"
-        ContentTemplate="{DataTemplate parent:ParentDashboardPage}"/>
-    </Tab>
-  </TabBar>
+  <!-- Parent Dashboard -->
+  <ShellContent Route="dashboard"
+                ContentTemplate="{DataTemplate parent:ParentDashboardPage}"
+                Shell.NavBarIsVisible="True"/>
 
-  <!-- Driver -->
-  <TabBar Route="driver">
-    <Tab Title="الرحلات" Icon="bus.png">
-      <ShellContent Route="trips"
-        ContentTemplate="{DataTemplate driver:DriverTripsPage}"/>
-    </Tab>
-  </TabBar>
+  <!-- Driver Trips -->
+  <ShellContent Route="trips"
+                ContentTemplate="{DataTemplate driver:DriverTripsPage}"
+                Shell.NavBarIsVisible="True"/>
 
-  <!-- Employee -->
-  <TabBar Route="employee">
-    <Tab Title="الحضور" Icon="clock.png">
-      <ShellContent Route="attendance"
-        ContentTemplate="{DataTemplate employee:EmployeeAttendancePage}"/>
-    </Tab>
-  </TabBar>
+  <!-- Employee Attendance -->
+  <ShellContent Route="attendance"
+                ContentTemplate="{DataTemplate employee:EmployeeAttendancePage}"
+                Shell.NavBarIsVisible="True"/>
 
 </Shell>

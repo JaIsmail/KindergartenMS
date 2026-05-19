@@ -53,21 +53,13 @@ public partial class LoginPage : ContentPage
                 await SecureStorage.SetAsync(Constants.UserNameKey, result.FullName);
 
                 // Navigate based on role
-                switch (result.Role)
+                var route = result.Role switch
                 {
-                    case "Parent":
-                        await Shell.Current.GoToAsync("//parent/dashboard");
-                        break;
-                    case "Driver":
-                        await Shell.Current.GoToAsync("//driver/trips");
-                        break;
-                    case "Employee":
-                        await Shell.Current.GoToAsync("//employee/attendance");
-                        break;
-                    default:
-                        await Shell.Current.GoToAsync("//parent/dashboard");
-                        break;
-                }
+                    "Driver"   => "//trips",
+                    "Employee" => "//attendance",
+                    _          => "//dashboard"
+                };
+                await Shell.Current.GoToAsync(route);
             }
             else
             {
