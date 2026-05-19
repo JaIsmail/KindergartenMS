@@ -53,7 +53,6 @@ public partial class LoginPage : ContentPage
                 await SecureStorage.SetAsync(Constants.UserNameKey, result.FullName);
 
                 // Navigate based on role
-                Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
                 switch (result.Role)
                 {
                     case "Parent":

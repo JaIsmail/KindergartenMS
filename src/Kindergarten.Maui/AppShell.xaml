@@ -5,28 +5,48 @@
        xmlns:parent="clr-namespace:Kindergarten.Maui.Views.Parent"
        xmlns:driver="clr-namespace:Kindergarten.Maui.Views.Driver"
        xmlns:employee="clr-namespace:Kindergarten.Maui.Views.Employee"
-       x:Class="Kindergarten.Maui.AppShell"
->
+       x:Class="Kindergarten.Maui.AppShell">
+
+  <Shell.Resources>
+    <ResourceDictionary>
+      <Style TargetType="Shell">
+        <Setter Property="Shell.BackgroundColor" Value="#f97316"/>
+        <Setter Property="Shell.ForegroundColor" Value="White"/>
+        <Setter Property="Shell.TitleColor" Value="White"/>
+        <Setter Property="Shell.TabBarBackgroundColor" Value="White"/>
+        <Setter Property="Shell.TabBarForegroundColor" Value="#f97316"/>
+      </Style>
+    </ResourceDictionary>
+  </Shell.Resources>
 
   <!-- Login (default) -->
-  <ShellContent Route="login" ContentTemplate="{DataTemplate auth:LoginPage}" Shell.NavBarIsVisible="False"/>
+  <ShellContent
+    Route="login"
+    ContentTemplate="{DataTemplate auth:LoginPage}"
+    Shell.NavBarIsVisible="False"/>
 
   <!-- Parent -->
   <TabBar Route="parent">
-    <ShellContent Route="dashboard" Title="الرئيسية" Icon="home.png"
-                  ContentTemplate="{DataTemplate parent:ParentDashboardPage}"/>
+    <Tab Title="الرئيسية" Icon="home.png">
+      <ShellContent Route="dashboard"
+        ContentTemplate="{DataTemplate parent:ParentDashboardPage}"/>
+    </Tab>
   </TabBar>
 
   <!-- Driver -->
   <TabBar Route="driver">
-    <ShellContent Route="trips" Title="الرحلات" Icon="bus.png"
-                  ContentTemplate="{DataTemplate driver:DriverTripsPage}"/>
+    <Tab Title="الرحلات" Icon="bus.png">
+      <ShellContent Route="trips"
+        ContentTemplate="{DataTemplate driver:DriverTripsPage}"/>
+    </Tab>
   </TabBar>
 
   <!-- Employee -->
   <TabBar Route="employee">
-    <ShellContent Route="attendance" Title="الحضور" Icon="clock.png"
-                  ContentTemplate="{DataTemplate employee:EmployeeAttendancePage}"/>
+    <Tab Title="الحضور" Icon="clock.png">
+      <ShellContent Route="attendance"
+        ContentTemplate="{DataTemplate employee:EmployeeAttendancePage}"/>
+    </Tab>
   </TabBar>
 
 </Shell>
