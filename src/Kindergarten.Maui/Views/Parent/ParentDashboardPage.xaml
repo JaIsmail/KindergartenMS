@@ -2,103 +2,61 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kindergarten.Maui.Views.Parent.ParentDashboardPage"
-             BackgroundColor="#f0f4f8">
+             BackgroundColor="#f0f4f8"
+             Title="KMS">
 
-  <Shell.TitleView>
-    <Label Text="لوحة ولي الأمر" TextColor="White" FontSize="18"
-           FontAttributes="Bold" VerticalOptions="Center"/>
-  </Shell.TitleView>
+  <ScrollView>
+    <VerticalStackLayout Padding="16" Spacing="12">
 
-  <RefreshView x:Name="RefreshView" Refreshing="OnRefreshing">
-    <ScrollView>
-      <VerticalStackLayout Padding="16" Spacing="16">
+      <!-- Welcome Card -->
+      <Border BackgroundColor="#f97316" StrokeCornerRadius="16" Stroke="Transparent" Padding="20">
+        <VerticalStackLayout Spacing="4">
+          <Label x:Name="WelcomeLabel" Text="مرحباً" FontSize="22"
+                 FontAttributes="Bold" TextColor="White"/>
+          <Label x:Name="UserNameLabel" Text="" FontSize="16" TextColor="#fff7ed"/>
+        </VerticalStackLayout>
+      </Border>
 
-        <!-- Welcome Card -->
-        <Frame BackgroundColor="#f97316" CornerRadius="16" Padding="20" BorderColor="Transparent">
-          <VerticalStackLayout Spacing="4">
-            <Label x:Name="WelcomeLabel" Text="مرحباً" FontSize="24"
-                   FontAttributes="Bold" TextColor="White"/>
-            <Label x:Name="UserNameLabel" Text="" FontSize="16" TextColor="#fff7ed"/>
+      <!-- Stats -->
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+        <Border Grid.Column="0" BackgroundColor="White" StrokeCornerRadius="14"
+                Stroke="#e2e8f0" Padding="16">
+          <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+            <Label Text="👶" FontSize="28" HorizontalOptions="Center"/>
+            <Label x:Name="ChildrenCountLabel" Text="0" FontSize="28"
+                   FontAttributes="Bold" TextColor="#0f172a" HorizontalOptions="Center"/>
+            <Label x:Name="ChildrenLabel" Text="الأطفال" FontSize="12"
+                   TextColor="#64748b" HorizontalOptions="Center"/>
           </VerticalStackLayout>
-        </Frame>
+        </Border>
+        <Border Grid.Column="1" BackgroundColor="White" StrokeCornerRadius="14"
+                Stroke="#e2e8f0" Padding="16">
+          <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+            <Label Text="💳" FontSize="28" HorizontalOptions="Center"/>
+            <Label x:Name="SubsCountLabel" Text="0" FontSize="28"
+                   FontAttributes="Bold" TextColor="#0f172a" HorizontalOptions="Center"/>
+            <Label x:Name="SubsLabel" Text="الاشتراكات" FontSize="12"
+                   TextColor="#64748b" HorizontalOptions="Center"/>
+          </VerticalStackLayout>
+        </Border>
+      </Grid>
 
-        <!-- Stats Row -->
-        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-          <Frame Grid.Column="0" BackgroundColor="White" CornerRadius="14" Padding="16" BorderColor="#e2e8f0">
-            <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
-              <Label Text="👶" FontSize="28" HorizontalOptions="Center"/>
-              <Label x:Name="ChildrenCountLabel" Text="0" FontSize="28"
-                     FontAttributes="Bold" TextColor="#0f172a" HorizontalOptions="Center"/>
-              <Label x:Name="ChildrenLabel" Text="الأطفال" FontSize="12"
-                     TextColor="#64748b" HorizontalOptions="Center"/>
-            </VerticalStackLayout>
-          </Frame>
-          <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="14" Padding="16" BorderColor="#e2e8f0">
-            <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
-              <Label Text="💳" FontSize="28" HorizontalOptions="Center"/>
-              <Label x:Name="SubsCountLabel" Text="0" FontSize="28"
-                     FontAttributes="Bold" TextColor="#0f172a" HorizontalOptions="Center"/>
-              <Label x:Name="SubsLabel" Text="الاشتراكات" FontSize="12"
-                     TextColor="#64748b" HorizontalOptions="Center"/>
-            </VerticalStackLayout>
-          </Frame>
-        </Grid>
+      <!-- Children List -->
+      <Label x:Name="MyChildrenLabel" Text="أطفالي" FontSize="18"
+             FontAttributes="Bold" TextColor="#0f172a"/>
 
-        <!-- Children Section -->
-        <Label x:Name="MyChildrenLabel" Text="أطفالي" FontSize="18"
-               FontAttributes="Bold" TextColor="#0f172a"/>
+      <Border BackgroundColor="White" StrokeCornerRadius="14" Stroke="#e2e8f0">
+        <VerticalStackLayout x:Name="ChildrenStack" Spacing="0"/>
+      </Border>
 
-        <CollectionView x:Name="ChildrenList" SelectionMode="None">
-          <CollectionView.ItemTemplate>
-            <DataTemplate>
-              <Frame BackgroundColor="White" CornerRadius="14" Padding="16"
-                     BorderColor="#e2e8f0" Margin="0,0,0,8">
-                <Grid ColumnDefinitions="*,Auto">
-                  <VerticalStackLayout Grid.Column="0" Spacing="4">
-                    <Label Text="{Binding Name}" FontSize="16"
-                           FontAttributes="Bold" TextColor="#0f172a"/>
-                    <Label Text="{Binding Class}" FontSize="13" TextColor="#64748b"/>
-                  </VerticalStackLayout>
-                  <Frame Grid.Column="1" BackgroundColor="#fff7ed"
-                         CornerRadius="8" Padding="8,4" BorderColor="#fed7aa">
-                    <Label Text="👶" FontSize="20"/>
-                  </Frame>
-                </Grid>
-              </Frame>
-            </DataTemplate>
-          </CollectionView.ItemTemplate>
-        </CollectionView>
+      <!-- Subscriptions -->
+      <Label x:Name="MySubsLabel" Text="اشتراكاتي" FontSize="18"
+             FontAttributes="Bold" TextColor="#0f172a"/>
 
-        <!-- Subscriptions Section -->
-        <Label x:Name="MySubsLabel" Text="اشتراكاتي" FontSize="18"
-               FontAttributes="Bold" TextColor="#0f172a"/>
+      <Border BackgroundColor="White" StrokeCornerRadius="14" Stroke="#e2e8f0">
+        <VerticalStackLayout x:Name="SubsStack" Spacing="0"/>
+      </Border>
 
-        <CollectionView x:Name="SubsList" SelectionMode="None">
-          <CollectionView.ItemTemplate>
-            <DataTemplate>
-              <Frame BackgroundColor="White" CornerRadius="14" Padding="16"
-                     BorderColor="#e2e8f0" Margin="0,0,0,8">
-                <Grid ColumnDefinitions="*,Auto">
-                  <VerticalStackLayout Grid.Column="0" Spacing="4">
-                    <Label Text="{Binding ChildName}" FontSize="15"
-                           FontAttributes="Bold" TextColor="#0f172a"/>
-                    <Label Text="{Binding Type}" FontSize="13" TextColor="#64748b"/>
-                    <Label Text="{Binding Price, StringFormat='SAR {0:F2}'}"
-                           FontSize="14" FontAttributes="Bold" TextColor="#f97316"/>
-                  </VerticalStackLayout>
-                  <Frame Grid.Column="1" CornerRadius="8" Padding="8,4"
-                         BorderColor="Transparent"
-                         BackgroundColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}">
-                    <Label Text="{Binding PaymentStatus}" FontSize="12"
-                           FontAttributes="Bold" TextColor="White"/>
-                  </Frame>
-                </Grid>
-              </Frame>
-            </DataTemplate>
-          </CollectionView.ItemTemplate>
-        </CollectionView>
-
-      </VerticalStackLayout>
-    </ScrollView>
-  </RefreshView>
+    </VerticalStackLayout>
+  </ScrollView>
 </ContentPage>

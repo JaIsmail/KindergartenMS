@@ -5,7 +5,6 @@ namespace Kindergarten.Maui.Views.Driver;
 public partial class DriverTripsPage : ContentPage
 {
     private readonly ApiService _api = new();
-    private int _activeTripId = 0;
 
     public DriverTripsPage()
     {
@@ -18,57 +17,98 @@ public partial class DriverTripsPage : ContentPage
         await LoadTripsAsync();
     }
 
-    async void OnRefreshing(object sender, EventArgs e)
-    {
-        await LoadTripsAsync();
-        RefreshView.IsRefreshing = false;
-    }
-
     async Task LoadTripsAsync()
     {
-        var trips = await _api.GetMyTripsAsync();
-        if (trips == null) return;
-
-        TripsList.ItemsSource = trips;
-
-        // Check for active trip
-        var activeTrip = trips.FirstOrDefault(t => t.Status == "InProgress");
-        if (activeTrip != null)
+        try
         {
-            _activeTripId              = activeTrip.Id;
-            ActiveTripFrame.IsVisible  = true;
-            ActiveTripIdLabel.Text     = $"رحلة #{activeTrip.Id} — {activeTrip.Direction}";
-        }
-        else
-        {
-            ActiveTripFrame.IsVisible = false;
-        }
-    }
+            var trips = await _api.GetMyTripsAsync();
+            TripsStack.Children.Clear();
 
-    async void OnStartTripClicked(object sender, EventArgs e)
-    {
-        if (sender is Button btn && btn.CommandParameter is int tripId)
-        {
-            var result = await _api.StartTripAsync(tripId);
-            if (result != null)
+            if (trips == null || trips.Count == 0)
             {
-                _activeTripId = tripId;
-                await DisplayAlert("✅", $"بدأت الرحلة #{tripId}", "موافق");
-                await LoadTripsAsync();
+                TripsStack.Children.Add(new Label
+                {
+                    Text = "لا توجد رحلات",
+                    HorizontalOptions = LayoutOptions.Center,
+                    TextColor = Color.FromArgb("#94a3b8"),
+                    Margin = new Thickness(0, 20)
+                });
+                return;
+            }
+
+            foreach (var trip in trips)
+            {
+                var card = new Border
+                {
+                    BackgroundColor = Colors.White,
+                    StrokeCornerRadius = 14,
+                    Stroke = Color.FromArgb("#e2e8f0"),
+                    Padding = new Thickness(16)
+                };
+
+                var stack = new VerticalStackLayout { Spacing = 8 };
+
+                stack.Children.Add(new Label
+                {
+                    Text = $"رحلة #{trip.Id} — {(trip.Direction == "ToKindergarten" ? "🏫 إلى الروضة" : "🏠 إلى المنزل")}",
+                    FontSize = 15,
+                    FontAttributes = FontAttributes.Bold
+                });
+
+                stack.Children.Add(new Label
+                {
+                    Text = $"الحالة: {trip.Status}",
+                    FontSize = 13,
+                    TextColor = Color.FromArgb("#64748b")
+                });
+
+                if (trip.Status == "Created")
+                {
+                    var btn = new Button
+                    {
+                        Text = "▶️ بدء الرحلة",
+                        BackgroundColor = Color.FromArgb("#f97316"),
+                        TextColor = Colors.White,
+                        CornerRadius = 10,
+                        FontAttributes = FontAttributes.Bold
+                    };
+                    var tripId = trip.Id;
+                    btn.Clicked += async (s, e) =>
+                    {
+                        var result = await _api.StartTripAsync(tripId);
+                        if (result != null) { await DisplayAlert("✅", "بدأت الرحلة", "موافق"); await LoadTripsAsync(); }
+                    };
+                    stack.Children.Add(btn);
+                }
+
+                if (trip.Status == "InProgress")
+                {
+                    var btn = new Button
+                    {
+                        Text = "⏹️ إنهاء الرحلة",
+                        BackgroundColor = Color.FromArgb("#3b82f6"),
+                        TextColor = Colors.White,
+                        CornerRadius = 10,
+                        FontAttributes = FontAttributes.Bold
+                    };
+                    var tripId = trip.Id;
+                    btn.Clicked += async (s, e) =>
+                    {
+                        bool confirm = await DisplayAlert("إنهاء الرحلة", "هل تريد إنهاء الرحلة؟", "نعم", "لا");
+                        if (!confirm) return;
+                        var result = await _api.EndTripAsync(tripId);
+                        if (result != null) { await DisplayAlert("✅", "انتهت الرحلة", "موافق"); await LoadTripsAsync(); }
+                    };
+                    stack.Children.Add(btn);
+                }
+
+                card.Content = stack;
+                TripsStack.Children.Add(card);
             }
         }
-    }
-
-    async void OnEndTripClicked(object sender, EventArgs e)
-    {
-        bool confirm = await DisplayAlert("إنهاء الرحلة", "هل تريد إنهاء الرحلة؟", "نعم", "لا");
-        if (!confirm) return;
-
-        var result = await _api.EndTripAsync(_activeTripId);
-        if (result != null)
+        catch (Exception ex)
         {
-            await DisplayAlert("✅", "تم إنهاء الرحلة بنجاح", "موافق");
-            await LoadTripsAsync();
+            await DisplayAlert("Error", ex.Message, "OK");
         }
     }
 }
