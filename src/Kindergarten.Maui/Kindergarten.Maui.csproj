@@ -23,6 +23,16 @@
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <MauiIcon Include="Resources/AppIcon/appicon.svg"
+              ForegroundFile="Resources/AppIcon/appiconfg.svg"
+              Color="#f97316" />
+    <MauiSplashScreen Include="Resources/Splash/splash.svg"
+                      Color="#f97316"
+                      BaseSize="450,450" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.*" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.*" />

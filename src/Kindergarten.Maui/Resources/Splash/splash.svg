@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 450">
+  <rect width="450" height="450" fill="#f97316"/>
+  <rect x="95" y="195" width="260" height="185" rx="10" fill="white"/>
+  <polygon points="225,80 65,205 385,205" fill="white" opacity="0.95"/>
+  <rect x="180" y="285" width="90" height="95" rx="45" fill="#f97316"/>
+  <rect x="110" y="215" width="55" height="45" rx="8" fill="#fff7ed"/>
+  <rect x="285" y="215" width="55" height="45" rx="8" fill="#fff7ed"/>
+  <circle cx="225" cy="140" r="18" fill="#f97316"/>
+  <text x="225" y="410" font-family="Arial" font-weight="900" font-size="52"
+        fill="white" text-anchor="middle">KMS</text>
+</svg>
