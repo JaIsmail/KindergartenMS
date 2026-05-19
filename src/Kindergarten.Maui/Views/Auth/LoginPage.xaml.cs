@@ -75,9 +75,9 @@ public partial class LoginPage : ContentPage
                 ErrorLabel.IsVisible = true;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            ErrorLabel.Text = _lang == "ar" ? "لا يمكن الاتصال بالخادم" : "Cannot connect to server";
+            ErrorLabel.Text = $"Error: {ex.Message}";
             ErrorLabel.IsVisible = true;
         }
 
