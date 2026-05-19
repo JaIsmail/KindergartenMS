@@ -1,6 +1,5 @@
 using Android.App;
 using Android.Content.PM;
-using Android.OS;
 using Microsoft.Maui;
 
 namespace Kindergarten.Maui;

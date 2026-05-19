@@ -16,7 +16,6 @@
 
     <!-- Android settings -->
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
-    <AndroidSdkDirectory Condition="'$(AndroidSdkDirectory)' == ''" />
     <TargetPlatformVersion>35</TargetPlatformVersion>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <RunAOTCompilation>false</RunAOTCompilation>
