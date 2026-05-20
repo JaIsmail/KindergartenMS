@@ -224,6 +224,13 @@ input:focus { outline: none; border-color: #f97316; }
 #toast.ok { background: #16a34a; }
 #toast.err { background: #ef4444; }
 </style>
+<style>
+#mapContainer { height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; display: none; }
+.gps-active { background: #dcfce7; border: 1px solid #22c55e; border-radius: 12px; padding: 0.8rem; margin-bottom: 1rem; display: none; }
+.gps-active .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; margin-left: 0.4rem; }
+@keyframes pulse2 { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+.gps-active .dot { animation: pulse2 1.5s infinite; }
+</style>
 </head>
 <body>
 
@@ -273,6 +280,13 @@ input:focus { outline: none; border-color: #f97316; }
       <div id="childList"><div class="empty"><div class="spinner"></div></div></div>
     </div>
 
+    <div class="page" id="pg-ptrips">
+      <div class="sec-title" id="pTripsTitle">رحلات أطفالي</div>
+      <div id="parentMapContainer" style="height:300px;border-radius:12px;overflow:hidden;margin-bottom:1rem;display:none"><div id="parentMap" style="height:100%"></div></div>
+      <div id="parentTripStatus" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:0.8rem;margin-bottom:1rem;text-align:center;color:#1d4ed8;font-weight:bold"></div>
+      <div id="pTripList"><div class="empty"><div class="spinner"></div></div></div>
+    </div>
+
     <div class="page" id="pg-subs">
       <div class="sec-title">اشتراكاتي</div>
       <div id="subList"><div class="empty"><div class="spinner"></div></div></div>
@@ -280,6 +294,11 @@ input:focus { outline: none; border-color: #f97316; }
 
     <div class="page" id="pg-dtrips">
       <div id="activeBanner"></div>
+      <div class="gps-active" id="gpsStatus">
+        <span class="dot"></span>
+        <span id="gpsText">GPS نشط — يتم إرسال الموقع</span>
+      </div>
+      <div id="mapContainer"><div id="map" style="height:100%"></div></div>
       <div class="sec-title">رحلاتي</div>
       <div id="tripList"><div class="empty"><div class="spinner"></div></div></div>
     </div>
@@ -331,10 +350,14 @@ let token = localStorage.getItem('kms_token');
 let lang = localStorage.getItem('kms_lang') || 'ar';
 let role = localStorage.getItem('kms_role') || '';
 let page = '';
+let gpsInterval = null;
+let currentTripId = null;
+let map = null;
+let marker = null;
 
 // Translations
 const TX = {
-  ar: { home:'الرئيسية', trips:'الرحلات', subs:'الاشتراكات', att:'الحضور', profile:'الملف الشخصي',
+  ar: { home:'الرئيسية', trips:'الرحلات', ptrips:'الرحلات', subs:'الاشتراكات', att:'الحضور', profile:'الملف الشخصي',
         loginBtn:'تسجيل الدخول', logging:'جاري التحقق...', errW:'بيانات الدخول غير صحيحة', errC:'لا يمكن الاتصال بالخادم',
         toSchool:'🏫 إلى الروضة', toHome:'🏠 إلى المنزل', start:'▶️ بدء الرحلة', end:'⏹️ إنهاء الرحلة',
         active:'رحلة جارية 🚌', confirmEnd:'هل تريد إنهاء الرحلة؟', noData:'لا توجد بيانات',
@@ -342,7 +365,7 @@ const TX = {
         tripOk:'بدأت الرحلة ✅', tripEnd:'انتهت الرحلة ✅', wHours:'ساعات العمل',
         status:{Created:'تم الإنشاء',InProgress:'جارية',Completed:'مكتملة',Pending:'معلق',PickedUp:'تم الاستلام',DroppedOff:'تم التوصيل',Paid:'مدفوع',Overdue:'متأخر',Present:'حاضر',Late:'متأخر',Absent:'غائب'},
         roles:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'} },
-  en: { home:'Home', trips:'Trips', subs:'Subscriptions', att:'Attendance', profile:'Profile',
+  en: { home:'Home', trips:'Trips', ptrips:'Trips', subs:'Subscriptions', att:'Attendance', profile:'Profile',
         loginBtn:'Sign In', logging:'Signing in...', errW:'Invalid email or password', errC:'Cannot connect to server',
         toSchool:'🏫 To School', toHome:'🏠 To Home', start:'▶️ Start Trip', end:'⏹️ End Trip',
         active:'Active Trip 🚌', confirmEnd:'End this trip?', noData:'No data found',
@@ -434,6 +457,7 @@ async function doLogin() {
       localStorage.setItem('kms_email', d.email);
       role = d.role;
       initApp();
+      connectSignalR();
     } else {
       showErr(d.message || t('errW'));
     }
@@ -481,7 +505,7 @@ function buildNav() {
   let tabs = [];
   if(role==='Driver') tabs=[{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
   else if(role==='Employee') tabs=[{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
-  else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'subs',i:'💳',l:t('subs')},{id:'profile',i:'👤',l:t('profile')}];
+  else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subs')},{id:'profile',i:'👤',l:t('profile')}];
   nav.innerHTML = tabs.map(tb =>
     '<button class="tab'+(page===tb.id?' active':'')+'" data-page="'+tb.id+'"><span class="icon">'+tb.i+'</span><span>'+tb.l+'</span></button>'
   ).join('');
@@ -495,10 +519,10 @@ function showPage(p) {
   const el = document.getElementById('pg-'+p);
   if(el) el.classList.add('active');
   page = p;
-  const titles = {home:t('home'),subs:t('subs'),dtrips:t('trips'),att:t('att'),profile:t('profile')};
+  const titles = {home:t('home'),subs:t('subs'),ptrips:t('trips'),dtrips:t('trips'),att:t('att'),profile:t('profile')};
   document.getElementById('tbTitle').textContent = titles[p] || 'KMS';
   buildNav();
-  const loaders = {home:loadHome, subs:loadSubs, dtrips:loadTrips, att:loadAtt};
+  const loaders = {home:loadHome, subs:loadSubs, ptrips:loadParentTrips, dtrips:loadTrips, att:loadAtt};
   if(loaders[p]) loaders[p]();
 }
 
@@ -534,8 +558,71 @@ async function loadTrips() {
   div.innerHTML = trips.map(tr=>'<div class="trip-card '+tr.status.toLowerCase()+'"><div class="trip-head"><h4>'+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+tr.id+'</h4>'+sbadge(tr.status)+'</div><div style="font-size:0.75rem;color:#64748b;margin-bottom:0.5rem">📅 '+new Date(tr.date).toLocaleDateString()+(tr.startTime?' • ▶️ '+new Date(tr.startTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}):'')+'</div>'+tr.children.map(c=>'<div style="display:flex;justify-content:space-between;background:#f8fafc;border-radius:8px;padding:0.4rem 0.7rem;margin-bottom:0.3rem;font-size:0.8rem"><span>👤 '+c.childName+'</span><div>'+sbadge(c.pickupStatus)+' '+sbadge(c.dropoffStatus)+'</div></div>').join('')+(tr.status==='Created'?'<button class="btn btn-p" onclick="startTrip('+tr.id+')">'+t('start')+'</button>':'')+'</div>').join('');
 }
 
-async function startTrip(id){ const r=await api('/api/trips/'+id+'/start','PUT'); if(r){toast(t('tripOk'),'ok');loadTrips();} }
-async function endTrip(id){ if(!confirm(t('confirmEnd')))return; const r=await api('/api/trips/'+id+'/end','PUT'); if(r){toast(t('tripEnd'),'ok');loadTrips();} }
+async function loadParentTrips() {
+  const div = document.getElementById('pTripList');
+  const status = document.getElementById('parentTripStatus');
+  const mapCont = document.getElementById('parentMapContainer');
+  div.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+
+  // Check for active trips
+  const trips = await api('/api/trips');
+  if(!trips||!trips.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
+
+  const active = trips.find(tr=>tr.status==='InProgress');
+  if(active) {
+    status.style.display = 'block';
+    status.textContent = (lang==='ar'?'رحلة جارية الآن':'Trip in progress') + ' 🚌';
+    mapCont.style.display = 'block';
+    initParentMap();
+  } else {
+    status.style.display = 'none';
+    mapCont.style.display = 'none';
+  }
+
+  div.innerHTML = '<div class="list">'+trips.slice(0,5).map(tr=>
+    '<div class="item"><span class="item-icon">'+(tr.direction==="ToKindergarten"?"🏫":"🏠")+'</span><div class="item-info"><div class="t">'+(tr.direction==="ToKindergarten"?t("toSchool"):t("toHome"))+'</div><div class="s">'+new Date(tr.date).toLocaleDateString()+'</div></div>'+sbadge(tr.status)+'</div>'
+  ).join('')+'</div>';
+}
+
+let parentMap = null;
+let parentMarker = null;
+
+function initParentMap() {
+  if(typeof L === 'undefined') {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => createParentMap();
+    document.head.appendChild(script);
+  } else {
+    createParentMap();
+  }
+}
+
+function createParentMap() {
+  if(parentMap) { parentMap.remove(); parentMap = null; }
+  parentMap = L.map('parentMap').setView([24.7136, 46.6753], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(parentMap);
+}
+
+function updateParentMap(lat, lng) {
+  if(!parentMap) return;
+  parentMap.setView([lat, lng], 15);
+  if(parentMarker) parentMarker.remove();
+  parentMarker = L.marker([lat, lng], {
+    icon: L.divIcon({
+      html: '<div style="background:#f97316;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">🚌</div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    })
+  }).addTo(parentMap).bindPopup(lang==='ar'?'موقع السائق الآن':'Driver's current location').openPopup();
+}
+
+async function startTrip(id){ const r=await api('/api/trips/'+id+'/start','PUT'); if(r){toast(t('tripOk'),'ok');startGPS(id);loadTrips();} }
+async function endTrip(id){ if(!confirm(t('confirmEnd')))return; const r=await api('/api/trips/'+id+'/end','PUT'); if(r){stopGPS();toast(t('tripEnd'),'ok');loadTrips();} }
 
 async function loadAtt() {
   const records = await api('/api/employees/my-attendance');
@@ -566,6 +653,72 @@ async function doCheckOut(){
   document.getElementById('btnCO').disabled=false;
 }
 
+// ── GPS TRACKING ──
+function startGPS(tripId) {
+  currentTripId = tripId;
+  document.getElementById('gpsStatus').style.display = 'block';
+  document.getElementById('mapContainer').style.display = 'block';
+  initMap();
+  gpsInterval = setInterval(async () => {
+    if(!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      await api('/api/trips/location', 'POST', {tripId, latitude: lat, longitude: lng});
+      updateMap(lat, lng);
+      document.getElementById('gpsText').textContent =
+        (lang==='ar'?'GPS نشط ':'GPS Active ') + lat.toFixed(4) + ', ' + lng.toFixed(4);
+    }, err => {
+      console.log('GPS error:', err.message);
+    }, { enableHighAccuracy: true, maximumAge: 0 });
+  }, 5000);
+}
+
+function stopGPS() {
+  if(gpsInterval) { clearInterval(gpsInterval); gpsInterval = null; }
+  currentTripId = null;
+  document.getElementById('gpsStatus').style.display = 'none';
+  document.getElementById('mapContainer').style.display = 'none';
+}
+
+function initMap() {
+  if(!document.getElementById('map')) return;
+  if(typeof L === 'undefined') {
+    // Load Leaflet map
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => createMap();
+    document.head.appendChild(script);
+  } else {
+    createMap();
+  }
+}
+
+function createMap() {
+  if(map) { map.remove(); map = null; }
+  map = L.map('map').setView([24.7136, 46.6753], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+}
+
+function updateMap(lat, lng) {
+  if(!map) return;
+  map.setView([lat, lng], 15);
+  if(marker) marker.remove();
+  marker = L.marker([lat, lng], {
+    icon: L.divIcon({
+      html: '<div style="background:#f97316;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    })
+  }).addTo(map).bindPopup(lang==='ar'?'موقع السائق':'Driver Location').openPopup();
+}
+
 function toast(m,type=''){const t=document.getElementById('toast');t.textContent=m;t.className='show'+(type?' '+type:'');setTimeout(()=>t.className='',3000);}
 
 // Clock
@@ -575,9 +728,54 @@ setInterval(function(){
   const d=document.getElementById('todayDate');if(d)d.textContent=n.toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 },1000);
 
+// ── SIGNALR REAL-TIME ──
+let signalrConn = null;
+
+async function connectSignalR() {
+  if(typeof signalR === 'undefined') {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js';
+    s.onload = startSignalR;
+    document.head.appendChild(s);
+  } else {
+    startSignalR();
+  }
+}
+
+function startSignalR() {
+  signalrConn = new signalR.HubConnectionBuilder()
+    .withUrl(API+'/hubs/trip', { accessTokenFactory: () => token })
+    .withAutomaticReconnect()
+    .build();
+
+  // Parent receives live GPS
+  signalrConn.on('LocationUpdated', (tripId, lat, lng) => {
+    if(role !== 'Parent') return;
+    updateParentMap(lat, lng);
+    const s = document.getElementById('parentTripStatus');
+    if(s) s.textContent = (lang==='ar'?'موقع السائق: ':'Driver at: ') + lat.toFixed(4) + ', ' + lng.toFixed(4);
+    document.getElementById('parentMapContainer').style.display = 'block';
+    if(!parentMap) initParentMap();
+  });
+
+  signalrConn.on('TripStatusUpdated', (tripId, status) => {
+    toast(lang==='ar'?'تحديث الرحلة: '+status:'Trip update: '+status, 'ok');
+    if(page==='dtrips') loadTrips();
+    if(page==='ptrips') loadParentTrips();
+  });
+
+  signalrConn.on('ChildStatusUpdated', (tripId, childId, status) => {
+    toast(lang==='ar'?'تحديث الطفل: '+status:'Child update: '+status, 'ok');
+  });
+
+  signalrConn.start()
+    .then(() => console.log('SignalR connected'))
+    .catch(e => console.log('SignalR error:', e.message));
+}
+
 // Init
 setLang(lang);
-if(token){ role=localStorage.getItem('kms_role')||''; initApp(); }
+if(token){ role=localStorage.getItem('kms_role')||''; connectSignalR();; initApp(); }
 </script>
 </body>
 </html>
