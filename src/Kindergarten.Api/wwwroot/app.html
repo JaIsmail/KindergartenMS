@@ -126,15 +126,15 @@ html[lang="en"] .trip-card{border-right:none;border-left:4px solid var(--primary
 <div class="logo-text"><h1>KMS</h1><p id="lAppSub">نظام إدارة الروضة</p></div>
 </div>
 <div class="lang-toggle">
-<button class="lang-btn active" id="lLangAr" onclick="setLang('ar')">AR</button>
-<button class="lang-btn" id="lLangEn" onclick="setLang('en')">EN</button>
+<button class="lang-btn active" id="lLangAr" type="button">AR</button>
+<button class="lang-btn" id="lLangEn" type="button">EN</button>
 </div>
 </div>
 <h2 class="login-title" id="lTitle">مرحباً بعودتك</h2>
 <p class="login-sub" id="lSub">سجّل دخولك للمتابعة</p>
-<div class="form-field"><label id="lEmail">البريد الإلكتروني</label><input type="email" id="inEmail" placeholder="user@kms.com"></div>
+<div class="form-field"><label id="lEmail">البريد الإلكتروني</label><input type="email" id="inEmail" placeholder="user@kms.com" inputmode="email"></div>
 <div class="form-field"><label id="lPass">كلمة المرور</label><input type="password" id="inPass"></div>
-<button class="login-btn" id="lBtn" onclick="doLogin()" type="button">تسجيل الدخول</button>
+<button class="login-btn" id="lBtn" type="button">تسجيل الدخول</button>
 <div class="login-error" id="lErr"></div>
 </div>
 </div>
@@ -295,12 +295,7 @@ async function api(path,method='GET',body=null){
 
 window.onload=()=>{setLang(lang);if(token)initApp();startClock();};
 
-async document.getElementById('lBtn').addEventListener('touchend', function(e){
-  e.preventDefault();
-  doLogin();
-});
-
-function doLogin(){
+async function doLogin(){
   const email=document.getElementById('inEmail').value.trim();
   const pass=document.getElementById('inPass').value;
   const btn=document.getElementById('lBtn');
@@ -433,6 +428,21 @@ async function doCheckOut(){
   else showToast(t('noCI'),'');
   document.getElementById('btnCO').disabled=false;
 }
+
+// ── Mobile-friendly event listeners ──
+window.addEventListener('load', function() {
+  document.getElementById('lBtn').addEventListener('click', doLogin);
+  document.getElementById('lBtn').addEventListener('touchend', function(e){
+    e.preventDefault(); e.stopPropagation(); doLogin();
+  });
+  document.getElementById('lLangAr').addEventListener('click', function(){setLang('ar');});
+  document.getElementById('lLangAr').addEventListener('touchend', function(e){e.preventDefault();setLang('ar');});
+  document.getElementById('lLangEn').addEventListener('click', function(){setLang('en');});
+  document.getElementById('lLangEn').addEventListener('touchend', function(e){e.preventDefault();setLang('en');});
+  document.getElementById('inPass').addEventListener('keydown', function(e){
+    if(e.key==='Enter') doLogin();
+  });
+});
 </script>
 </body>
 </html>
