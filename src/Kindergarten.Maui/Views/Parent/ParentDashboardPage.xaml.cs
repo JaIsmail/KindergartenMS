@@ -117,3 +117,12 @@ public partial class ParentDashboardPage : ContentPage
         }
     }
 }
+
+    async void OnLogoutClicked(object sender, EventArgs e)
+    {
+        bool confirm = await DisplayAlert("تسجيل الخروج", "هل تريد تسجيل الخروج؟", "نعم", "لا");
+        if (!confirm) return;
+        SecureStorage.RemoveAll();
+        await Shell.Current.GoToAsync("//login");
+    }
+}

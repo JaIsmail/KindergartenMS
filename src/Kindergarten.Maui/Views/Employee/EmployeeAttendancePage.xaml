@@ -2,67 +2,67 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kindergarten.Maui.Views.Employee.EmployeeAttendancePage"
-             BackgroundColor="#f0f4f8">
-
-  <Shell.TitleView>
-    <Label Text="الحضور والانصراف" TextColor="White" FontSize="18"
-           FontAttributes="Bold" VerticalOptions="Center"/>
-  </Shell.TitleView>
+             BackgroundColor="#f0f4f8"
+             Title="الحضور والانصراف">
 
   <ScrollView>
-    <VerticalStackLayout Padding="16" Spacing="16">
+    <VerticalStackLayout Padding="16" Spacing="12">
 
       <!-- Today Card -->
-      <Border BackgroundColor="#0f172a" StrokeShape="RoundRectangle 16" Padding="24" Stroke="Transparent">
-        <VerticalStackLayout Spacing="12">
-          <Label Text="اليوم" FontSize="14" TextColor="#94a3b8"/>
-          <Label x:Name="DateLabel" Text="" FontSize="22"
-                 FontAttributes="Bold" TextColor="White"/>
-
-          <Grid ColumnDefinitions="*,*" ColumnSpacing="16" Margin="0,8,0,0">
+      <Border BackgroundColor="#0f172a" StrokeShape="RoundRectangle 16"
+              Stroke="Transparent" Padding="20">
+        <VerticalStackLayout Spacing="8">
+          <Label x:Name="DateLabel" Text="" FontSize="13"
+                 TextColor="#94a3b8" HorizontalOptions="Center"/>
+          <Label x:Name="TimeLabel" Text="--:--" FontSize="42"
+                 FontAttributes="Bold" TextColor="White"
+                 HorizontalOptions="Center"/>
+          <Label x:Name="StatusLabel" Text="" FontSize="13"
+                 TextColor="#f97316" HorizontalOptions="Center"/>
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
             <VerticalStackLayout Grid.Column="0" Spacing="4">
-              <Label Text="وقت الحضور" FontSize="12" TextColor="#64748b"/>
-              <Label x:Name="CheckInTimeLabel" Text="--:--" FontSize="20"
-                     FontAttributes="Bold" TextColor="#22c55e"/>
+              <Label Text="وقت الحضور" FontSize="11" TextColor="#64748b"
+                     HorizontalOptions="Center"/>
+              <Label x:Name="CheckInTimeLabel" Text="--:--" FontSize="18"
+                     FontAttributes="Bold" TextColor="#22c55e"
+                     HorizontalOptions="Center"/>
             </VerticalStackLayout>
             <VerticalStackLayout Grid.Column="1" Spacing="4">
-              <Label Text="وقت الانصراف" FontSize="12" TextColor="#64748b"/>
-              <Label x:Name="CheckOutTimeLabel" Text="--:--" FontSize="20"
-                     FontAttributes="Bold" TextColor="#3b82f6"/>
+              <Label Text="وقت الانصراف" FontSize="11" TextColor="#64748b"
+                     HorizontalOptions="Center"/>
+              <Label x:Name="CheckOutTimeLabel" Text="--:--" FontSize="18"
+                     FontAttributes="Bold" TextColor="#3b82f6"
+                     HorizontalOptions="Center"/>
             </VerticalStackLayout>
           </Grid>
-
-          <Label x:Name="StatusLabel" Text="" FontSize="14"
-                 FontAttributes="Bold" TextColor="#f97316"/>
         </VerticalStackLayout>
       </Border>
 
-      <!-- Biometric Buttons -->
+      <!-- Action Buttons -->
       <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
         <Button Grid.Column="0" x:Name="CheckInButton"
-                Text="🔵 تسجيل الحضور" BackgroundColor="#22c55e"
-                TextColor="White" CornerRadius="14" HeightRequest="60"
-                FontSize="15" FontAttributes="Bold"
+                Text="✅ تسجيل الحضور"
+                BackgroundColor="#22c55e" TextColor="White"
+                CornerRadius="12" HeightRequest="54"
+                FontSize="14" FontAttributes="Bold"
                 Clicked="OnCheckInClicked"/>
         <Button Grid.Column="1" x:Name="CheckOutButton"
-                Text="🔴 تسجيل الانصراف" BackgroundColor="#ef4444"
-                TextColor="White" CornerRadius="14" HeightRequest="60"
-                FontSize="15" FontAttributes="Bold"
+                Text="🔴 تسجيل الانصراف"
+                BackgroundColor="#ef4444" TextColor="White"
+                CornerRadius="12" HeightRequest="54"
+                FontSize="14" FontAttributes="Bold"
                 Clicked="OnCheckOutClicked"/>
       </Grid>
 
-      <Label Text="البصمة مطلوبة للتحقق" FontSize="12"
-             TextColor="#94a3b8" HorizontalOptions="Center"/>
-
-      <!-- History -->
+      <!-- Attendance History -->
       <Label Text="سجل الحضور" FontSize="18"
              FontAttributes="Bold" TextColor="#0f172a"/>
 
       <CollectionView x:Name="AttendanceList" SelectionMode="None">
         <CollectionView.ItemTemplate>
           <DataTemplate>
-            <Border BackgroundColor="White" StrokeShape="RoundRectangle 12" Padding="16"
-                   Stroke="#e2e8f0" Margin="0,0,0,8">
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 12"
+                    Stroke="#e2e8f0" Padding="16" Margin="0,0,0,8">
               <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Grid.Column="0" Spacing="4">
                   <Label Text="{Binding Date, StringFormat='{0:dd/MM/yyyy}'}"
@@ -71,13 +71,21 @@
                          FontSize="13" TextColor="#64748b"/>
                 </VerticalStackLayout>
                 <Label Grid.Column="1" Text="{Binding Status}"
-                       FontSize="13" FontAttributes="Bold" TextColor="#f97316"
-                       VerticalOptions="Center"/>
+                       FontSize="13" FontAttributes="Bold"
+                       TextColor="#f97316" VerticalOptions="Center"/>
               </Grid>
             </Border>
           </DataTemplate>
         </CollectionView.ItemTemplate>
       </CollectionView>
+
+      <!-- Logout Button -->
+      <Button Text="🚪 تسجيل الخروج"
+              BackgroundColor="#f1f5f9" TextColor="#ef4444"
+              CornerRadius="12" HeightRequest="50"
+              FontSize="15" FontAttributes="Bold"
+              Margin="0,8,0,0"
+              Clicked="OnLogoutClicked"/>
 
     </VerticalStackLayout>
   </ScrollView>

@@ -57,6 +57,13 @@
         <VerticalStackLayout x:Name="SubsStack" Spacing="0"/>
       </Border>
 
+      <!-- Logout -->
+      <Button Text="🚪 تسجيل الخروج"
+              BackgroundColor="#f1f5f9" TextColor="#ef4444"
+              CornerRadius="12" HeightRequest="50"
+              FontSize="15" FontAttributes="Bold"
+              Margin="0,8,0,0"
+              Clicked="OnLogoutClicked"/>
     </VerticalStackLayout>
   </ScrollView>
 </ContentPage>

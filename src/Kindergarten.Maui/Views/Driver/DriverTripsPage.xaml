@@ -9,6 +9,12 @@
       <Label x:Name="TripsTitle" Text="رحلاتي" FontSize="22"
              FontAttributes="Bold" TextColor="#0f172a"/>
       <VerticalStackLayout x:Name="TripsStack" Spacing="8"/>
+      <Button Text="🚪 تسجيل الخروج"
+              BackgroundColor="#f1f5f9" TextColor="#ef4444"
+              CornerRadius="12" HeightRequest="50"
+              FontSize="15" FontAttributes="Bold"
+              Margin="0,8,0,0"
+              Clicked="OnLogoutClicked"/>
     </VerticalStackLayout>
   </ScrollView>
 </ContentPage>
