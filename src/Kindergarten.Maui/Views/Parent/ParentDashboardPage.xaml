@@ -9,7 +9,7 @@
     <VerticalStackLayout Padding="16" Spacing="12">
 
       <!-- Welcome Card -->
-      <Border BackgroundColor="#f97316" StrokeCornerRadius="16" Stroke="Transparent" Padding="20">
+      <Border BackgroundColor="#f97316" StrokeShape="RoundRectangle CornerRadius='16'" Stroke="Transparent" Padding="20">
         <VerticalStackLayout Spacing="4">
           <Label x:Name="WelcomeLabel" Text="مرحباً" FontSize="22"
                  FontAttributes="Bold" TextColor="White"/>
@@ -19,7 +19,7 @@
 
       <!-- Stats -->
       <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-        <Border Grid.Column="0" BackgroundColor="White" StrokeCornerRadius="14"
+        <Border Grid.Column="0" BackgroundColor="White" StrokeShape="RoundRectangle CornerRadius='14'"
                 Stroke="#e2e8f0" Padding="16">
           <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
             <Label Text="👶" FontSize="28" HorizontalOptions="Center"/>
@@ -29,7 +29,7 @@
                    TextColor="#64748b" HorizontalOptions="Center"/>
           </VerticalStackLayout>
         </Border>
-        <Border Grid.Column="1" BackgroundColor="White" StrokeCornerRadius="14"
+        <Border Grid.Column="1" BackgroundColor="White" StrokeShape="RoundRectangle CornerRadius='14'"
                 Stroke="#e2e8f0" Padding="16">
           <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
             <Label Text="💳" FontSize="28" HorizontalOptions="Center"/>
@@ -45,7 +45,7 @@
       <Label x:Name="MyChildrenLabel" Text="أطفالي" FontSize="18"
              FontAttributes="Bold" TextColor="#0f172a"/>
 
-      <Border BackgroundColor="White" StrokeCornerRadius="14" Stroke="#e2e8f0">
+      <Border BackgroundColor="White" StrokeShape="RoundRectangle CornerRadius='14'" Stroke="#e2e8f0">
         <VerticalStackLayout x:Name="ChildrenStack" Spacing="0"/>
       </Border>
 
@@ -53,7 +53,7 @@
       <Label x:Name="MySubsLabel" Text="اشتراكاتي" FontSize="18"
              FontAttributes="Bold" TextColor="#0f172a"/>
 
-      <Border BackgroundColor="White" StrokeCornerRadius="14" Stroke="#e2e8f0">
+      <Border BackgroundColor="White" StrokeShape="RoundRectangle CornerRadius='14'" Stroke="#e2e8f0">
         <VerticalStackLayout x:Name="SubsStack" Spacing="0"/>
       </Border>
 
