@@ -571,7 +571,7 @@ async function loadParentTrips() {
   const active = trips.find(tr=>tr.status==='InProgress');
   if(active) {
     status.style.display = 'block';
-    status.textContent = (lang==='ar'?'رحلة جارية الآن':'Trip in progress') + ' 🚌';
+    status.textContent = (lang==='ar'?'رحلة جارية':'Trip in progress') + ' 🚌';
     mapCont.style.display = 'block';
     initParentMap();
   } else {
@@ -618,7 +618,7 @@ function updateParentMap(lat, lng) {
       iconSize: [24, 24],
       iconAnchor: [12, 12]
     })
-  }).addTo(parentMap).bindPopup(lang==='ar'?'موقع السائق الآن':'Driver's current location').openPopup();
+  }).addTo(parentMap).bindPopup(lang==='ar'?'موقع السائق الآن':'Driver location').openPopup();
 }
 
 async function startTrip(id){ const r=await api('/api/trips/'+id+'/start','PUT'); if(r){toast(t('tripOk'),'ok');startGPS(id);loadTrips();} }
@@ -775,7 +775,7 @@ function startSignalR() {
 
 // Init
 setLang(lang);
-if(token){ role=localStorage.getItem('kms_role')||''; connectSignalR();; initApp(); }
+if(token){ role=localStorage.getItem('kms_role')||''; connectSignalR(); initApp(); }
 </script>
 </body>
 </html>
