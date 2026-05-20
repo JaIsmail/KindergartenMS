@@ -54,6 +54,14 @@ public class TripsController : ControllerBase
         return Ok(trip);
     }
 
+    [HttpGet("parent")]
+    [Authorize(Roles = "Parent")]
+    public async Task<IActionResult> GetByParent()
+    {
+        var trips = await _tripService.GetAllTripsAsync();
+        return Ok(trips);
+    }
+
     [HttpGet("driver")]
     [Authorize(Roles = "Driver")]
     public async Task<IActionResult> GetMyTrips()

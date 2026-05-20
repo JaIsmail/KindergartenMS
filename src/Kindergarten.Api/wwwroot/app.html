@@ -309,8 +309,8 @@ input:focus { outline: none; border-color: #f97316; }
         <div class="att-time" id="clock">--:--</div>
         <div id="attStatus" style="font-size:0.85rem;margin-top:0.3rem"></div>
         <div class="att-grid">
-          <div class="att-box"><div class="l">وقت الحضور</div><div class="v" id="ciTime">--:--</div></div>
-          <div class="att-box"><div class="l">وقت الانصراف</div><div class="v" id="coTime">--:--</div></div>
+          <div class="att-box"><div class="l" id="lbCI">وقت الحضور</div><div class="v" id="ciTime">--:--</div></div>
+          <div class="att-box"><div class="l" id="lbCO">وقت الانصراف</div><div class="v" id="coTime">--:--</div></div>
         </div>
       </div>
       <div class="btn-row">
@@ -357,7 +357,7 @@ let marker = null;
 
 // Translations
 const TX = {
-  ar: { home:'الرئيسية', trips:'الرحلات', ptrips:'الرحلات', subs:'الاشتراكات', att:'الحضور', profile:'الملف الشخصي',
+  ar: { home:'الرئيسية', trips:'الرحلات', ptrips:'الرحلات', children:'الأطفال', subscriptions:'الاشتراكات', subs:'الاشتراكات', att:'الحضور', profile:'الملف الشخصي',
         loginBtn:'تسجيل الدخول', logging:'جاري التحقق...', errW:'بيانات الدخول غير صحيحة', errC:'لا يمكن الاتصال بالخادم',
         toSchool:'🏫 إلى الروضة', toHome:'🏠 إلى المنزل', start:'▶️ بدء الرحلة', end:'⏹️ إنهاء الرحلة',
         active:'رحلة جارية 🚌', confirmEnd:'هل تريد إنهاء الرحلة؟', noData:'لا توجد بيانات',
@@ -365,7 +365,7 @@ const TX = {
         tripOk:'بدأت الرحلة ✅', tripEnd:'انتهت الرحلة ✅', wHours:'ساعات العمل',
         status:{Created:'تم الإنشاء',InProgress:'جارية',Completed:'مكتملة',Pending:'معلق',PickedUp:'تم الاستلام',DroppedOff:'تم التوصيل',Paid:'مدفوع',Overdue:'متأخر',Present:'حاضر',Late:'متأخر',Absent:'غائب'},
         roles:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'} },
-  en: { home:'Home', trips:'Trips', ptrips:'Trips', subs:'Subscriptions', att:'Attendance', profile:'Profile',
+  en: { home:'Home', trips:'Trips', ptrips:'Trips', children:'Children', subscriptions:'Subscriptions', subs:'Subscriptions', att:'Attendance', profile:'Profile',
         loginBtn:'Sign In', logging:'Signing in...', errW:'Invalid email or password', errC:'Cannot connect to server',
         toSchool:'🏫 To School', toHome:'🏠 To Home', start:'▶️ Start Trip', end:'⏹️ End Trip',
         active:'Active Trip 🚌', confirmEnd:'End this trip?', noData:'No data found',
@@ -403,6 +403,14 @@ function setLang(l) {
   document.getElementById('lEmail').textContent = ar ? 'البريد الإلكتروني' : 'Email Address';
   document.getElementById('lPass').textContent = ar ? 'كلمة المرور' : 'Password';
   document.getElementById('loginBtn').textContent = t('loginBtn');
+  const lbCI = document.getElementById('lbCI');
+  const lbCO = document.getElementById('lbCO');
+  if(lbCI) lbCI.textContent = lang==='ar'?'وقت الحضور':'Check-in Time';
+  if(lbCO) lbCO.textContent = lang==='ar'?'وقت الانصراف':'Check-out Time';
+  const btnCI = document.getElementById('btnCI');
+  const btnCO = document.getElementById('btnCO');
+  if(btnCI) btnCI.textContent = lang==='ar'?'✅ تسجيل الحضور':'✅ Check In';
+  if(btnCO) btnCO.textContent = lang==='ar'?'🔴 تسجيل الانصراف':'🔴 Check Out';
   // Rebuild nav
   buildNav();
   if(page) showPage(page);
@@ -507,7 +515,7 @@ function buildNav() {
   let tabs = [];
   if(role==='Driver') tabs=[{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
   else if(role==='Employee') tabs=[{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
-  else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subs')},{id:'profile',i:'👤',l:t('profile')}];
+  else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subscriptions')},{id:'profile',i:'👤',l:t('profile')}];
   nav.innerHTML = tabs.map(tb =>
     '<button class="tab'+(page===tb.id?' active':'')+'" data-page="'+tb.id+'"><span class="icon">'+tb.i+'</span><span>'+tb.l+'</span></button>'
   ).join('');
@@ -567,7 +575,7 @@ async function loadParentTrips() {
   div.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
 
   // Check for active trips
-  const trips = await api('/api/trips');
+  const trips = await api('/api/trips/parent');
   if(!trips||!trips.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
 
   const active = trips.find(tr=>tr.status==='InProgress');
@@ -641,17 +649,33 @@ async function loadAtt() {
 
 async function doCheckIn(){
   document.getElementById('btnCI').disabled=true;
-  const r=await api('/api/employees/checkin','POST',{biometricVerified:true});
-  if(r?.checkInTime){document.getElementById('ciTime').textContent=new Date(r.checkInTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});toast(t('checkedIn'),'ok');loadAtt();}
-  else toast(t('alreadyIn'),'');
+  try {
+    const r=await api('/api/employees/checkin','POST',{biometricVerified:true});
+    if(r?.checkInTime){
+      document.getElementById('ciTime').textContent=new Date(r.checkInTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+      toast(t('checkedIn'),'ok');
+      await loadAtt();
+    } else if(r?.message) {
+      toast(r.message,'');
+    } else {
+      toast(t('alreadyIn'),'');
+    }
+  } catch(e) { toast('Error: '+e.message,'err'); }
   document.getElementById('btnCI').disabled=false;
 }
 
 async function doCheckOut(){
   document.getElementById('btnCO').disabled=true;
-  const r=await api('/api/employees/checkout','POST',{});
-  if(r?.checkOutTime){document.getElementById('coTime').textContent=new Date(r.checkOutTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});toast(t('checkedOut'),'ok');loadAtt();}
-  else toast(t('noCI'),'');
+  try {
+    const r=await api('/api/employees/checkout','POST',{});
+    if(r?.checkOutTime){
+      document.getElementById('coTime').textContent=new Date(r.checkOutTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+      toast(t('checkedOut'),'ok');
+      await loadAtt();
+    } else {
+      toast(t('noCI'),'');
+    }
+  } catch(e) { toast('Error: '+e.message,'err'); }
   document.getElementById('btnCO').disabled=false;
 }
 
