@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#f97316">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KMS">
+<title>KMS — نظام إدارة الروضة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#f97316;--primary2:#ea580c;--dark:#0f172a;--dark2:#1e293b;--bg:#f0f4f8;--surface:#fff;--border:#e2e8f0;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--green:#22c55e;--blue:#3b82f6;--red:#ef4444;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html[lang="ar"]{direction:rtl;}html[lang="en"]{direction:ltr;}
+body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;min-height:100vh;}
+html[lang="en"] body{font-family:'Outfit',sans-serif;}
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+#loginScreen{background:linear-gradient(160deg,#0f172a,#1e293b 60%,#0f172a);align-items:center;justify-content:center;padding:2rem 1.5rem;}
+.login-card{background:white;border-radius:24px;padding:2rem 1.5rem;width:100%;max-width:380px;box-shadow:0 25px 60px rgba(0,0,0,0.3);}
+.login-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+.app-logo{display:flex;align-items:center;gap:0.7rem;}
+.logo-icon{width:46px;height:46px;background:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+.logo-text h1{font-size:1rem;font-weight:900;}
+.logo-text p{font-size:0.7rem;color:var(--text3);}
+.lang-toggle{display:flex;background:#f1f5f9;border-radius:10px;overflow:hidden;}
+.lang-btn{padding:0.35rem 0.8rem;font-size:0.78rem;font-weight:700;border:none;background:none;cursor:pointer;font-family:inherit;}
+.lang-btn.active{background:var(--primary);color:white;border-radius:9px;}
+.login-title{font-size:1.5rem;font-weight:900;margin-bottom:0.3rem;}
+.login-sub{color:var(--text3);font-size:0.85rem;margin-bottom:1.5rem;}
+.form-field{margin-bottom:1rem;}
+.form-field label{display:block;font-size:0.78rem;font-weight:700;color:var(--text2);margin-bottom:0.4rem;}
+.form-field input{width:100%;padding:0.75rem 1rem;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:0.9rem;outline:none;direction:ltr;}
+.form-field input:focus{border-color:var(--primary);}
+.login-btn{width:100%;padding:0.85rem;background:var(--primary);color:white;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;}
+.login-btn:disabled{background:var(--text3);}
+.login-error{background:#fef2f2;border:1px solid #fecaca;color:var(--red);padding:0.6rem 1rem;border-radius:10px;font-size:0.82rem;margin-top:0.8rem;display:none;text-align:center;}
+#appScreen{background:var(--bg);}
+.topbar{background:var(--primary);padding:0.8rem 1rem;padding-top:calc(0.8rem + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-title{color:white;font-size:1rem;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:0.5rem;}
+.topbar-lang{display:flex;background:rgba(255,255,255,0.2);border-radius:8px;overflow:hidden;}
+.topbar-lang button{padding:0.2rem 0.5rem;font-size:0.7rem;font-weight:700;border:none;background:none;color:rgba(255,255,255,0.7);cursor:pointer;font-family:inherit;}
+.topbar-lang button.active{background:white;color:var(--primary);border-radius:7px;}
+.topbar-btn{width:34px;height:34px;background:rgba(255,255,255,0.2);border:none;border-radius:8px;color:white;cursor:pointer;font-size:0.9rem;}
+.content{flex:1;overflow-y:auto;padding:1rem;padding-bottom:calc(5rem + env(safe-area-inset-bottom,0px));}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.08);}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:0.6rem 0.3rem;cursor:pointer;border:none;background:none;font-family:inherit;}
+.nav-tab .ti{font-size:1.4rem;margin-bottom:0.2rem;}
+.nav-tab .tl{font-size:0.65rem;font-weight:600;color:var(--text3);}
+.nav-tab.active .tl{color:var(--primary);}
+.page{display:none;}
+.page.active{display:block;animation:fadeUp 0.25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.hero{background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:20px;padding:1.5rem;color:white;margin-bottom:1rem;}
+.hero h2{font-size:1.2rem;font-weight:900;margin-bottom:0.3rem;}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;}
+.stat-card{background:white;border-radius:16px;padding:1rem;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.stat-card .si{font-size:1.8rem;margin-bottom:0.4rem;}
+.stat-card .sn{font-size:1.6rem;font-weight:900;}
+.stat-card .sl{font-size:0.72rem;color:var(--text3);font-weight:600;}
+.sec-title{font-size:0.95rem;font-weight:800;margin-bottom:0.8rem;margin-top:0.5rem;}
+.list-card{background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:1rem;}
+.list-item{padding:0.9rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.8rem;}
+.list-item:last-child{border-bottom:none;}
+.li-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.li-info{flex:1;}
+.li-info .t{font-size:0.88rem;font-weight:700;}
+.li-info .s{font-size:0.75rem;color:var(--text3);margin-top:0.1rem;}
+.badge{display:inline-flex;align-items:center;gap:0.25rem;padding:0.2rem 0.6rem;border-radius:50px;font-size:0.7rem;font-weight:700;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.bg{background:#dcfce7;color:#16a34a;}
+.bb{background:#dbeafe;color:#2563eb;}
+.bo{background:#fff7ed;color:#ea580c;}
+.br{background:#fee2e2;color:#dc2626;}
+.bgr{background:#f1f5f9;color:#64748b;}
+.btn{display:flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.7rem 1.2rem;border-radius:12px;font-size:0.88rem;font-weight:700;cursor:pointer;border:none;font-family:inherit;width:100%;}
+.btn-p{background:var(--primary);color:white;}
+.btn-g{background:var(--green);color:white;}
+.btn-r{background:var(--red);color:white;}
+.btn-ghost{background:white;color:var(--red);border:1.5px solid #fee2e2;margin-top:0.5rem;}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;}
+.trip-card{background:white;border-radius:16px;padding:1rem;margin-bottom:0.8rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-right:4px solid var(--primary);}
+html[lang="en"] .trip-card{border-right:none;border-left:4px solid var(--primary);}
+.trip-card.inprogress{border-color:var(--blue);}
+.trip-card.completed{border-color:var(--green);}
+.trip-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;}
+.trip-header h4{font-size:0.9rem;font-weight:800;}
+.trip-meta{display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:0.6rem;}
+.trip-meta span{font-size:0.75rem;color:var(--text2);}
+.child-pill{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.4rem;font-size:0.8rem;}
+.att-hero{background:var(--dark);border-radius:20px;padding:1.5rem;color:white;margin-bottom:1rem;text-align:center;}
+.time-big{font-size:3rem;font-weight:900;margin:0.5rem 0;}
+.time-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;}
+.time-box{background:rgba(255,255,255,0.1);border-radius:12px;padding:0.8rem;text-align:center;}
+.time-box .lb{font-size:0.7rem;opacity:0.6;margin-bottom:0.3rem;}
+.time-box .vl{font-size:1.1rem;font-weight:800;}
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--text3);gap:0.8rem;}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3);}
+.empty .em{font-size:3rem;margin-bottom:0.8rem;}
+.empty h3{font-size:0.95rem;font-weight:700;color:var(--text2);}
+#toast{position:fixed;bottom:calc(5.5rem + env(safe-area-inset-bottom,0px));left:1rem;right:1rem;background:var(--dark);color:white;padding:0.9rem 1.2rem;border-radius:14px;font-size:0.85rem;font-weight:600;text-align:center;z-index:9999;transform:translateY(20px);opacity:0;transition:all 0.3s;}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.ok{background:#16a34a;}#toast.err{background:var(--red);}
+.profile-hdr{background:white;border-radius:20px;padding:1.5rem;text-align:center;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.av{width:70px;height:70px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:white;margin:0 auto 0.8rem;}
+.pname{font-size:1.1rem;font-weight:800;}
+.pemail{font-size:0.8rem;color:var(--text3);direction:ltr;}
+.settings-list{background:white;border-radius:16px;overflow:hidden;}
+.settings-item{display:flex;align-items:center;gap:0.8rem;padding:0.9rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;}
+.settings-item:last-child{border-bottom:none;}
+.settings-item .ic{font-size:1.2rem;width:32px;text-align:center;}
+.settings-item .tx{flex:1;font-size:0.88rem;font-weight:600;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="loginScreen">
+<div class="login-card">
+<div class="login-header">
+<div class="app-logo">
+<div class="logo-icon">🏫</div>
+<div class="logo-text"><h1>KMS</h1><p id="lAppSub">نظام إدارة الروضة</p></div>
+</div>
+<div class="lang-toggle">
+<button class="lang-btn active" id="lLangAr" onclick="setLang('ar')">AR</button>
+<button class="lang-btn" id="lLangEn" onclick="setLang('en')">EN</button>
+</div>
+</div>
+<h2 class="login-title" id="lTitle">مرحباً بعودتك</h2>
+<p class="login-sub" id="lSub">سجّل دخولك للمتابعة</p>
+<div class="form-field"><label id="lEmail">البريد الإلكتروني</label><input type="email" id="inEmail" placeholder="user@kms.com" autocomplete="email"></div>
+<div class="form-field"><label id="lPass">كلمة المرور</label><input type="password" id="inPass" autocomplete="current-password"></div>
+<button class="login-btn" id="lBtn" onclick="doLogin()">تسجيل الدخول</button>
+<div class="login-error" id="lErr"></div>
+</div>
+</div>
+
+<div class="screen" id="appScreen">
+<div class="topbar">
+<div class="topbar-title" id="tbTitle">KMS</div>
+<div class="topbar-right">
+<div class="topbar-lang"><button id="aLangAr" class="active" onclick="setLang('ar')">AR</button><button id="aLangEn" onclick="setLang('en')">EN</button></div>
+<button class="topbar-btn" onclick="doLogout()">🚪</button>
+</div>
+</div>
+<div class="content" id="mainContent">
+
+<div class="page active" id="pg-home">
+<div class="hero"><h2 id="wText">مرحباً 👋</h2><p id="wName"></p></div>
+<div class="stats-row">
+<div class="stat-card"><div class="si">👶</div><div class="sn" id="hCC">—</div><div class="sl" id="hLC">الأطفال</div></div>
+<div class="stat-card"><div class="si">💳</div><div class="sn" id="hCS">—</div><div class="sl" id="hLS">الاشتراكات</div></div>
+</div>
+<div class="sec-title" id="sMyC">أطفالي</div>
+<div id="childList"><div class="loading"><div class="spinner"></div></div></div>
+</div>
+
+<div class="page" id="pg-subs">
+<div class="sec-title" id="sMySubs">اشتراكاتي</div>
+<div id="subsList"><div class="loading"><div class="spinner"></div></div></div>
+</div>
+
+<div class="page" id="pg-ptrips">
+<div class="sec-title" id="sPTrips">رحلات أطفالي</div>
+<div id="pTripsList"><div class="empty"><div class="em">🚌</div><h3 id="noTrips">لا توجد رحلات حالية</h3></div></div>
+</div>
+
+<div class="page" id="pg-dtrips">
+<div id="activeBanner"></div>
+<div class="sec-title" id="sDTrips">رحلاتي</div>
+<div id="dTripsList"><div class="loading"><div class="spinner"></div></div></div>
+</div>
+
+<div class="page" id="pg-att">
+<div class="att-hero">
+<div style="font-size:0.8rem;opacity:0.6" id="todayDate"></div>
+<div class="time-big" id="liveClock">--:--</div>
+<div id="attStatus" style="font-size:0.85rem;opacity:0.8;margin-top:0.3rem"></div>
+<div class="time-row">
+<div class="time-box"><div class="lb" id="lbCI">وقت الحضور</div><div class="vl" id="ciTime">--:--</div></div>
+<div class="time-box"><div class="lb" id="lbCO">وقت الانصراف</div><div class="vl" id="coTime">--:--</div></div>
+</div>
+</div>
+<div class="btn-row">
+<button class="btn btn-g" id="btnCI" onclick="doCheckIn()">✅ <span id="lCI">تسجيل الحضور</span></button>
+<button class="btn btn-r" id="btnCO" onclick="doCheckOut()">🔴 <span id="lCO">تسجيل الانصراف</span></button>
+</div>
+<div class="sec-title" id="sAttH">سجل الحضور</div>
+<div id="attList"><div class="loading"><div class="spinner"></div></div></div>
+</div>
+
+<div class="page" id="pg-profile">
+<div class="profile-hdr">
+<div class="av" id="pAv">A</div>
+<div class="pname" id="pName">—</div>
+<div class="pemail" id="pEmail">—</div>
+<div style="margin-top:0.5rem" id="pRole"></div>
+</div>
+<div class="settings-list">
+<div class="settings-item" onclick="setLang(currentLang==='ar'?'en':'ar')"><span class="ic">🌐</span><span class="tx" id="sLang">تغيير اللغة</span><span>›</span></div>
+<div class="settings-item" onclick="doLogout()"><span class="ic">🚪</span><span class="tx" id="sOut">تسجيل الخروج</span><span>›</span></div>
+</div>
+</div>
+
+</div>
+<nav class="bottom-nav" id="bottomNav"></nav>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API='https://kms-api-staging-kg01.azurewebsites.net';
+let token=localStorage.getItem('kms_token');
+let lang=localStorage.getItem('kms_lang')||'ar';
+let role=localStorage.getItem('kms_role')||'';
+let page='';
+
+const T={
+ar:{appSub:'نظام إدارة الروضة',loginTitle:'مرحباً بعودتك',loginSub:'سجّل دخولك للمتابعة',
+  email:'البريد الإلكتروني',pass:'كلمة المرور',loginBtn:'تسجيل الدخول',logging:'جاري التحقق...',
+  errW:'البريد أو كلمة المرور غير صحيحة',errC:'لا يمكن الاتصال بالخادم',
+  home:'الرئيسية',trips:'الرحلات',subs:'الاشتراكات',att:'الحضور',profile:'الملف الشخصي',
+  welcome:'مرحباً 👋',children:'الأطفال',myC:'أطفالي',mySubs:'اشتراكاتي',
+  myTrips:'رحلاتي',childTrips:'رحلات أطفالي',
+  checkIn:'وقت الحضور',checkOut:'وقت الانصراف',
+  ciBtn:'تسجيل الحضور',coBtn:'تسجيل الانصراف',attHist:'سجل الحضور',
+  toSchool:'🏫 إلى الروضة',toHome:'🏠 إلى المنزل',
+  startTrip:'▶️ بدء الرحلة',endTrip:'⏹️ إنهاء الرحلة',
+  activeTrip:'رحلة جارية 🚌',confirmEnd:'هل تريد إنهاء الرحلة؟',
+  noData:'لا توجد بيانات',noTrips:'لا توجد رحلات حالية',
+  changeLang:'تغيير اللغة',logout:'تسجيل الخروج',
+  checkedIn:'تم تسجيل حضورك ✅',checkedOut:'تم تسجيل انصرافك ✅',
+  alreadyIn:'تم تسجيل الحضور مسبقاً',noCI:'لم يتم تسجيل الحضور اليوم',
+  tripStarted:'بدأت الرحلة ✅',tripEnded:'انتهت الرحلة ✅',
+  wHours:'ساعات العمل',
+  roles:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'},
+  status:{Created:'تم الإنشاء',InProgress:'جارية',Completed:'مكتملة',
+    Pending:'معلق',PickedUp:'تم الاستلام',DroppedOff:'تم التوصيل',
+    Paid:'مدفوع',Overdue:'متأخر',Present:'حاضر',Late:'متأخر',Absent:'غائب'}},
+en:{appSub:'Kindergarten Management System',loginTitle:'Welcome back',loginSub:'Sign in to continue',
+  email:'Email Address',pass:'Password',loginBtn:'Sign In',logging:'Signing in...',
+  errW:'Invalid email or password',errC:'Cannot connect to server',
+  home:'Home',trips:'Trips',subs:'Subscriptions',att:'Attendance',profile:'Profile',
+  welcome:'Hello 👋',children:'Children',myC:'My Children',mySubs:'My Subscriptions',
+  myTrips:'My Trips',childTrips:"Children's Trips",
+  checkIn:'Check-in Time',checkOut:'Check-out Time',
+  ciBtn:'Check In',coBtn:'Check Out',attHist:'Attendance History',
+  toSchool:'🏫 To School',toHome:'🏠 To Home',
+  startTrip:'▶️ Start Trip',endTrip:'⏹️ End Trip',
+  activeTrip:'Active Trip 🚌',confirmEnd:'End this trip?',
+  noData:'No data found',noTrips:'No active trips',
+  changeLang:'Change Language',logout:'Sign Out',
+  checkedIn:'Check-in recorded ✅',checkedOut:'Check-out recorded ✅',
+  alreadyIn:'Already checked in today',noCI:'No check-in found today',
+  tripStarted:'Trip started ✅',tripEnded:'Trip ended ✅',
+  wHours:'Working hours',
+  roles:{Admin:'Admin',Parent:'Parent',Driver:'Driver',Employee:'Employee'},
+  status:{Created:'Created',InProgress:'In Progress',Completed:'Completed',
+    Pending:'Pending',PickedUp:'Picked Up',DroppedOff:'Dropped Off',
+    Paid:'Paid',Overdue:'Overdue',Present:'Present',Late:'Late',Absent:'Absent'}}
+};
+
+function t(k){return T[lang][k]||k;}
+function ts(k){return T[lang].status[k]||k;}
+function tr(k){return T[lang].roles[k]||k;}
+
+function setLang(l){
+  lang=l;localStorage.setItem('kms_lang',l);
+  document.documentElement.lang=l;
+  ['lLangAr','aLangAr'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('active',l==='ar');});
+  ['lLangEn','aLangEn'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('active',l==='en');});
+  applyT();
+  if(page)showPage(page);
+}
+
+function applyT(){
+  const m={lAppSub:'appSub',lTitle:'loginTitle',lSub:'loginSub',lEmail:'email',lPass:'pass',lBtn:'loginBtn',
+    hLC:'children',hLS:'subs',sMyC:'myC',sMySubs:'mySubs',sPTrips:'childTrips',sDTrips:'myTrips',
+    lbCI:'checkIn',lbCO:'checkOut',lCI:'ciBtn',lCO:'coBtn',sAttH:'attHist',wText:'welcome',
+    sLang:'changeLang',sOut:'logout',noTrips:'noTrips'};
+  Object.entries(m).forEach(([id,key])=>{const e=document.getElementById(id);if(e)e.textContent=t(key);});
+  buildNav();
+}
+
+async function api(path,method='GET',body=null){
+  const opts={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Accept-Language':lang}};
+  if(body)opts.body=JSON.stringify(body);
+  try{const r=await fetch(API+path,opts);if(r.status===401){doLogout();return null;}if(r.status===204)return{};return await r.json();}
+  catch{return null;}
+}
+
+window.onload=()=>{setLang(lang);if(token)initApp();startClock();};
+
+async function doLogin(){
+  const email=document.getElementById('inEmail').value.trim();
+  const pass=document.getElementById('inPass').value;
+  const btn=document.getElementById('lBtn');
+  const err=document.getElementById('lErr');
+  if(!email||!pass){showErr(t('errW'));return;}
+  btn.disabled=true;btn.textContent=t('logging');err.style.display='none';
+  try{
+    const r=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json','Accept-Language':lang},body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(d.token){
+      token=d.token;localStorage.setItem('kms_token',token);
+      localStorage.setItem('kms_role',d.role);localStorage.setItem('kms_name',d.fullName);localStorage.setItem('kms_email',d.email);
+      role=d.role;initApp();
+    }else{showErr(d.message||t('errW'));}
+  }catch{showErr(t('errC'));}
+  btn.disabled=false;btn.textContent=t('loginBtn');
+}
+
+function showErr(m){const e=document.getElementById('lErr');e.textContent=m;e.style.display='block';}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').classList.contains('active'))doLogin();});
+
+function initApp(){
+  role=localStorage.getItem('kms_role')||'';
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  const name=localStorage.getItem('kms_name')||'';
+  const email=localStorage.getItem('kms_email')||'';
+  document.getElementById('wName').textContent=name;
+  document.getElementById('pName').textContent=name;
+  document.getElementById('pEmail').textContent=email;
+  document.getElementById('pAv').textContent=name?name[0].toUpperCase():'?';
+  document.getElementById('pRole').innerHTML=roleBadge(role);
+  buildNav();
+  if(role==='Driver')showPage('dtrips');
+  else if(role==='Employee')showPage('att');
+  else showPage('home');
+}
+
+function doLogout(){
+  localStorage.clear();token=null;role='';
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+}
+
+function buildNav(){
+  const nav=document.getElementById('bottomNav');
+  let tabs=[];
+  if(role==='Driver')tabs=[{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
+  else if(role==='Employee')tabs=[{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
+  else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subs')},{id:'profile',i:'👤',l:t('profile')}];
+  nav.innerHTML=tabs.map(tab=>'<button class="nav-tab '+(page===tab.id?'active':'')+'" onclick="showPage(''+tab.id+'')"><span class="ti">'+tab.i+'</span><span class="tl">'+tab.l+'</span></button>').join('');
+}
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const el=document.getElementById('pg-'+p);
+  if(el)el.classList.add('active');
+  page=p;
+  const titles={home:t('home'),subs:t('mySubs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
+  document.getElementById('tbTitle').textContent=titles[p]||'KMS';
+  buildNav();
+  const loaders={home:loadHome,subs:loadSubs,dtrips:loadDTrips,att:loadAtt};
+  if(loaders[p])loaders[p]();
+}
+
+function sbadge(s){const m={Created:'bo',InProgress:'bb',Completed:'bg',Pending:'bo',PickedUp:'bg',DroppedOff:'bg',Missed:'br',Paid:'bg',Overdue:'br',Present:'bg',Late:'bo',Absent:'br'};return'<span class="badge '+(m[s]||'bgr')+'">'+ts(s)+'</span>';}
+function roleBadge(r){const m={Admin:'br',Parent:'bb',Driver:'bg',Employee:'bgr'};return'<span class="badge '+(m[r]||'bgr')+'">'+tr(r)+'</span>';}
+function fDate(d){return new Date(d).toLocaleDateString(lang==='ar'?'ar-SA':'en-US');}
+function fTime(d){return new Date(d).toLocaleTimeString(lang==='ar'?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'});}
+function fPrice(p){return lang==='ar'?p.toFixed(2)+' ريال':'SAR '+p.toFixed(2);}
+
+function startClock(){
+  function upd(){
+    const n=new Date();
+    const c=document.getElementById('liveClock');if(c)c.textContent=n.toLocaleTimeString(lang==='ar'?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'});
+    const d=document.getElementById('todayDate');if(d)d.textContent=n.toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }upd();setInterval(upd,1000);
+}
+
+function showToast(m,type=''){const t=document.getElementById('toast');t.textContent=m;t.className='show '+type;setTimeout(()=>t.className='',3000);}
+
+async function loadHome(){
+  const[ch,sb]=await Promise.all([api('/api/children'),api('/api/subscriptions')]);
+  const cc=Array.isArray(ch)?ch.length:0,sc=Array.isArray(sb)?sb.length:0;
+  document.getElementById('hCC').textContent=cc;document.getElementById('hCS').textContent=sc;
+  const div=document.getElementById('childList');
+  if(!ch||ch.length===0){div.innerHTML='<div class="empty"><div class="em">👶</div><h3>'+t('noData')+'</h3></div>';return;}
+  div.innerHTML='<div class="list-card">'+ch.map(c=>'<div class="list-item"><div class="li-icon" style="background:#fff7ed">👶</div><div class="li-info"><div class="t">'+c.name+'</div><div class="s">'+c.class+'</div></div><span class="badge bb">'+c.class+'</span></div>').join('')+'</div>';
+}
+
+async function loadSubs(){
+  const data=await api('/api/subscriptions');const div=document.getElementById('subsList');
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="em">💳</div><h3>'+t('noData')+'</h3></div>';return;}
+  div.innerHTML='<div class="list-card">'+data.map(s=>'<div class="list-item"><div class="li-icon" style="background:#f0fdf4">💳</div><div class="li-info"><div class="t">'+s.childName+'</div><div class="s">'+s.type+' • '+fPrice(s.price)+'</div></div>'+sbadge(s.paymentStatus)+'</div>').join('')+'</div>';
+}
+
+async function loadDTrips(){
+  const data=await api('/api/trips/driver');const div=document.getElementById('dTripsList');const banner=document.getElementById('activeBanner');
+  const trips=Array.isArray(data)?data:(data?.id?[data]:[]);
+  if(trips.length===0){banner.style.display='none';div.innerHTML='<div class="empty"><div class="em">🚌</div><h3>'+t('noData')+'</h3></div>';return;}
+  const active=trips.find(tr=>tr.status==='InProgress');
+  if(active){banner.innerHTML='<div style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:16px;padding:1rem;margin-bottom:1rem;color:white"><div style="font-size:0.8rem;opacity:0.8;margin-bottom:0.3rem">'+t('activeTrip')+'</div><div style="font-size:1rem;font-weight:800;margin-bottom:0.8rem">'+(active.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+active.id+'</div><button onclick="endTrip('+active.id+')" style="background:white;color:#1d4ed8;border:none;padding:0.6rem 1rem;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;width:100%">'+t('endTrip')+'</button></div>';}
+  else banner.innerHTML='';
+  div.innerHTML=trips.map(tr=>'<div class="trip-card '+tr.status.toLowerCase()+'"><div class="trip-header"><h4>'+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+tr.id+'</h4>'+sbadge(tr.status)+'</div><div class="trip-meta"><span>📅 '+fDate(tr.date)+'</span>'+(tr.startTime?'<span>▶️ '+fTime(tr.startTime)+'</span>':'')+(tr.endTime?'<span>⏹️ '+fTime(tr.endTime)+'</span>':'')+'</div>'+tr.children.map(c=>'<div class="child-pill"><span>👤 '+c.childName+'</span><div style="display:flex;gap:0.4rem">'+sbadge(c.pickupStatus)+sbadge(c.dropoffStatus)+'</div></div>').join('')+(tr.status==='Created'?'<button onclick="startTrip('+tr.id+')" class="btn btn-p" style="margin-top:0.8rem">'+t('startTrip')+'</button>':'')+'</div>').join('');
+}
+
+async function startTrip(id){const r=await api('/api/trips/'+id+'/start','PUT');if(r){showToast(t('tripStarted'),'ok');loadDTrips();}}
+async function endTrip(id){if(!confirm(t('confirmEnd')))return;const r=await api('/api/trips/'+id+'/end','PUT');if(r){showToast(t('tripEnded'),'ok');loadDTrips();}}
+
+async function loadAtt(){
+  const records=await api('/api/employees/my-attendance');const div=document.getElementById('attList');
+  if(!records||records.length===0){div.innerHTML='<div class="empty"><div class="em">📋</div><h3>'+t('noData')+'</h3></div>';return;}
+  const today=records.find(r=>new Date(r.date).toDateString()===new Date().toDateString());
+  if(today){document.getElementById('ciTime').textContent=today.checkInTime?fTime(today.checkInTime):'--:--';document.getElementById('coTime').textContent=today.checkOutTime?fTime(today.checkOutTime):'--:--';document.getElementById('attStatus').textContent=ts(today.status);}
+  div.innerHTML='<div class="list-card">'+records.slice(0,10).map(r=>'<div class="list-item"><div class="li-icon" style="background:#f0fdf4">📅</div><div class="li-info"><div class="t">'+fDate(r.date)+'</div><div class="s">'+(r.workingHours?t('wHours')+': '+r.workingHours:'—')+'</div></div>'+sbadge(r.status)+'</div>').join('')+'</div>';
+}
+
+async function doCheckIn(){
+  document.getElementById('btnCI').disabled=true;
+  const r=await api('/api/employees/checkin','POST',{biometricVerified:true});
+  if(r?.checkInTime){document.getElementById('ciTime').textContent=fTime(r.checkInTime);showToast(t('checkedIn'),'ok');await loadAtt();}
+  else showToast(t('alreadyIn'),'');
+  document.getElementById('btnCI').disabled=false;
+}
+
+async function doCheckOut(){
+  document.getElementById('btnCO').disabled=true;
+  const r=await api('/api/employees/checkout','POST',{});
+  if(r?.checkOutTime){document.getElementById('coTime').textContent=fTime(r.checkOutTime);showToast(t('checkedOut'),'ok');await loadAtt();}
+  else showToast(t('noCI'),'');
+  document.getElementById('btnCO').disabled=false;
+}
+</script>
+</body>
+</html>
