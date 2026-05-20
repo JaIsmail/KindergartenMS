@@ -132,9 +132,9 @@ html[lang="en"] .trip-card{border-right:none;border-left:4px solid var(--primary
 </div>
 <h2 class="login-title" id="lTitle">مرحباً بعودتك</h2>
 <p class="login-sub" id="lSub">سجّل دخولك للمتابعة</p>
-<div class="form-field"><label id="lEmail">البريد الإلكتروني</label><input type="email" id="inEmail" placeholder="user@kms.com" autocomplete="email"></div>
-<div class="form-field"><label id="lPass">كلمة المرور</label><input type="password" id="inPass" autocomplete="current-password"></div>
-<button class="login-btn" id="lBtn" onclick="doLogin()">تسجيل الدخول</button>
+<div class="form-field"><label id="lEmail">البريد الإلكتروني</label><input type="email" id="inEmail" placeholder="user@kms.com"></div>
+<div class="form-field"><label id="lPass">كلمة المرور</label><input type="password" id="inPass"></div>
+<button class="login-btn" id="lBtn" onclick="doLogin()" type="button">تسجيل الدخول</button>
 <div class="login-error" id="lErr"></div>
 </div>
 </div>
@@ -295,7 +295,12 @@ async function api(path,method='GET',body=null){
 
 window.onload=()=>{setLang(lang);if(token)initApp();startClock();};
 
-async function doLogin(){
+async document.getElementById('lBtn').addEventListener('touchend', function(e){
+  e.preventDefault();
+  doLogin();
+});
+
+function doLogin(){
   const email=document.getElementById('inEmail').value.trim();
   const pass=document.getElementById('inPass').value;
   const btn=document.getElementById('lBtn');
