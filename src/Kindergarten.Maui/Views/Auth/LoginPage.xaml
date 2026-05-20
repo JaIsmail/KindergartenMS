@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kindergarten.Maui.Views.Auth.LoginPage"
-             BackgroundColor="#0f172a"
+             BackgroundColor="White"
              Shell.NavBarIsVisible="False">
 
   <ScrollView>
@@ -39,7 +39,7 @@
           <VerticalStackLayout Spacing="6">
             <Label x:Name="EmailLabel" Text="البريد الإلكتروني" FontSize="13"
                    FontAttributes="Bold" TextColor="#94a3b8"/>
-            <Border BackgroundColor="#0f172a" StrokeShape="RoundRectangle 10" Padding="0" Stroke="#334155">
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 10" Padding="0" Stroke="#334155">
               <Entry x:Name="EmailEntry" Placeholder="admin@kms.com"
                      PlaceholderColor="#475569" TextColor="White"
                      BackgroundColor="Transparent" Margin="12,8"
@@ -51,7 +51,7 @@
           <VerticalStackLayout Spacing="6">
             <Label x:Name="PasswordLabel" Text="كلمة المرور" FontSize="13"
                    FontAttributes="Bold" TextColor="#94a3b8"/>
-            <Border BackgroundColor="#0f172a" StrokeShape="RoundRectangle 10" Padding="0" Stroke="#334155">
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 10" Padding="0" Stroke="#334155">
               <Entry x:Name="PasswordEntry" IsPassword="True"
                      PlaceholderColor="#475569" TextColor="White"
                      BackgroundColor="Transparent" Margin="12,8"/>

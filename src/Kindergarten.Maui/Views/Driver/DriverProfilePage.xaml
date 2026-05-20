@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kindergarten.Maui.Views.Driver.DriverProfilePage"
+             BackgroundColor="White"
+             Title="الملف الشخصي">
+  <ScrollView>
+    <VerticalStackLayout Padding="20" Spacing="16">
+
+      <!-- Avatar -->
+      <Border BackgroundColor="#fff7ed" StrokeShape="RoundRectangle 50"
+              Stroke="#f97316" StrokeThickness="2"
+              HeightRequest="80" WidthRequest="80"
+              HorizontalOptions="Center">
+        <Label x:Name="AvatarLabel" Text="A" FontSize="32"
+               FontAttributes="Bold" TextColor="#f97316"
+               HorizontalOptions="Center" VerticalOptions="Center"/>
+      </Border>
+
+      <Label x:Name="NameLabel" Text="" FontSize="20"
+             FontAttributes="Bold" TextColor="#0f172a"
+             HorizontalOptions="Center"/>
+      <Label x:Name="EmailLabel" Text="" FontSize="14"
+             TextColor="#64748b" HorizontalOptions="Center"/>
+      <Label x:Name="RoleLabel" Text="" FontSize="13"
+             TextColor="#f97316" FontAttributes="Bold"
+             HorizontalOptions="Center"/>
+
+      <!-- Language Toggle -->
+      <Border BackgroundColor="#f8fafc" StrokeShape="RoundRectangle 12"
+              Stroke="#e2e8f0" Padding="16">
+        <VerticalStackLayout Spacing="12">
+          <Label Text="اللغة / Language" FontSize="14"
+                 FontAttributes="Bold" TextColor="#475569"/>
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+            <Button Grid.Column="0" x:Name="BtnAr" Text="العربية"
+                    BackgroundColor="#f97316" TextColor="White"
+                    CornerRadius="10" FontAttributes="Bold"
+                    Clicked="OnArabicClicked"/>
+            <Button Grid.Column="1" x:Name="BtnEn" Text="English"
+                    BackgroundColor="#f1f5f9" TextColor="#475569"
+                    CornerRadius="10" FontAttributes="Bold"
+                    Clicked="OnEnglishClicked"/>
+          </Grid>
+        </VerticalStackLayout>
+      </Border>
+
+      <!-- Settings -->
+      <Border BackgroundColor="#f8fafc" StrokeShape="RoundRectangle 12"
+              Stroke="#e2e8f0" Padding="0">
+        <VerticalStackLayout>
+          <Button Text="🚪  تسجيل الخروج"
+                  BackgroundColor="Transparent" TextColor="#ef4444"
+                  FontSize="15" FontAttributes="Bold"
+                  HorizontalOptions="Fill"
+                  Clicked="OnLogoutClicked"/>
+        </VerticalStackLayout>
+      </Border>
+
+    </VerticalStackLayout>
+  </ScrollView>
+</ContentPage>

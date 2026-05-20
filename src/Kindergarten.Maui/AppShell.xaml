@@ -5,7 +5,8 @@
        xmlns:parent="clr-namespace:Kindergarten.Maui.Views.Parent"
        xmlns:driver="clr-namespace:Kindergarten.Maui.Views.Driver"
        xmlns:employee="clr-namespace:Kindergarten.Maui.Views.Employee"
-       x:Class="Kindergarten.Maui.AppShell">
+       x:Class="Kindergarten.Maui.AppShell"
+       FlyoutBehavior="Disabled">
 
   <Shell.Resources>
     <ResourceDictionary>
@@ -15,6 +16,7 @@
         <Setter Property="Shell.TitleColor" Value="White"/>
         <Setter Property="Shell.TabBarBackgroundColor" Value="White"/>
         <Setter Property="Shell.TabBarForegroundColor" Value="#f97316"/>
+        <Setter Property="Shell.TabBarUnselectedColor" Value="#94a3b8"/>
       </Style>
     </ResourceDictionary>
   </Shell.Resources>
@@ -22,21 +24,37 @@
   <!-- Login -->
   <ShellContent Route="login"
                 ContentTemplate="{DataTemplate auth:LoginPage}"
-                Shell.NavBarIsVisible="False"/>
+                Shell.NavBarIsVisible="False"
+                Shell.TabBarIsVisible="False"/>
 
-  <!-- Parent Dashboard -->
-  <ShellContent Route="dashboard"
-                ContentTemplate="{DataTemplate parent:ParentDashboardPage}"
-                Shell.NavBarIsVisible="True"/>
+  <!-- Parent Tabs -->
+  <TabBar Route="parent" x:Name="parentTabs">
+    <Tab Title="الرئيسية" Icon="home.png" Route="dashboard">
+      <ShellContent ContentTemplate="{DataTemplate parent:ParentDashboardPage}"/>
+    </Tab>
+    <Tab Title="الملف الشخصي" Icon="profile.png" Route="profile">
+      <ShellContent ContentTemplate="{DataTemplate parent:ProfilePage}"/>
+    </Tab>
+  </TabBar>
 
-  <!-- Driver Trips -->
-  <ShellContent Route="trips"
-                ContentTemplate="{DataTemplate driver:DriverTripsPage}"
-                Shell.NavBarIsVisible="True"/>
+  <!-- Driver Tabs -->
+  <TabBar Route="driver" x:Name="driverTabs">
+    <Tab Title="الرحلات" Icon="bus.png" Route="trips">
+      <ShellContent ContentTemplate="{DataTemplate driver:DriverTripsPage}"/>
+    </Tab>
+    <Tab Title="الملف الشخصي" Icon="profile.png" Route="profile">
+      <ShellContent ContentTemplate="{DataTemplate driver:DriverProfilePage}"/>
+    </Tab>
+  </TabBar>
 
-  <!-- Employee Attendance -->
-  <ShellContent Route="attendance"
-                ContentTemplate="{DataTemplate employee:EmployeeAttendancePage}"
-                Shell.NavBarIsVisible="True"/>
+  <!-- Employee Tabs -->
+  <TabBar Route="employee" x:Name="employeeTabs">
+    <Tab Title="الحضور" Icon="clock.png" Route="attendance">
+      <ShellContent ContentTemplate="{DataTemplate employee:EmployeeAttendancePage}"/>
+    </Tab>
+    <Tab Title="الملف الشخصي" Icon="profile.png" Route="profile">
+      <ShellContent ContentTemplate="{DataTemplate employee:EmployeeProfilePage}"/>
+    </Tab>
+  </TabBar>
 
 </Shell>

@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kindergarten.Maui.Views.Driver.DriverTripsPage"
-             BackgroundColor="#f0f4f8"
+             BackgroundColor="White"
              Title="الرحلات">
   <ScrollView>
     <VerticalStackLayout Padding="16" Spacing="12">
