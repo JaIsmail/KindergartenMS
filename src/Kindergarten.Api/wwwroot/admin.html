@@ -225,6 +225,12 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div class="form-field"><label id="lbl-child-name">اسم الطفل</label><input type="text" id="childName" placeholder="الاسم الكامل"></div>
         <div class="form-field"><label id="lbl-child-dob">تاريخ الميلاد</label><input type="date" id="childDob"></div>
       </div>
+      <div class="form-row full">
+        <div class="form-field">
+          <label id="lbl-child-parent">ولي الأمر</label>
+          <select id="childParent"></select>
+        </div>
+      </div>
       <div class="form-row">
         <div class="form-field"><label id="lbl-child-class">الفصل</label><select id="childClass"><option value="KG1">KG 1</option><option value="KG2">KG 2</option><option value="KG3">KG 3</option></select></div>
         <div class="form-field"><label id="lbl-child-health">ملاحظات صحية</label><input type="text" id="childHealth" placeholder="أي حساسية أو ملاحظات"></div>
@@ -557,6 +563,14 @@ async function loadDashboard(){
 }
 
 async function loadChildren(){
+  // Load parents for dropdown
+  const users=await api('/api/users');
+  const parentSel=document.getElementById('childParent');
+  if(users&&parentSel){
+    const parents=users.filter(u=>u.roleType==='Parent');
+    parentSel.innerHTML='<option value="">-- '+(currentLang==='ar'?'اختر ولي الأمر':'Select Parent')+' --</option>'+
+      parents.map(p=>'<option value="'+p.id+'">'+p.fullName+'</option>').join('');
+  }
   const data=await api('/api/children');const count=Array.isArray(data)?data.length:0;
   document.getElementById('children-count').textContent=count+t('childrenCount');
   document.getElementById('childrenBadge').textContent=count;
@@ -575,7 +589,7 @@ async function createChild(){
 }
 
 async function loadTrips(){
-  const data=await api('/api/trips/driver');const div=document.getElementById('trips-list');
+  const data=await api('/api/trips');const div=document.getElementById('trips-list');
   const trips=Array.isArray(data)?data:(data?.id?[data]:[]);
   document.getElementById('trips-count').textContent=trips.length+t('tripsCount');
   if(trips.length===0){div.innerHTML='<div class="empty"><div class="emoji">🚌</div><h4>'+t('noData')+'</h4></div>';return;}
@@ -603,7 +617,13 @@ async function createSubscription(){
 }
 
 async function loadPayments(){
-  const data=await api('/api/payments/subscription/1');const div=document.getElementById('payments-table');
+  const div=document.getElementById('payments-table');
+  div.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const subs=await api('/api/subscriptions');
+  if(!subs||subs.length===0){div.innerHTML='<div class="empty"><div class="emoji">💰</div><h4>'+t('noData')+'</h4></div>';return;}
+  let allPayments=[];
+  for(const sub of subs){const p=await api('/api/payments/subscription/'+sub.id);if(p&&p.length>0)allPayments=[...allPayments,...p];}
+  const data=allPayments;
   if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💰</div><h4>'+t('noData')+'</h4></div>';return;}
   div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.sub')+'</th><th>'+t('cols.amount')+'</th><th>'+t('cols.method')+'</th><th>'+t('cols.date')+'</th></tr></thead><tbody>'+data.map(p=>'<tr><td style="color:var(--text3)">#'+p.id+'</td><td>#'+p.subscriptionId+'</td><td style="font-weight:700;color:var(--green)">'+formatPrice(p.amount)+'</td><td><span class="badge badge-blue">'+(t('methods.'+p.method)||p.method)+'</span></td><td>'+formatDateTime(p.paymentDate)+'</td></tr>').join('')+'</tbody></table>';
 }

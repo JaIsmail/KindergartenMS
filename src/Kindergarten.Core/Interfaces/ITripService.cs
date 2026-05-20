@@ -12,4 +12,5 @@ public interface ITripService
     Task<bool>                         UpdateChildStatusAsync(UpdateChildStatusDto dto);
     Task<bool>                         SaveLocationAsync(UpdateLocationDto dto);
     Task<string?>                      GetChildParentIdAsync(int childId);
+    Task<IEnumerable<TripResponseDto>> GetAllTripsAsync();
 }

@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Kindergarten.Api.Hubs;
 
+[Authorize]
 public class TripHub : Hub
 {
     public async Task SendLocation(int tripId, double latitude, double longitude)

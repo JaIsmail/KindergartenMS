@@ -35,7 +35,12 @@ public class ChildrenController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateChildDto dto)
     {
-        var child = await _childService.CreateAsync(dto, GetUserId());
+        // Admin can specify parentId, others use their own ID
+        var role     = User.FindFirstValue(ClaimTypes.Role) ?? "";
+        var parentId = (role == "Admin" && !string.IsNullOrEmpty(dto.ParentId))
+                       ? dto.ParentId
+                       : GetUserId();
+        var child = await _childService.CreateAsync(dto, parentId);
         return CreatedAtAction(nameof(GetById), new { id = child.Id }, child);
     }
 

@@ -38,6 +38,14 @@ public class TripsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = trip.Id }, trip);
     }
 
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAll()
+    {
+        var trips = await _tripService.GetAllTripsAsync();
+        return Ok(trips);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

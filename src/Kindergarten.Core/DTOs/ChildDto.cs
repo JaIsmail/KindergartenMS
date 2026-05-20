@@ -6,6 +6,7 @@ public class CreateChildDto
     public DateTime BirthDate { get; set; }
     public string Class       { get; set; } = string.Empty;
     public string HealthNotes { get; set; } = string.Empty;
+    public string? ParentId   { get; set; } // Admin can specify parent
 }
 
 public class ChildResponseDto

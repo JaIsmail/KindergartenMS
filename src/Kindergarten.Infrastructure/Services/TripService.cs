@@ -104,6 +104,16 @@ public class TripService : ITripService
         return true;
     }
 
+    public async Task<IEnumerable<TripResponseDto>> GetAllTripsAsync()
+    {
+        var trips = await _db.Trips
+            .Include(t => t.Driver)
+            .Include(t => t.TripChildren).ThenInclude(tc => tc.Child)
+            .OrderByDescending(t => t.Date)
+            .ToListAsync();
+        return trips.Select(MapToDto);
+    }
+
     public async Task<string?> GetChildParentIdAsync(int childId)
     {
         var child = await _db.Children.FindAsync(childId);

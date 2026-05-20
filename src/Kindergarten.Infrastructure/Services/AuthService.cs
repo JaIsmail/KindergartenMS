@@ -79,13 +79,13 @@ public class AuthService : IAuthService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+        var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes((_config["Jwt__Key"] ?? _config["Jwt:Key"])!));
         var creds   = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expiry  = DateTime.UtcNow.AddDays(7);
 
         var token = new JwtSecurityToken(
-            issuer:             _config["Jwt:Issuer"],
-            audience:           _config["Jwt:Audience"],
+            issuer:             _config["Jwt__Issuer"] ?? _config["Jwt:Issuer"],
+            audience:           _config["Jwt__Audience"] ?? _config["Jwt:Audience"],
             claims:             claims,
             expires:            expiry,
             signingCredentials: creds

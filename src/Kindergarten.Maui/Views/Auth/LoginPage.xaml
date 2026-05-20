@@ -10,9 +10,9 @@
 
       <!-- Logo -->
       <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-        <Frame BackgroundColor="#f97316" CornerRadius="16" Padding="16" HorizontalOptions="Center">
+        <Border BackgroundColor="#f97316" StrokeShape="RoundRectangle 16" Padding="16" HorizontalOptions="Center">
           <Label Text="🏫" FontSize="40" HorizontalOptions="Center"/>
-        </Frame>
+        </Border>
         <Label Text="KMS" FontSize="28" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
         <Label x:Name="SubtitleLabel" Text="نظام إدارة الروضة" FontSize="14" TextColor="#94a3b8" HorizontalOptions="Center"/>
       </VerticalStackLayout>
@@ -28,7 +28,7 @@
       </HorizontalStackLayout>
 
       <!-- Form Card -->
-      <Frame BackgroundColor="#1e293b" CornerRadius="16" Padding="24" BorderColor="#334155">
+      <Border BackgroundColor="#1e293b" StrokeShape="RoundRectangle 16" Padding="24" Stroke="#334155">
         <VerticalStackLayout Spacing="16">
 
           <Label x:Name="WelcomeLabel" Text="مرحباً بعودتك" FontSize="22"
@@ -39,23 +39,23 @@
           <VerticalStackLayout Spacing="6">
             <Label x:Name="EmailLabel" Text="البريد الإلكتروني" FontSize="13"
                    FontAttributes="Bold" TextColor="#94a3b8"/>
-            <Frame BackgroundColor="#0f172a" CornerRadius="10" Padding="0" BorderColor="#334155">
+            <Border BackgroundColor="#0f172a" StrokeShape="RoundRectangle 10" Padding="0" Stroke="#334155">
               <Entry x:Name="EmailEntry" Placeholder="admin@kms.com"
                      PlaceholderColor="#475569" TextColor="White"
                      BackgroundColor="Transparent" Margin="12,8"
                      Keyboard="Email"/>
-            </Frame>
+            </Border>
           </VerticalStackLayout>
 
           <!-- Password -->
           <VerticalStackLayout Spacing="6">
             <Label x:Name="PasswordLabel" Text="كلمة المرور" FontSize="13"
                    FontAttributes="Bold" TextColor="#94a3b8"/>
-            <Frame BackgroundColor="#0f172a" CornerRadius="10" Padding="0" BorderColor="#334155">
+            <Border BackgroundColor="#0f172a" StrokeShape="RoundRectangle 10" Padding="0" Stroke="#334155">
               <Entry x:Name="PasswordEntry" IsPassword="True"
                      PlaceholderColor="#475569" TextColor="White"
                      BackgroundColor="Transparent" Margin="12,8"/>
-            </Frame>
+            </Border>
           </VerticalStackLayout>
 
           <!-- Error -->
@@ -69,7 +69,7 @@
                   HeightRequest="52" Clicked="OnLoginClicked"/>
 
         </VerticalStackLayout>
-      </Frame>
+      </Border>
 
     </VerticalStackLayout>
   </ScrollView>
