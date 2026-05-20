@@ -11,11 +11,11 @@ public class SubscriptionService : ISubscriptionService
     private readonly ApplicationDbContext _db;
     public SubscriptionService(ApplicationDbContext db) => _db = db;
 
-    public async Task<IEnumerable<SubscriptionResponseDto>> GetAllAsync(string parentId)
+    public async Task<IEnumerable<SubscriptionResponseDto>> GetAllAsync(string? parentId)
     {
         return await _db.Subscriptions
             .Include(s => s.Child)
-            .Where(s => s.ParentId == parentId)
+            .Where(s => parentId == null || s.ParentId == parentId)
             .Select(s => new SubscriptionResponseDto
             {
                 Id            = s.Id,

@@ -21,7 +21,10 @@ public class SubscriptionsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var subs = await _subscriptionService.GetAllAsync(GetUserId());
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+        var subs = role == "Admin"
+            ? await _subscriptionService.GetAllAsync(null)
+            : await _subscriptionService.GetAllAsync(GetUserId());
         return Ok(subs);
     }
 
