@@ -1,451 +1,583 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#f97316">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="KMS">
-<title>KMS — نظام إدارة الروضة</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMS</title>
 <style>
-:root{--primary:#f97316;--primary2:#ea580c;--dark:#0f172a;--dark2:#1e293b;--bg:#f0f4f8;--surface:#fff;--border:#e2e8f0;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--green:#22c55e;--blue:#3b82f6;--red:#ef4444;}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html[lang="ar"]{direction:rtl;}html[lang="en"]{direction:ltr;}
-body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;min-height:100vh;}
-html[lang="en"] body{font-family:'Outfit',sans-serif;}
-.screen{display:none;min-height:100vh;flex-direction:column;}
-.screen.active{display:flex;}
-#loginScreen{background:linear-gradient(160deg,#0f172a,#1e293b 60%,#0f172a);align-items:center;justify-content:center;padding:2rem 1.5rem;}
-.login-card{background:white;border-radius:24px;padding:2rem 1.5rem;width:100%;max-width:380px;box-shadow:0 25px 60px rgba(0,0,0,0.3);}
-.login-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
-.app-logo{display:flex;align-items:center;gap:0.7rem;}
-.logo-icon{width:46px;height:46px;background:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
-.logo-text h1{font-size:1rem;font-weight:900;}
-.logo-text p{font-size:0.7rem;color:var(--text3);}
-.lang-toggle{display:flex;background:#f1f5f9;border-radius:10px;overflow:hidden;}
-.lang-btn{padding:0.35rem 0.8rem;font-size:0.78rem;font-weight:700;border:none;background:none;cursor:pointer;font-family:inherit;}
-.lang-btn.active{background:var(--primary);color:white;border-radius:9px;}
-.login-title{font-size:1.5rem;font-weight:900;margin-bottom:0.3rem;}
-.login-sub{color:var(--text3);font-size:0.85rem;margin-bottom:1.5rem;}
-.form-field{margin-bottom:1rem;}
-.form-field label{display:block;font-size:0.78rem;font-weight:700;color:var(--text2);margin-bottom:0.4rem;}
-.form-field input{width:100%;padding:0.75rem 1rem;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:0.9rem;outline:none;direction:ltr;}
-.form-field input:focus{border-color:var(--primary);}
-.login-btn{width:100%;padding:0.85rem;background:var(--primary);color:white;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;}
-.login-btn:disabled{background:var(--text3);}
-.login-error{background:#fef2f2;border:1px solid #fecaca;color:var(--red);padding:0.6rem 1rem;border-radius:10px;font-size:0.82rem;margin-top:0.8rem;display:none;text-align:center;}
-#appScreen{background:var(--bg);}
-.topbar{background:var(--primary);padding:0.8rem 1rem;padding-top:calc(0.8rem + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.topbar-title{color:white;font-size:1rem;font-weight:700;}
-.topbar-right{display:flex;align-items:center;gap:0.5rem;}
-.topbar-lang{display:flex;background:rgba(255,255,255,0.2);border-radius:8px;overflow:hidden;}
-.topbar-lang button{padding:0.2rem 0.5rem;font-size:0.7rem;font-weight:700;border:none;background:none;color:rgba(255,255,255,0.7);cursor:pointer;font-family:inherit;}
-.topbar-lang button.active{background:white;color:var(--primary);border-radius:7px;}
-.topbar-btn{width:34px;height:34px;background:rgba(255,255,255,0.2);border:none;border-radius:8px;color:white;cursor:pointer;font-size:0.9rem;}
-.content{flex:1;overflow-y:auto;padding:1rem;padding-bottom:calc(5rem + env(safe-area-inset-bottom,0px));}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.08);}
-.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:0.6rem 0.3rem;cursor:pointer;border:none;background:none;font-family:inherit;}
-.nav-tab .ti{font-size:1.4rem;margin-bottom:0.2rem;}
-.nav-tab .tl{font-size:0.65rem;font-weight:600;color:var(--text3);}
-.nav-tab.active .tl{color:var(--primary);}
-.page{display:none;}
-.page.active{display:block;animation:fadeUp 0.25s ease;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
-.hero{background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:20px;padding:1.5rem;color:white;margin-bottom:1rem;}
-.hero h2{font-size:1.2rem;font-weight:900;margin-bottom:0.3rem;}
-.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;}
-.stat-card{background:white;border-radius:16px;padding:1rem;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-.stat-card .si{font-size:1.8rem;margin-bottom:0.4rem;}
-.stat-card .sn{font-size:1.6rem;font-weight:900;}
-.stat-card .sl{font-size:0.72rem;color:var(--text3);font-weight:600;}
-.sec-title{font-size:0.95rem;font-weight:800;margin-bottom:0.8rem;margin-top:0.5rem;}
-.list-card{background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:1rem;}
-.list-item{padding:0.9rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.8rem;}
-.list-item:last-child{border-bottom:none;}
-.li-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
-.li-info{flex:1;}
-.li-info .t{font-size:0.88rem;font-weight:700;}
-.li-info .s{font-size:0.75rem;color:var(--text3);margin-top:0.1rem;}
-.badge{display:inline-flex;align-items:center;gap:0.25rem;padding:0.2rem 0.6rem;border-radius:50px;font-size:0.7rem;font-weight:700;}
-.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
-.bg{background:#dcfce7;color:#16a34a;}
-.bb{background:#dbeafe;color:#2563eb;}
-.bo{background:#fff7ed;color:#ea580c;}
-.br{background:#fee2e2;color:#dc2626;}
-.bgr{background:#f1f5f9;color:#64748b;}
-.btn{display:flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.7rem 1.2rem;border-radius:12px;font-size:0.88rem;font-weight:700;cursor:pointer;border:none;font-family:inherit;width:100%;}
-.btn-p{background:var(--primary);color:white;}
-.btn-g{background:var(--green);color:white;}
-.btn-r{background:var(--red);color:white;}
-.btn-ghost{background:white;color:var(--red);border:1.5px solid #fee2e2;margin-top:0.5rem;}
-.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;}
-.trip-card{background:white;border-radius:16px;padding:1rem;margin-bottom:0.8rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-right:4px solid var(--primary);}
-html[lang="en"] .trip-card{border-right:none;border-left:4px solid var(--primary);}
-.trip-card.inprogress{border-color:var(--blue);}
-.trip-card.completed{border-color:var(--green);}
-.trip-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;}
-.trip-header h4{font-size:0.9rem;font-weight:800;}
-.trip-meta{display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:0.6rem;}
-.trip-meta span{font-size:0.75rem;color:var(--text2);}
-.child-pill{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.4rem;font-size:0.8rem;}
-.att-hero{background:var(--dark);border-radius:20px;padding:1.5rem;color:white;margin-bottom:1rem;text-align:center;}
-.time-big{font-size:3rem;font-weight:900;margin:0.5rem 0;}
-.time-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;}
-.time-box{background:rgba(255,255,255,0.1);border-radius:12px;padding:0.8rem;text-align:center;}
-.time-box .lb{font-size:0.7rem;opacity:0.6;margin-bottom:0.3rem;}
-.time-box .vl{font-size:1.1rem;font-weight:800;}
-.loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--text3);gap:0.8rem;}
-.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;}
-.empty{text-align:center;padding:3rem 1rem;color:var(--text3);}
-.empty .em{font-size:3rem;margin-bottom:0.8rem;}
-.empty h3{font-size:0.95rem;font-weight:700;color:var(--text2);}
-#toast{position:fixed;bottom:calc(5.5rem + env(safe-area-inset-bottom,0px));left:1rem;right:1rem;background:var(--dark);color:white;padding:0.9rem 1.2rem;border-radius:14px;font-size:0.85rem;font-weight:600;text-align:center;z-index:9999;transform:translateY(20px);opacity:0;transition:all 0.3s;}
-#toast.show{transform:translateY(0);opacity:1;}
-#toast.ok{background:#16a34a;}#toast.err{background:var(--red);}
-.profile-hdr{background:white;border-radius:20px;padding:1.5rem;text-align:center;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-.av{width:70px;height:70px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:white;margin:0 auto 0.8rem;}
-.pname{font-size:1.1rem;font-weight:800;}
-.pemail{font-size:0.8rem;color:var(--text3);direction:ltr;}
-.settings-list{background:white;border-radius:16px;overflow:hidden;}
-.settings-item{display:flex;align-items:center;gap:0.8rem;padding:0.9rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;}
-.settings-item:last-child{border-bottom:none;}
-.settings-item .ic{font-size:1.2rem;width:32px;text-align:center;}
-.settings-item .tx{flex:1;font-size:0.88rem;font-weight:600;}
-@keyframes spin{to{transform:rotate(360deg);}}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #f0f4f8; }
+.hidden { display: none !important; }
+#loginScreen {
+  min-height: 100vh;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 360px;
+}
+.card h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.card p { color: #64748b; margin-bottom: 1.5rem; font-size: 0.9rem; }
+label { display: block; font-size: 0.8rem; font-weight: bold; color: #475569; margin-bottom: 0.3rem; }
+input {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+input:focus { outline: none; border-color: #f97316; }
+#loginBtn {
+  width: 100%;
+  padding: 0.8rem;
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+#loginBtn:active { background: #ea580c; }
+#loginError {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 0.6rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 0.8rem;
+  text-align: center;
+}
+#appScreen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  background: #f97316;
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar h2 { font-size: 1rem; }
+.topbar button {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.content { flex: 1; padding: 1rem; padding-bottom: 5rem; }
+.page { display: none; }
+.page.active { display: block; }
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+}
+.tab {
+  flex: 1;
+  padding: 0.6rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+.tab .icon { font-size: 1.3rem; }
+.tab.active { color: #f97316; }
+.hero {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+  border-radius: 16px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+.hero h2 { font-size: 1.1rem; margin-bottom: 0.2rem; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
+.stat {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.stat .num { font-size: 1.8rem; font-weight: 900; }
+.stat .lbl { font-size: 0.72rem; color: #64748b; }
+.sec-title { font-size: 1rem; font-weight: bold; margin-bottom: 0.8rem; color: #0f172a; }
+.list { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
+.item {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.item:last-child { border-bottom: none; }
+.item-icon { font-size: 1.5rem; }
+.item-info .t { font-size: 0.9rem; font-weight: bold; }
+.item-info .s { font-size: 0.75rem; color: #94a3b8; }
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: auto;
+}
+.bg { background: #dcfce7; color: #16a34a; }
+.bb { background: #dbeafe; color: #2563eb; }
+.bo { background: #fff7ed; color: #ea580c; }
+.trip-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+  border-left: 4px solid #f97316;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.trip-card.inprogress { border-color: #3b82f6; }
+.trip-card.completed { border-color: #22c55e; }
+.trip-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.trip-head h4 { font-size: 0.9rem; font-weight: bold; }
+.btn {
+  width: 100%;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.btn-p { background: #f97316; color: white; }
+.btn-g { background: #22c55e; color: white; }
+.btn-r { background: #ef4444; color: white; }
+.btn-out { background: #f1f5f9; color: #ef4444; margin-top: 1rem; }
+.att-card {
+  background: #0f172a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  color: white;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.att-time { font-size: 3rem; font-weight: 900; margin: 0.5rem 0; }
+.att-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
+.att-box { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 0.8rem; }
+.att-box .l { font-size: 0.7rem; opacity: 0.6; }
+.att-box .v { font-size: 1rem; font-weight: bold; margin-top: 0.3rem; }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
+.profile-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.avatar {
+  width: 70px; height: 70px;
+  background: #f97316;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; font-weight: 900; color: white;
+  margin: 0 auto 0.8rem;
+}
+.lang-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
+.lang-btn { padding: 0.6rem; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; }
+.lang-btn.active { background: #f97316; color: white; }
+.lang-btn:not(.active) { background: #f1f5f9; color: #475569; }
+.empty { text-align: center; padding: 3rem; color: #94a3b8; }
+.spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #e2e8f0; border-top-color: #f97316; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#toast {
+  position: fixed;
+  bottom: 5rem; left: 1rem; right: 1rem;
+  background: #0f172a; color: white;
+  padding: 0.8rem; border-radius: 12px;
+  text-align: center; font-size: 0.85rem;
+  transform: translateY(20px); opacity: 0;
+  transition: all 0.3s; z-index: 9999;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.ok { background: #16a34a; }
+#toast.err { background: #ef4444; }
 </style>
 </head>
 <body>
 
-<div class="screen active" id="loginScreen">
-<div class="login-card">
-<div class="login-header">
-<div class="app-logo">
-<div class="logo-icon">🏫</div>
-<div class="logo-text"><h1>KMS</h1><p id="lAppSub">نظام إدارة الروضة</p></div>
-</div>
-<div class="lang-toggle">
-<button class="lang-btn active" id="lLangAr" type="button">AR</button>
-<button class="lang-btn" id="lLangEn" type="button">EN</button>
-</div>
-</div>
-<h2 class="login-title" id="lTitle">مرحباً بعودتك</h2>
-<p class="login-sub" id="lSub">سجّل دخولك للمتابعة</p>
-<div class="form-field"><label id="lEmail">البريد الإلكتروني</label><input type="email" id="inEmail" placeholder="user@kms.com" inputmode="email"></div>
-<div class="form-field"><label id="lPass">كلمة المرور</label><input type="password" id="inPass"></div>
-<button class="login-btn" id="lBtn" type="button">تسجيل الدخول</button>
-<div class="login-error" id="lErr"></div>
-</div>
-</div>
-
-<div class="screen" id="appScreen">
-<div class="topbar">
-<div class="topbar-title" id="tbTitle">KMS</div>
-<div class="topbar-right">
-<div class="topbar-lang"><button id="aLangAr" class="active" onclick="setLang('ar')">AR</button><button id="aLangEn" onclick="setLang('en')">EN</button></div>
-<button class="topbar-btn" onclick="doLogout()">🚪</button>
-</div>
-</div>
-<div class="content" id="mainContent">
-
-<div class="page active" id="pg-home">
-<div class="hero"><h2 id="wText">مرحباً 👋</h2><p id="wName"></p></div>
-<div class="stats-row">
-<div class="stat-card"><div class="si">👶</div><div class="sn" id="hCC">—</div><div class="sl" id="hLC">الأطفال</div></div>
-<div class="stat-card"><div class="si">💳</div><div class="sn" id="hCS">—</div><div class="sl" id="hLS">الاشتراكات</div></div>
-</div>
-<div class="sec-title" id="sMyC">أطفالي</div>
-<div id="childList"><div class="loading"><div class="spinner"></div></div></div>
+<div id="loginScreen">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:0.7rem">
+        <div style="width:44px;height:44px;background:#f97316;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem">🏫</div>
+        <div><div style="font-weight:900;font-size:1rem">KMS</div><div style="font-size:0.7rem;color:#94a3b8" id="lSub">نظام إدارة الروضة</div></div>
+      </div>
+      <div style="display:flex;background:#f1f5f9;border-radius:8px;overflow:hidden">
+        <button id="lAr" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:#f97316;color:white;font-size:0.8rem">AR</button>
+        <button id="lEn" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:transparent;color:#475569;font-size:0.8rem">EN</button>
+      </div>
+    </div>
+    <h1 id="lTitle">مرحباً بعودتك</h1>
+    <p id="lDesc">سجّل دخولك للمتابعة</p>
+    <label id="lEmail">البريد الإلكتروني</label>
+    <input type="email" id="inEmail" placeholder="user@kms.com">
+    <label id="lPass">كلمة المرور</label>
+    <input type="password" id="inPass">
+    <button id="loginBtn">تسجيل الدخول</button>
+    <div id="loginError" class="hidden"></div>
+  </div>
 </div>
 
-<div class="page" id="pg-subs">
-<div class="sec-title" id="sMySubs">اشتراكاتي</div>
-<div id="subsList"><div class="loading"><div class="spinner"></div></div></div>
-</div>
+<div id="appScreen" class="hidden">
+  <div class="topbar">
+    <h2 id="tbTitle">KMS</h2>
+    <div style="display:flex;gap:0.5rem;align-items:center">
+      <div style="display:flex;background:rgba(255,255,255,0.2);border-radius:6px;overflow:hidden">
+        <button id="aAr" style="padding:0.2rem 0.5rem;border:none;background:#f97316;color:white;cursor:pointer;font-weight:bold;font-size:0.75rem">AR</button>
+        <button id="aEn" style="padding:0.2rem 0.5rem;border:none;background:transparent;color:rgba(255,255,255,0.7);cursor:pointer;font-weight:bold;font-size:0.75rem">EN</button>
+      </div>
+      <button onclick="doLogout()">🚪</button>
+    </div>
+  </div>
 
-<div class="page" id="pg-ptrips">
-<div class="sec-title" id="sPTrips">رحلات أطفالي</div>
-<div id="pTripsList"><div class="empty"><div class="em">🚌</div><h3 id="noTrips">لا توجد رحلات حالية</h3></div></div>
-</div>
+  <div class="content">
+    <div class="page active" id="pg-home">
+      <div class="hero"><h2 id="wHello">مرحباً 👋</h2><p id="wName"></p></div>
+      <div class="stats">
+        <div class="stat"><div class="num" id="cCount">—</div><div class="lbl">الأطفال</div></div>
+        <div class="stat"><div class="num" id="sCount">—</div><div class="lbl">الاشتراكات</div></div>
+      </div>
+      <div class="sec-title">أطفالي</div>
+      <div id="childList"><div class="empty"><div class="spinner"></div></div></div>
+    </div>
 
-<div class="page" id="pg-dtrips">
-<div id="activeBanner"></div>
-<div class="sec-title" id="sDTrips">رحلاتي</div>
-<div id="dTripsList"><div class="loading"><div class="spinner"></div></div></div>
-</div>
+    <div class="page" id="pg-subs">
+      <div class="sec-title">اشتراكاتي</div>
+      <div id="subList"><div class="empty"><div class="spinner"></div></div></div>
+    </div>
 
-<div class="page" id="pg-att">
-<div class="att-hero">
-<div style="font-size:0.8rem;opacity:0.6" id="todayDate"></div>
-<div class="time-big" id="liveClock">--:--</div>
-<div id="attStatus" style="font-size:0.85rem;opacity:0.8;margin-top:0.3rem"></div>
-<div class="time-row">
-<div class="time-box"><div class="lb" id="lbCI">وقت الحضور</div><div class="vl" id="ciTime">--:--</div></div>
-<div class="time-box"><div class="lb" id="lbCO">وقت الانصراف</div><div class="vl" id="coTime">--:--</div></div>
-</div>
-</div>
-<div class="btn-row">
-<button class="btn btn-g" id="btnCI" onclick="doCheckIn()">✅ <span id="lCI">تسجيل الحضور</span></button>
-<button class="btn btn-r" id="btnCO" onclick="doCheckOut()">🔴 <span id="lCO">تسجيل الانصراف</span></button>
-</div>
-<div class="sec-title" id="sAttH">سجل الحضور</div>
-<div id="attList"><div class="loading"><div class="spinner"></div></div></div>
-</div>
+    <div class="page" id="pg-dtrips">
+      <div id="activeBanner"></div>
+      <div class="sec-title">رحلاتي</div>
+      <div id="tripList"><div class="empty"><div class="spinner"></div></div></div>
+    </div>
 
-<div class="page" id="pg-profile">
-<div class="profile-hdr">
-<div class="av" id="pAv">A</div>
-<div class="pname" id="pName">—</div>
-<div class="pemail" id="pEmail">—</div>
-<div style="margin-top:0.5rem" id="pRole"></div>
-</div>
-<div class="settings-list">
-<div class="settings-item" onclick="setLang(currentLang==='ar'?'en':'ar')"><span class="ic">🌐</span><span class="tx" id="sLang">تغيير اللغة</span><span>›</span></div>
-<div class="settings-item" onclick="doLogout()"><span class="ic">🚪</span><span class="tx" id="sOut">تسجيل الخروج</span><span>›</span></div>
-</div>
-</div>
+    <div class="page" id="pg-att">
+      <div class="att-card">
+        <div style="font-size:0.8rem;opacity:0.6" id="todayDate"></div>
+        <div class="att-time" id="clock">--:--</div>
+        <div id="attStatus" style="font-size:0.85rem;margin-top:0.3rem"></div>
+        <div class="att-grid">
+          <div class="att-box"><div class="l">وقت الحضور</div><div class="v" id="ciTime">--:--</div></div>
+          <div class="att-box"><div class="l">وقت الانصراف</div><div class="v" id="coTime">--:--</div></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-g" id="btnCI">✅ تسجيل الحضور</button>
+        <button class="btn btn-r" id="btnCO">🔴 تسجيل الانصراف</button>
+      </div>
+      <div class="sec-title">سجل الحضور</div>
+      <div id="attList"><div class="empty"><div class="spinner"></div></div></div>
+    </div>
 
-</div>
-<nav class="bottom-nav" id="bottomNav"></nav>
+    <div class="page" id="pg-profile">
+      <div class="profile-card">
+        <div class="avatar" id="pAv">A</div>
+        <div style="font-size:1.1rem;font-weight:900" id="pName"></div>
+        <div style="font-size:0.8rem;color:#64748b;direction:ltr" id="pEmail"></div>
+        <div style="margin-top:0.5rem" id="pRole"></div>
+      </div>
+      <div style="background:white;border-radius:12px;padding:1rem;margin-bottom:1rem">
+        <div style="font-size:0.85rem;font-weight:bold;margin-bottom:0.8rem;color:#475569">اللغة / Language</div>
+        <div class="lang-row">
+          <button class="lang-btn active" id="pAr">العربية</button>
+          <button class="lang-btn" id="pEn">English</button>
+        </div>
+      </div>
+      <button class="btn btn-out" onclick="doLogout()">🚪 تسجيل الخروج</button>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" id="nav"></nav>
 </div>
 
 <div id="toast"></div>
 
 <script>
-const API='https://kms-api-staging-kg01.azurewebsites.net';
-let token=localStorage.getItem('kms_token');
-let lang=localStorage.getItem('kms_lang')||'ar';
-let role=localStorage.getItem('kms_role')||'';
-let page='';
+const API = 'https://kms-api-staging-kg01.azurewebsites.net';
+let token = localStorage.getItem('kms_token');
+let lang = localStorage.getItem('kms_lang') || 'ar';
+let role = localStorage.getItem('kms_role') || '';
+let page = '';
 
-const T={
-ar:{appSub:'نظام إدارة الروضة',loginTitle:'مرحباً بعودتك',loginSub:'سجّل دخولك للمتابعة',
-  email:'البريد الإلكتروني',pass:'كلمة المرور',loginBtn:'تسجيل الدخول',logging:'جاري التحقق...',
-  errW:'البريد أو كلمة المرور غير صحيحة',errC:'لا يمكن الاتصال بالخادم',
-  home:'الرئيسية',trips:'الرحلات',subs:'الاشتراكات',att:'الحضور',profile:'الملف الشخصي',
-  welcome:'مرحباً 👋',children:'الأطفال',myC:'أطفالي',mySubs:'اشتراكاتي',
-  myTrips:'رحلاتي',childTrips:'رحلات أطفالي',
-  checkIn:'وقت الحضور',checkOut:'وقت الانصراف',
-  ciBtn:'تسجيل الحضور',coBtn:'تسجيل الانصراف',attHist:'سجل الحضور',
-  toSchool:'🏫 إلى الروضة',toHome:'🏠 إلى المنزل',
-  startTrip:'▶️ بدء الرحلة',endTrip:'⏹️ إنهاء الرحلة',
-  activeTrip:'رحلة جارية 🚌',confirmEnd:'هل تريد إنهاء الرحلة؟',
-  noData:'لا توجد بيانات',noTrips:'لا توجد رحلات حالية',
-  changeLang:'تغيير اللغة',logout:'تسجيل الخروج',
-  checkedIn:'تم تسجيل حضورك ✅',checkedOut:'تم تسجيل انصرافك ✅',
-  alreadyIn:'تم تسجيل الحضور مسبقاً',noCI:'لم يتم تسجيل الحضور اليوم',
-  tripStarted:'بدأت الرحلة ✅',tripEnded:'انتهت الرحلة ✅',
-  wHours:'ساعات العمل',
-  roles:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'},
-  status:{Created:'تم الإنشاء',InProgress:'جارية',Completed:'مكتملة',
-    Pending:'معلق',PickedUp:'تم الاستلام',DroppedOff:'تم التوصيل',
-    Paid:'مدفوع',Overdue:'متأخر',Present:'حاضر',Late:'متأخر',Absent:'غائب'}},
-en:{appSub:'Kindergarten Management System',loginTitle:'Welcome back',loginSub:'Sign in to continue',
-  email:'Email Address',pass:'Password',loginBtn:'Sign In',logging:'Signing in...',
-  errW:'Invalid email or password',errC:'Cannot connect to server',
-  home:'Home',trips:'Trips',subs:'Subscriptions',att:'Attendance',profile:'Profile',
-  welcome:'Hello 👋',children:'Children',myC:'My Children',mySubs:'My Subscriptions',
-  myTrips:'My Trips',childTrips:"Children's Trips",
-  checkIn:'Check-in Time',checkOut:'Check-out Time',
-  ciBtn:'Check In',coBtn:'Check Out',attHist:'Attendance History',
-  toSchool:'🏫 To School',toHome:'🏠 To Home',
-  startTrip:'▶️ Start Trip',endTrip:'⏹️ End Trip',
-  activeTrip:'Active Trip 🚌',confirmEnd:'End this trip?',
-  noData:'No data found',noTrips:'No active trips',
-  changeLang:'Change Language',logout:'Sign Out',
-  checkedIn:'Check-in recorded ✅',checkedOut:'Check-out recorded ✅',
-  alreadyIn:'Already checked in today',noCI:'No check-in found today',
-  tripStarted:'Trip started ✅',tripEnded:'Trip ended ✅',
-  wHours:'Working hours',
-  roles:{Admin:'Admin',Parent:'Parent',Driver:'Driver',Employee:'Employee'},
-  status:{Created:'Created',InProgress:'In Progress',Completed:'Completed',
-    Pending:'Pending',PickedUp:'Picked Up',DroppedOff:'Dropped Off',
-    Paid:'Paid',Overdue:'Overdue',Present:'Present',Late:'Late',Absent:'Absent'}}
+// Translations
+const TX = {
+  ar: { home:'الرئيسية', trips:'الرحلات', subs:'الاشتراكات', att:'الحضور', profile:'الملف الشخصي',
+        loginBtn:'تسجيل الدخول', logging:'جاري التحقق...', errW:'بيانات الدخول غير صحيحة', errC:'لا يمكن الاتصال بالخادم',
+        toSchool:'🏫 إلى الروضة', toHome:'🏠 إلى المنزل', start:'▶️ بدء الرحلة', end:'⏹️ إنهاء الرحلة',
+        active:'رحلة جارية 🚌', confirmEnd:'هل تريد إنهاء الرحلة؟', noData:'لا توجد بيانات',
+        checkedIn:'تم تسجيل الحضور ✅', checkedOut:'تم تسجيل الانصراف ✅', alreadyIn:'تم التسجيل مسبقاً', noCI:'لم يتم تسجيل الحضور',
+        tripOk:'بدأت الرحلة ✅', tripEnd:'انتهت الرحلة ✅', wHours:'ساعات العمل',
+        status:{Created:'تم الإنشاء',InProgress:'جارية',Completed:'مكتملة',Pending:'معلق',PickedUp:'تم الاستلام',DroppedOff:'تم التوصيل',Paid:'مدفوع',Overdue:'متأخر',Present:'حاضر',Late:'متأخر',Absent:'غائب'},
+        roles:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'} },
+  en: { home:'Home', trips:'Trips', subs:'Subscriptions', att:'Attendance', profile:'Profile',
+        loginBtn:'Sign In', logging:'Signing in...', errW:'Invalid email or password', errC:'Cannot connect to server',
+        toSchool:'🏫 To School', toHome:'🏠 To Home', start:'▶️ Start Trip', end:'⏹️ End Trip',
+        active:'Active Trip 🚌', confirmEnd:'End this trip?', noData:'No data found',
+        checkedIn:'Checked in ✅', checkedOut:'Checked out ✅', alreadyIn:'Already checked in', noCI:'No check-in today',
+        tripOk:'Trip started ✅', tripEnd:'Trip ended ✅', wHours:'Working hours',
+        status:{Created:'Created',InProgress:'In Progress',Completed:'Completed',Pending:'Pending',PickedUp:'Picked Up',DroppedOff:'Dropped Off',Paid:'Paid',Overdue:'Overdue',Present:'Present',Late:'Late',Absent:'Absent'},
+        roles:{Admin:'Admin',Parent:'Parent',Driver:'Driver',Employee:'Employee'} }
 };
 
-function t(k){return T[lang][k]||k;}
-function ts(k){return T[lang].status[k]||k;}
-function tr(k){return T[lang].roles[k]||k;}
+function t(k){ return TX[lang][k] || k; }
+function ts(k){ return TX[lang].status[k] || k; }
 
-function setLang(l){
-  lang=l;localStorage.setItem('kms_lang',l);
-  document.documentElement.lang=l;
-  ['lLangAr','aLangAr'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('active',l==='ar');});
-  ['lLangEn','aLangEn'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('active',l==='en');});
-  applyT();
-  if(page)showPage(page);
-}
-
-function applyT(){
-  const m={lAppSub:'appSub',lTitle:'loginTitle',lSub:'loginSub',lEmail:'email',lPass:'pass',lBtn:'loginBtn',
-    hLC:'children',hLS:'subs',sMyC:'myC',sMySubs:'mySubs',sPTrips:'childTrips',sDTrips:'myTrips',
-    lbCI:'checkIn',lbCO:'checkOut',lCI:'ciBtn',lCO:'coBtn',sAttH:'attHist',wText:'welcome',
-    sLang:'changeLang',sOut:'logout',noTrips:'noTrips'};
-  Object.entries(m).forEach(([id,key])=>{const e=document.getElementById(id);if(e)e.textContent=t(key);});
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('kms_lang', l);
+  const ar = l === 'ar';
+  document.documentElement.lang = l;
+  document.documentElement.dir = ar ? 'rtl' : 'ltr';
+  // Login page buttons
+  document.getElementById('lAr').style.cssText = ar ? 'padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:#f97316;color:white;font-size:0.8rem' : 'padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:transparent;color:#475569;font-size:0.8rem';
+  document.getElementById('lEn').style.cssText = !ar ? 'padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:#f97316;color:white;font-size:0.8rem' : 'padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:transparent;color:#475569;font-size:0.8rem';
+  // App buttons
+  document.getElementById('aAr').style.background = ar ? '#f97316' : 'transparent';
+  document.getElementById('aAr').style.color = ar ? 'white' : 'rgba(255,255,255,0.7)';
+  document.getElementById('aEn').style.background = !ar ? '#f97316' : 'transparent';
+  document.getElementById('aEn').style.color = !ar ? 'white' : 'rgba(255,255,255,0.7)';
+  // Profile buttons
+  const pAr = document.getElementById('pAr');
+  const pEn = document.getElementById('pEn');
+  if(pAr) { pAr.className = 'lang-btn' + (ar?' active':''); pEn.className = 'lang-btn' + (!ar?' active':''); }
+  // Update texts
+  document.getElementById('lSub').textContent = ar ? 'نظام إدارة الروضة' : 'Kindergarten Management System';
+  document.getElementById('lTitle').textContent = ar ? 'مرحباً بعودتك' : 'Welcome back';
+  document.getElementById('lDesc').textContent = ar ? 'سجّل دخولك للمتابعة' : 'Sign in to continue';
+  document.getElementById('lEmail').textContent = ar ? 'البريد الإلكتروني' : 'Email Address';
+  document.getElementById('lPass').textContent = ar ? 'كلمة المرور' : 'Password';
+  document.getElementById('loginBtn').textContent = t('loginBtn');
+  // Rebuild nav
   buildNav();
+  if(page) showPage(page);
 }
 
-async function api(path,method='GET',body=null){
-  const opts={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Accept-Language':lang}};
-  if(body)opts.body=JSON.stringify(body);
-  try{const r=await fetch(API+path,opts);if(r.status===401){doLogout();return null;}if(r.status===204)return{};return await r.json();}
-  catch{return null;}
+async function api(path, method='GET', body=null) {
+  try {
+    const r = await fetch(API+path, {
+      method,
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token,'Accept-Language':lang},
+      body: body ? JSON.stringify(body) : null
+    });
+    if(r.status===401){doLogout();return null;}
+    if(r.status===204) return {};
+    return await r.json();
+  } catch(e) { return null; }
 }
 
-window.onload=()=>{setLang(lang);if(token)initApp();startClock();};
+// Login
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('lAr').addEventListener('click', function(){ setLang('ar'); });
+document.getElementById('lEn').addEventListener('click', function(){ setLang('en'); });
+document.getElementById('aAr').addEventListener('click', function(){ setLang('ar'); });
+document.getElementById('aEn').addEventListener('click', function(){ setLang('en'); });
+document.getElementById('pAr') && document.getElementById('pAr').addEventListener('click', function(){ setLang('ar'); });
+document.getElementById('pEn') && document.getElementById('pEn').addEventListener('click', function(){ setLang('en'); });
+document.getElementById('btnCI').addEventListener('click', doCheckIn);
+document.getElementById('btnCO').addEventListener('click', doCheckOut);
+document.getElementById('inPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 
-async function doLogin(){
-  const email=document.getElementById('inEmail').value.trim();
-  const pass=document.getElementById('inPass').value;
-  const btn=document.getElementById('lBtn');
-  const err=document.getElementById('lErr');
-  if(!email||!pass){showErr(t('errW'));return;}
-  btn.disabled=true;btn.textContent=t('logging');err.style.display='none';
-  try{
-    const r=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json','Accept-Language':lang},body:JSON.stringify({email,password:pass})});
-    const d=await r.json();
-    if(d.token){
-      token=d.token;localStorage.setItem('kms_token',token);
-      localStorage.setItem('kms_role',d.role);localStorage.setItem('kms_name',d.fullName);localStorage.setItem('kms_email',d.email);
-      role=d.role;initApp();
-    }else{showErr(d.message||t('errW'));}
-  }catch{showErr(t('errC'));}
-  btn.disabled=false;btn.textContent=t('loginBtn');
+async function doLogin() {
+  const email = document.getElementById('inEmail').value.trim();
+  const pass = document.getElementById('inPass').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+  if(!email||!pass){ showErr(t('errW')); return; }
+  btn.disabled = true;
+  btn.textContent = t('logging');
+  err.classList.add('hidden');
+  try {
+    const r = await fetch(API+'/api/auth/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password:pass})
+    });
+    const d = await r.json();
+    if(d.token) {
+      token = d.token;
+      localStorage.setItem('kms_token', token);
+      localStorage.setItem('kms_role', d.role);
+      localStorage.setItem('kms_name', d.fullName);
+      localStorage.setItem('kms_email', d.email);
+      role = d.role;
+      initApp();
+    } else {
+      showErr(d.message || t('errW'));
+    }
+  } catch(e) {
+    showErr(t('errC') + ': ' + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = t('loginBtn');
 }
 
-function showErr(m){const e=document.getElementById('lErr');e.textContent=m;e.style.display='block';}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').classList.contains('active'))doLogin();});
+function showErr(m) {
+  const e = document.getElementById('loginError');
+  e.textContent = m;
+  e.classList.remove('hidden');
+}
 
-function initApp(){
-  role=localStorage.getItem('kms_role')||'';
-  document.getElementById('loginScreen').classList.remove('active');
-  document.getElementById('appScreen').classList.add('active');
-  const name=localStorage.getItem('kms_name')||'';
-  const email=localStorage.getItem('kms_email')||'';
-  document.getElementById('wName').textContent=name;
-  document.getElementById('pName').textContent=name;
-  document.getElementById('pEmail').textContent=email;
-  document.getElementById('pAv').textContent=name?name[0].toUpperCase():'?';
-  document.getElementById('pRole').innerHTML=roleBadge(role);
+function initApp() {
+  role = localStorage.getItem('kms_role') || '';
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  const name = localStorage.getItem('kms_name') || '';
+  document.getElementById('wName').textContent = name;
+  document.getElementById('pName').textContent = name;
+  document.getElementById('pEmail').textContent = localStorage.getItem('kms_email') || '';
+  document.getElementById('pAv').textContent = name ? name[0].toUpperCase() : '?';
+  document.getElementById('pRole').innerHTML = '<span style="background:#fff7ed;color:#ea580c;padding:0.2rem 0.6rem;border-radius:50px;font-size:0.75rem;font-weight:bold">' + (TX[lang].roles[role]||role) + '</span>';
+  // Attach profile lang buttons
+  document.getElementById('pAr').addEventListener('click', function(){ setLang('ar'); });
+  document.getElementById('pEn').addEventListener('click', function(){ setLang('en'); });
   buildNav();
-  if(role==='Driver')showPage('dtrips');
-  else if(role==='Employee')showPage('att');
+  if(role==='Driver') showPage('dtrips');
+  else if(role==='Employee') showPage('att');
   else showPage('home');
 }
 
-function doLogout(){
-  localStorage.clear();token=null;role='';
-  document.getElementById('appScreen').classList.remove('active');
-  document.getElementById('loginScreen').classList.add('active');
+function doLogout() {
+  localStorage.clear();
+  token = null; role = '';
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
 }
 
-function buildNav(){
-  const nav=document.getElementById('bottomNav');
-  let tabs=[];
-  if(role==='Driver')tabs=[{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
-  else if(role==='Employee')tabs=[{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
-  else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subs')},{id:'profile',i:'👤',l:t('profile')}];
-  nav.innerHTML=tabs.map(tab=>'<button class="nav-tab '+(page===tab.id?'active':'')+'" onclick="showPage(''+tab.id+'')"><span class="ti">'+tab.i+'</span><span class="tl">'+tab.l+'</span></button>').join('');
+function buildNav() {
+  const nav = document.getElementById('nav');
+  let tabs = [];
+  if(role==='Driver') tabs=[{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
+  else if(role==='Employee') tabs=[{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
+  else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'subs',i:'💳',l:t('subs')},{id:'profile',i:'👤',l:t('profile')}];
+  nav.innerHTML = tabs.map(tb =>
+    '<button class="tab'+(page===tb.id?' active':'')+'" data-page="'+tb.id+'"><span class="icon">'+tb.i+'</span><span>'+tb.l+'</span></button>'
+  ).join('');
+  nav.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', function(){ showPage(this.dataset.page); });
+  });
 }
 
-function showPage(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  const el=document.getElementById('pg-'+p);
-  if(el)el.classList.add('active');
-  page=p;
-  const titles={home:t('home'),subs:t('mySubs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
-  document.getElementById('tbTitle').textContent=titles[p]||'KMS';
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  const el = document.getElementById('pg-'+p);
+  if(el) el.classList.add('active');
+  page = p;
+  const titles = {home:t('home'),subs:t('subs'),dtrips:t('trips'),att:t('att'),profile:t('profile')};
+  document.getElementById('tbTitle').textContent = titles[p] || 'KMS';
   buildNav();
-  const loaders={home:loadHome,subs:loadSubs,dtrips:loadDTrips,att:loadAtt};
-  if(loaders[p])loaders[p]();
+  const loaders = {home:loadHome, subs:loadSubs, dtrips:loadTrips, att:loadAtt};
+  if(loaders[p]) loaders[p]();
 }
 
-function sbadge(s){const m={Created:'bo',InProgress:'bb',Completed:'bg',Pending:'bo',PickedUp:'bg',DroppedOff:'bg',Missed:'br',Paid:'bg',Overdue:'br',Present:'bg',Late:'bo',Absent:'br'};return'<span class="badge '+(m[s]||'bgr')+'">'+ts(s)+'</span>';}
-function roleBadge(r){const m={Admin:'br',Parent:'bb',Driver:'bg',Employee:'bgr'};return'<span class="badge '+(m[r]||'bgr')+'">'+tr(r)+'</span>';}
-function fDate(d){return new Date(d).toLocaleDateString(lang==='ar'?'ar-SA':'en-US');}
-function fTime(d){return new Date(d).toLocaleTimeString(lang==='ar'?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'});}
-function fPrice(p){return lang==='ar'?p.toFixed(2)+' ريال':'SAR '+p.toFixed(2);}
-
-function startClock(){
-  function upd(){
-    const n=new Date();
-    const c=document.getElementById('liveClock');if(c)c.textContent=n.toLocaleTimeString(lang==='ar'?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'});
-    const d=document.getElementById('todayDate');if(d)d.textContent=n.toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  }upd();setInterval(upd,1000);
+function sbadge(s,cls='bb') {
+  const m={Created:'bo',InProgress:'bb',Completed:'bg',Pending:'bo',PickedUp:'bg',DroppedOff:'bg',Paid:'bg',Overdue:'br',Present:'bg',Late:'bo',Absent:'br'};
+  return '<span class="badge '+(m[s]||'bb')+'">'+ts(s)+'</span>';
 }
 
-function showToast(m,type=''){const t=document.getElementById('toast');t.textContent=m;t.className='show '+type;setTimeout(()=>t.className='',3000);}
-
-async function loadHome(){
-  const[ch,sb]=await Promise.all([api('/api/children'),api('/api/subscriptions')]);
-  const cc=Array.isArray(ch)?ch.length:0,sc=Array.isArray(sb)?sb.length:0;
-  document.getElementById('hCC').textContent=cc;document.getElementById('hCS').textContent=sc;
-  const div=document.getElementById('childList');
-  if(!ch||ch.length===0){div.innerHTML='<div class="empty"><div class="em">👶</div><h3>'+t('noData')+'</h3></div>';return;}
-  div.innerHTML='<div class="list-card">'+ch.map(c=>'<div class="list-item"><div class="li-icon" style="background:#fff7ed">👶</div><div class="li-info"><div class="t">'+c.name+'</div><div class="s">'+c.class+'</div></div><span class="badge bb">'+c.class+'</span></div>').join('')+'</div>';
+async function loadHome() {
+  const [ch, sb] = await Promise.all([api('/api/children'), api('/api/subscriptions')]);
+  document.getElementById('cCount').textContent = Array.isArray(ch) ? ch.length : 0;
+  document.getElementById('sCount').textContent = Array.isArray(sb) ? sb.length : 0;
+  const div = document.getElementById('childList');
+  if(!ch||!ch.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
+  div.innerHTML = '<div class="list">'+ch.map(c=>'<div class="item"><span class="item-icon">👶</span><div class="item-info"><div class="t">'+c.name+'</div><div class="s">'+c.class+'</div></div><span class="badge bb">'+c.class+'</span></div>').join('')+'</div>';
 }
 
-async function loadSubs(){
-  const data=await api('/api/subscriptions');const div=document.getElementById('subsList');
-  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="em">💳</div><h3>'+t('noData')+'</h3></div>';return;}
-  div.innerHTML='<div class="list-card">'+data.map(s=>'<div class="list-item"><div class="li-icon" style="background:#f0fdf4">💳</div><div class="li-info"><div class="t">'+s.childName+'</div><div class="s">'+s.type+' • '+fPrice(s.price)+'</div></div>'+sbadge(s.paymentStatus)+'</div>').join('')+'</div>';
+async function loadSubs() {
+  const data = await api('/api/subscriptions');
+  const div = document.getElementById('subList');
+  if(!data||!data.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
+  div.innerHTML = '<div class="list">'+data.map(s=>'<div class="item"><span class="item-icon">💳</span><div class="item-info"><div class="t">'+s.childName+'</div><div class="s">'+s.type+' • SAR '+s.price.toFixed(2)+'</div></div>'+sbadge(s.paymentStatus)+'</div>').join('')+'</div>';
 }
 
-async function loadDTrips(){
-  const data=await api('/api/trips/driver');const div=document.getElementById('dTripsList');const banner=document.getElementById('activeBanner');
-  const trips=Array.isArray(data)?data:(data?.id?[data]:[]);
-  if(trips.length===0){banner.style.display='none';div.innerHTML='<div class="empty"><div class="em">🚌</div><h3>'+t('noData')+'</h3></div>';return;}
-  const active=trips.find(tr=>tr.status==='InProgress');
-  if(active){banner.innerHTML='<div style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:16px;padding:1rem;margin-bottom:1rem;color:white"><div style="font-size:0.8rem;opacity:0.8;margin-bottom:0.3rem">'+t('activeTrip')+'</div><div style="font-size:1rem;font-weight:800;margin-bottom:0.8rem">'+(active.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+active.id+'</div><button onclick="endTrip('+active.id+')" style="background:white;color:#1d4ed8;border:none;padding:0.6rem 1rem;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;width:100%">'+t('endTrip')+'</button></div>';}
-  else banner.innerHTML='';
-  div.innerHTML=trips.map(tr=>'<div class="trip-card '+tr.status.toLowerCase()+'"><div class="trip-header"><h4>'+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+tr.id+'</h4>'+sbadge(tr.status)+'</div><div class="trip-meta"><span>📅 '+fDate(tr.date)+'</span>'+(tr.startTime?'<span>▶️ '+fTime(tr.startTime)+'</span>':'')+(tr.endTime?'<span>⏹️ '+fTime(tr.endTime)+'</span>':'')+'</div>'+tr.children.map(c=>'<div class="child-pill"><span>👤 '+c.childName+'</span><div style="display:flex;gap:0.4rem">'+sbadge(c.pickupStatus)+sbadge(c.dropoffStatus)+'</div></div>').join('')+(tr.status==='Created'?'<button onclick="startTrip('+tr.id+')" class="btn btn-p" style="margin-top:0.8rem">'+t('startTrip')+'</button>':'')+'</div>').join('');
+async function loadTrips() {
+  const data = await api('/api/trips/driver');
+  const div = document.getElementById('tripList');
+  const banner = document.getElementById('activeBanner');
+  const trips = Array.isArray(data) ? data : (data?.id ? [data] : []);
+  if(!trips.length){ banner.innerHTML=''; div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
+  const active = trips.find(tr=>tr.status==='InProgress');
+  banner.innerHTML = active ? '<div style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:12px;padding:1rem;margin-bottom:1rem;color:white"><div style="font-size:0.8rem;opacity:0.8">'+t('active')+'</div><div style="font-weight:bold;margin:0.3rem 0">'+(active.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+active.id+'</div><button onclick="endTrip('+active.id+')" style="background:white;color:#1d4ed8;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;cursor:pointer;width:100%">'+t('end')+'</button></div>' : '';
+  div.innerHTML = trips.map(tr=>'<div class="trip-card '+tr.status.toLowerCase()+'"><div class="trip-head"><h4>'+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+tr.id+'</h4>'+sbadge(tr.status)+'</div><div style="font-size:0.75rem;color:#64748b;margin-bottom:0.5rem">📅 '+new Date(tr.date).toLocaleDateString()+(tr.startTime?' • ▶️ '+new Date(tr.startTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}):'')+'</div>'+tr.children.map(c=>'<div style="display:flex;justify-content:space-between;background:#f8fafc;border-radius:8px;padding:0.4rem 0.7rem;margin-bottom:0.3rem;font-size:0.8rem"><span>👤 '+c.childName+'</span><div>'+sbadge(c.pickupStatus)+' '+sbadge(c.dropoffStatus)+'</div></div>').join('')+(tr.status==='Created'?'<button class="btn btn-p" onclick="startTrip('+tr.id+')">'+t('start')+'</button>':'')+'</div>').join('');
 }
 
-async function startTrip(id){const r=await api('/api/trips/'+id+'/start','PUT');if(r){showToast(t('tripStarted'),'ok');loadDTrips();}}
-async function endTrip(id){if(!confirm(t('confirmEnd')))return;const r=await api('/api/trips/'+id+'/end','PUT');if(r){showToast(t('tripEnded'),'ok');loadDTrips();}}
+async function startTrip(id){ const r=await api('/api/trips/'+id+'/start','PUT'); if(r){toast(t('tripOk'),'ok');loadTrips();} }
+async function endTrip(id){ if(!confirm(t('confirmEnd')))return; const r=await api('/api/trips/'+id+'/end','PUT'); if(r){toast(t('tripEnd'),'ok');loadTrips();} }
 
-async function loadAtt(){
-  const records=await api('/api/employees/my-attendance');const div=document.getElementById('attList');
-  if(!records||records.length===0){div.innerHTML='<div class="empty"><div class="em">📋</div><h3>'+t('noData')+'</h3></div>';return;}
-  const today=records.find(r=>new Date(r.date).toDateString()===new Date().toDateString());
-  if(today){document.getElementById('ciTime').textContent=today.checkInTime?fTime(today.checkInTime):'--:--';document.getElementById('coTime').textContent=today.checkOutTime?fTime(today.checkOutTime):'--:--';document.getElementById('attStatus').textContent=ts(today.status);}
-  div.innerHTML='<div class="list-card">'+records.slice(0,10).map(r=>'<div class="list-item"><div class="li-icon" style="background:#f0fdf4">📅</div><div class="li-info"><div class="t">'+fDate(r.date)+'</div><div class="s">'+(r.workingHours?t('wHours')+': '+r.workingHours:'—')+'</div></div>'+sbadge(r.status)+'</div>').join('')+'</div>';
+async function loadAtt() {
+  const records = await api('/api/employees/my-attendance');
+  const div = document.getElementById('attList');
+  if(!records||!records.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
+  const today = records.find(r=>new Date(r.date).toDateString()===new Date().toDateString());
+  if(today){
+    document.getElementById('ciTime').textContent = today.checkInTime ? new Date(today.checkInTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    document.getElementById('coTime').textContent = today.checkOutTime ? new Date(today.checkOutTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    document.getElementById('attStatus').textContent = ts(today.status);
+  }
+  div.innerHTML = '<div class="list">'+records.slice(0,10).map(r=>'<div class="item"><span class="item-icon">📅</span><div class="item-info"><div class="t">'+new Date(r.date).toLocaleDateString()+'</div><div class="s">'+(r.workingHours?t('wHours')+': '+r.workingHours:'—')+'</div></div>'+sbadge(r.status)+'</div>').join('')+'</div>';
 }
 
 async function doCheckIn(){
   document.getElementById('btnCI').disabled=true;
   const r=await api('/api/employees/checkin','POST',{biometricVerified:true});
-  if(r?.checkInTime){document.getElementById('ciTime').textContent=fTime(r.checkInTime);showToast(t('checkedIn'),'ok');await loadAtt();}
-  else showToast(t('alreadyIn'),'');
+  if(r?.checkInTime){document.getElementById('ciTime').textContent=new Date(r.checkInTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});toast(t('checkedIn'),'ok');loadAtt();}
+  else toast(t('alreadyIn'),'');
   document.getElementById('btnCI').disabled=false;
 }
 
 async function doCheckOut(){
   document.getElementById('btnCO').disabled=true;
   const r=await api('/api/employees/checkout','POST',{});
-  if(r?.checkOutTime){document.getElementById('coTime').textContent=fTime(r.checkOutTime);showToast(t('checkedOut'),'ok');await loadAtt();}
-  else showToast(t('noCI'),'');
+  if(r?.checkOutTime){document.getElementById('coTime').textContent=new Date(r.checkOutTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});toast(t('checkedOut'),'ok');loadAtt();}
+  else toast(t('noCI'),'');
   document.getElementById('btnCO').disabled=false;
 }
 
-// ── Mobile-friendly event listeners ──
-window.addEventListener('load', function() {
-  console.log('KMS PWA loaded - v4');
-  document.getElementById('lErr').textContent = 'JS loaded OK - tap login';
-  document.getElementById('lErr').style.display = 'block';
-  document.getElementById('lBtn').addEventListener('click', doLogin);
-  document.getElementById('lBtn').addEventListener('touchend', function(e){
-    e.preventDefault(); e.stopPropagation(); doLogin();
-  });
-  document.getElementById('lLangAr').addEventListener('click', function(){setLang('ar');});
-  document.getElementById('lLangAr').addEventListener('touchend', function(e){e.preventDefault();setLang('ar');});
-  document.getElementById('lLangEn').addEventListener('click', function(){setLang('en');});
-  document.getElementById('lLangEn').addEventListener('touchend', function(e){e.preventDefault();setLang('en');});
-  document.getElementById('inPass').addEventListener('keydown', function(e){
-    if(e.key==='Enter') doLogin();
-  });
-});
+function toast(m,type=''){const t=document.getElementById('toast');t.textContent=m;t.className='show'+(type?' '+type:'');setTimeout(()=>t.className='',3000);}
+
+// Clock
+setInterval(function(){
+  const n=new Date();
+  const c=document.getElementById('clock');if(c)c.textContent=n.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+  const d=document.getElementById('todayDate');if(d)d.textContent=n.toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+},1000);
+
+// Init
+setLang(lang);
+if(token){ role=localStorage.getItem('kms_role')||''; initApp(); }
 </script>
 </body>
 </html>
