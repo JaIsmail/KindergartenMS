@@ -431,6 +431,9 @@ async function doCheckOut(){
 
 // ── Mobile-friendly event listeners ──
 window.addEventListener('load', function() {
+  console.log('KMS PWA loaded - v4');
+  document.getElementById('lErr').textContent = 'JS loaded OK - tap login';
+  document.getElementById('lErr').style.display = 'block';
   document.getElementById('lBtn').addEventListener('click', doLogin);
   document.getElementById('lBtn').addEventListener('touchend', function(e){
     e.preventDefault(); e.stopPropagation(); doLogin();
