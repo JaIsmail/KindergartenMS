@@ -116,7 +116,6 @@ public partial class ParentDashboardPage : ContentPage
             await DisplayAlert("Error", ex.Message, "OK");
         }
     }
-}
 
     async void OnLogoutClicked(object sender, EventArgs e)
     {

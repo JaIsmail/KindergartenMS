@@ -26,9 +26,9 @@ public class ApiService
         };
     }
 
-    private void SetAuthHeader()
+    private async Task SetAuthHeaderAsync()
     {
-        var token = SecureStorage.GetAsync(Constants.TokenKey).Result;
+        var token = await SecureStorage.GetAsync(Constants.TokenKey);
         if (!string.IsNullOrEmpty(token))
             _client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
@@ -43,7 +43,7 @@ public class ApiService
 
     public async Task<T?> GetAsync<T>(string endpoint)
     {
-        SetAuthHeader(); SetLangHeader();
+        await SetAuthHeaderAsync(); SetLangHeader();
         var response = await _client.GetAsync(endpoint);
         if (!response.IsSuccessStatusCode) return default;
         var json = await response.Content.ReadAsStringAsync();
@@ -52,7 +52,7 @@ public class ApiService
 
     public async Task<T?> PostAsync<T>(string endpoint, object body)
     {
-        SetAuthHeader(); SetLangHeader();
+        await SetAuthHeaderAsync(); SetLangHeader();
         var json    = JsonSerializer.Serialize(body);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync(endpoint, content);
@@ -63,7 +63,7 @@ public class ApiService
 
     public async Task<T?> PutAsync<T>(string endpoint)
     {
-        SetAuthHeader(); SetLangHeader();
+        await SetAuthHeaderAsync(); SetLangHeader();
         var response = await _client.PutAsync(endpoint, null);
         if (!response.IsSuccessStatusCode) return default;
         var json = await response.Content.ReadAsStringAsync();
