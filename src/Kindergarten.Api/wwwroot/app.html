@@ -422,16 +422,18 @@ async function api(path, method='GET', body=null) {
 }
 
 // Login
-document.getElementById('loginBtn').addEventListener('click', doLogin);
-document.getElementById('lAr').addEventListener('click', function(){ setLang('ar'); });
-document.getElementById('lEn').addEventListener('click', function(){ setLang('en'); });
-document.getElementById('aAr').addEventListener('click', function(){ setLang('ar'); });
-document.getElementById('aEn').addEventListener('click', function(){ setLang('en'); });
-document.getElementById('pAr') && document.getElementById('pAr').addEventListener('click', function(){ setLang('ar'); });
-document.getElementById('pEn') && document.getElementById('pEn').addEventListener('click', function(){ setLang('en'); });
-document.getElementById('btnCI').addEventListener('click', doCheckIn);
-document.getElementById('btnCO').addEventListener('click', doCheckOut);
-document.getElementById('inPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('lAr').addEventListener('click', function(){ setLang('ar'); });
+  document.getElementById('lEn').addEventListener('click', function(){ setLang('en'); });
+  document.getElementById('aAr').addEventListener('click', function(){ setLang('ar'); });
+  document.getElementById('aEn').addEventListener('click', function(){ setLang('en'); });
+  document.getElementById('btnCI').addEventListener('click', doCheckIn);
+  document.getElementById('btnCO').addEventListener('click', doCheckOut);
+  document.getElementById('inPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+  setLang(lang);
+  if(token){ role=localStorage.getItem('kms_role')||''; connectSignalR(); initApp(); }
+});
 
 async function doLogin() {
   const email = document.getElementById('inEmail').value.trim();
@@ -773,9 +775,7 @@ function startSignalR() {
     .catch(e => console.log('SignalR error:', e.message));
 }
 
-// Init
-setLang(lang);
-if(token){ role=localStorage.getItem('kms_role')||''; connectSignalR(); initApp(); }
+
 </script>
 </body>
 </html>
