@@ -2,8 +2,9 @@ namespace Kindergarten.Core.DTOs;
 
 public class CreateTripDto
 {
-    public string DriverId  { get; set; } = string.Empty;
-    public string Direction { get; set; } = string.Empty; // ToKindergarten, ToHome
+    public string   DriverId  { get; set; } = string.Empty;
+    public string   Direction { get; set; } = string.Empty; // ToKindergarten, ToHome
+    public DateTime Date      { get; set; } = DateTime.UtcNow;
     public List<int> ChildIds { get; set; } = new();
 }
 

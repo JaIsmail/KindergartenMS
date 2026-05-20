@@ -17,7 +17,7 @@ public class TripService : ITripService
         {
             DriverId  = dto.DriverId,
             Direction = dto.Direction,
-            Date      = DateTime.UtcNow,
+            Date      = dto.Date == default ? DateTime.UtcNow : dto.Date,
             Status    = "Created"
         };
         _db.Trips.Add(trip);

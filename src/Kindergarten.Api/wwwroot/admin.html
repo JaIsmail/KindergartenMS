@@ -244,7 +244,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   <div class="page" id="page-trips">
     <div class="section-header">
       <div><h3 id="h-all-trips">جميع الرحلات</h3><p id="trips-count">جاري التحميل...</p></div>
+      <div style="display:flex;gap:0.5rem">
       <button class="btn btn-primary btn-sm" id="btn-refresh-trips" onclick="loadTrips()">🔄 تحديث</button>
+      <button class="btn btn-primary btn-sm" onclick="openCreateTripModal()">➕ <span data-ar="إنشاء رحلة" data-en="Create Trip">إنشاء رحلة</span></button>
+    </div>
     </div>
     <div id="trips-list"><div class="loading"><div class="spinner"></div></div></div>
   </div>
@@ -311,6 +314,41 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="table-card">
       <div class="table-head"><h3 id="h-log">سجل الأحداث</h3></div>
       <div id="signalr-log" style="padding:1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;height:350px;overflow-y:auto;color:var(--text2);direction:ltr;text-align:left;"><div style="color:var(--text3);text-align:center;padding:2rem;">Click Connect...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE TRIP MODAL -->
+<div class="modal-overlay" id="createTripModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="createTripTitle">إنشاء رحلة جديدة</h3>
+      <button class="modal-close" onclick="closeModal('createTripModal')">✕</button>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label id="lbl-trip-date">تاريخ الرحلة</label>
+        <input type="date" id="tripDate">
+      </div>
+      <div class="modal-field">
+        <label id="lbl-trip-dir">الاتجاه</label>
+        <select id="tripDirection">
+          <option value="ToKindergarten" id="opt-to-school">إلى الروضة</option>
+          <option value="FromKindergarten" id="opt-to-home">إلى المنزل</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label id="lbl-trip-driver">السائق</label>
+      <select id="tripDriver"></select>
+    </div>
+    <div class="modal-field">
+      <label id="lbl-trip-children">الأطفال</label>
+      <div id="tripChildrenList" style="max-height:200px;overflow-y:auto;border:1.5px solid var(--border);border-radius:8px;padding:0.5rem"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('createTripModal')" id="btnCancelTrip">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveCreateTrip()" id="btnSaveTrip">🚌 إنشاء الرحلة</button>
     </div>
   </div>
 </div>
@@ -586,6 +624,75 @@ async function createChild(){
   const result=await api('/api/children','POST',{name,birthDate:dob,class:cls,healthNotes:health});
   if(result?.id){showToast('✅ '+t('succ.child'),'success');document.getElementById('childName').value='';document.getElementById('childDob').value='';loadChildren();}
   else showToast(t('err.failed'),'error');
+}
+
+async function openCreateTripModal(){
+  const ar = currentLang==='ar';
+  document.getElementById('createTripTitle').textContent = ar?'إنشاء رحلة جديدة':'Create New Trip';
+  document.getElementById('lbl-trip-date').textContent = ar?'تاريخ الرحلة':'Trip Date';
+  document.getElementById('lbl-trip-dir').textContent = ar?'الاتجاه':'Direction';
+  document.getElementById('lbl-trip-driver').textContent = ar?'السائق':'Driver';
+  document.getElementById('lbl-trip-children').textContent = ar?'الأطفال':'Children';
+  document.getElementById('opt-to-school').textContent = ar?'إلى الروضة':'To Kindergarten';
+  document.getElementById('opt-to-home').textContent = ar?'إلى المنزل':'To Home';
+  document.getElementById('btnCancelTrip').textContent = ar?'إلغاء':'Cancel';
+  document.getElementById('btnSaveTrip').textContent = ar?'🚌 إنشاء الرحلة':'🚌 Create Trip';
+
+  // Set today as default date
+  document.getElementById('tripDate').value = new Date().toISOString().split('T')[0];
+
+  // Load drivers
+  const users = await api('/api/users');
+  const drivers = users ? users.filter(u=>u.roleType==='Driver') : [];
+  document.getElementById('tripDriver').innerHTML =
+    '<option value="">-- '+(ar?'اختر السائق':'Select Driver')+' --</option>'+
+    drivers.map(d=>'<option value="'+d.id+'">'+d.fullName+'</option>').join('');
+
+  // Load children
+  const children = await api('/api/children');
+  const childrenList = document.getElementById('tripChildrenList');
+  if(!children||children.length===0){
+    childrenList.innerHTML='<div style="color:var(--text3);font-size:0.82rem;padding:0.5rem">'+(ar?'لا يوجد أطفال':'No children found')+'</div>';
+  } else {
+    childrenList.innerHTML = children.map(c=>
+      '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;cursor:pointer;font-size:0.85rem">'+
+      '<input type="checkbox" value="'+c.id+'" style="width:16px;height:16px;accent-color:var(--primary)"> '+
+      c.name+' <span style="color:var(--text3);font-size:0.75rem">('+c.class+')</span></label>'
+    ).join('');
+  }
+
+  openModal('createTripModal');
+}
+
+async function saveCreateTrip(){
+  const ar = currentLang==='ar';
+  const date = document.getElementById('tripDate').value;
+  const direction = document.getElementById('tripDirection').value;
+  const driverId = document.getElementById('tripDriver').value;
+  const checkedChildren = [...document.querySelectorAll('#tripChildrenList input:checked')].map(c=>parseInt(c.value));
+
+  if(!date||!driverId){showToast(ar?'يرجى تعبئة جميع الحقول':'Please fill all fields','error');return;}
+  if(checkedChildren.length===0){showToast(ar?'يرجى اختيار طفل واحد على الأقل':'Please select at least one child','error');return;}
+
+  const btn = document.getElementById('btnSaveTrip');
+  btn.disabled = true;
+
+  const result = await api('/api/trips','POST',{
+    date: new Date(date).toISOString(),
+    direction,
+    driverId,
+    childIds: checkedChildren
+  });
+
+  if(result?.id){
+    showToast('✅ '+(ar?'تم إنشاء الرحلة بنجاح':'Trip created successfully'),'success');
+    closeModal('createTripModal');
+    loadTrips();
+  } else {
+    showToast(result?.message||(ar?'فشل إنشاء الرحلة':'Failed to create trip'),'error');
+  }
+
+  btn.disabled = false;
 }
 
 async function loadTrips(){
