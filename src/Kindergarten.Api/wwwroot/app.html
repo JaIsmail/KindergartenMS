@@ -220,6 +220,7 @@ body{font-family:Arial,sans-serif;background:var(--bg);color:var(--t);min-height
         </div>
       </div>
       <button class="btn btn-out" id="btnOut">🚪 تسجيل الخروج</button>
+    <button class="btn" style="background:#3b82f6;color:white;margin-top:0.5rem" onclick="testFCM()">🔔 تفعيل الإشعارات</button>
     </div>
   </div>
 
@@ -610,6 +611,18 @@ function connectSignalR() {
 }
 
 // Clock
+function testFCM() {
+  console.log('Testing FCM...');
+  console.log('Firebase available:', typeof firebase !== "undefined");
+  console.log('Notification support:', "Notification" in window);
+  console.log('SW support:', "serviceWorker" in navigator);
+  if(!("Notification" in window)) { toast("Notifications not supported", "err"); return; }
+  console.log('Current permission:', Notification.permission);
+  if(Notification.permission === "denied") { toast("Notifications blocked - check browser settings", "err"); return; }
+  initFCM();
+  toast("Requesting notification permission...", "");
+}
+
 function initFCM() {
   if(typeof firebase === 'undefined') return;
   try {
