@@ -403,14 +403,29 @@ function setLang(l) {
   document.getElementById('lEmail').textContent = ar ? 'البريد الإلكتروني' : 'Email Address';
   document.getElementById('lPass').textContent = ar ? 'كلمة المرور' : 'Password';
   document.getElementById('loginBtn').textContent = t('loginBtn');
-  const lbCI = document.getElementById('lbCI');
-  const lbCO = document.getElementById('lbCO');
-  if(lbCI) lbCI.textContent = lang==='ar'?'وقت الحضور':'Check-in Time';
-  if(lbCO) lbCO.textContent = lang==='ar'?'وقت الانصراف':'Check-out Time';
-  const btnCI = document.getElementById('btnCI');
-  const btnCO = document.getElementById('btnCO');
-  if(btnCI) btnCI.textContent = lang==='ar'?'✅ تسجيل الحضور':'✅ Check In';
-  if(btnCO) btnCO.textContent = lang==='ar'?'🔴 تسجيل الانصراف':'🔴 Check Out';
+  // Update all translatable elements
+  const updates = {
+    'lbCI':   {ar:'وقت الحضور',      en:'Check-in Time'},
+    'lbCO':   {ar:'وقت الانصراف',    en:'Check-out Time'},
+    'btnCI':  {ar:'✅ تسجيل الحضور', en:'✅ Check In'},
+    'btnCO':  {ar:'🔴 تسجيل الانصراف',en:'🔴 Check Out'},
+    'lDesc':  {ar:'سجّل دخولك للمتابعة',en:'Sign in to continue'},
+    'lEmail': {ar:'البريد الإلكتروني',en:'Email Address'},
+    'lPass':  {ar:'كلمة المرور',      en:'Password'},
+    'lSub':   {ar:'نظام إدارة الروضة',en:'Kindergarten Management System'},
+    'lTitle': {ar:'مرحباً بعودتك',    en:'Welcome back'},
+    'pTripsTitle': {ar:'رحلات أطفالي',en:"Childrens Trips"},
+    'todayDate': null // skip - dynamic
+  };
+  Object.entries(updates).forEach(([id,v])=>{
+    if(!v) return;
+    const el=document.getElementById(id);
+    if(el) el.textContent = v[l];
+  });
+  // Update profile lang buttons
+  const pAr=document.getElementById('pAr');
+  const pEn=document.getElementById('pEn');
+  if(pAr){pAr.className='lang-btn'+(l==='ar'?' active':'');pEn.className='lang-btn'+(l==='en'?' active':'');}
   // Rebuild nav
   buildNav();
   if(page) showPage(page);
@@ -516,6 +531,16 @@ function buildNav() {
   if(role==='Driver') tabs=[{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
   else if(role==='Employee') tabs=[{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
   else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subscriptions')},{id:'profile',i:'👤',l:t('profile')}];
+  // Update topbar title
+  const titles = {home:t('home'),subs:t('subscriptions')||t('subs'),
+    ptrips:t('trips'),dtrips:t('trips'),att:t('att'),profile:t('profile')};
+  const tb2 = document.getElementById('tbTitle');
+  if(tb2 && page) tb2.textContent = titles[page]||'KMS';
+  // Update topbar title
+  const titles = {home:t('home'),subs:t('subscriptions')||t('subs'),
+    ptrips:t('trips'),dtrips:t('trips'),att:t('att'),profile:t('profile')};
+  const tb2 = document.getElementById('tbTitle');
+  if(tb2 && page) tb2.textContent = titles[page]||'KMS';
   nav.innerHTML = tabs.map(tb =>
     '<button class="tab'+(page===tb.id?' active':'')+'" data-page="'+tb.id+'"><span class="icon">'+tb.i+'</span><span>'+tb.l+'</span></button>'
   ).join('');
@@ -636,6 +661,8 @@ async function endTrip(id){ if(!confirm(t('confirmEnd')))return; const r=await a
 
 async function loadAtt() {
   const records = await api('/api/employees/my-attendance');
+  console.log('Attendance records:', records);
+  console.log('Attendance records:', records);
   const div = document.getElementById('attList');
   if(!records||!records.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
   const today = records.find(r=>new Date(r.date).toDateString()===new Date().toDateString());
@@ -650,7 +677,7 @@ async function loadAtt() {
 async function doCheckIn(){
   document.getElementById('btnCI').disabled=true;
   try {
-    const r=await api('/api/employees/checkin','POST',{biometricVerified:true});
+    const r=await api('/api/employees/checkin','POST',{biometricVerified:true,notes:''});
     if(r?.checkInTime){
       document.getElementById('ciTime').textContent=new Date(r.checkInTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
       toast(t('checkedIn'),'ok');
