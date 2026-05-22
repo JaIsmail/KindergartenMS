@@ -446,16 +446,21 @@ async function api(path, method='GET', body=null) {
 
 // Login
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('loginBtn').addEventListener('click', doLogin);
-  document.getElementById('lAr').addEventListener('click', function(){ setLang('ar'); });
-  document.getElementById('lEn').addEventListener('click', function(){ setLang('en'); });
-  document.getElementById('aAr').addEventListener('click', function(){ setLang('ar'); });
-  document.getElementById('aEn').addEventListener('click', function(){ setLang('en'); });
-  document.getElementById('btnCI').addEventListener('click', doCheckIn);
-  document.getElementById('btnCO').addEventListener('click', doCheckOut);
-  document.getElementById('inPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-  setLang(lang);
-  if(token){ role=localStorage.getItem('kms_role')||''; connectSignalR(); initApp(); }
+  try {
+    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('lAr').addEventListener('click', function(){ setLang('ar'); });
+    document.getElementById('lEn').addEventListener('click', function(){ setLang('en'); });
+    document.getElementById('aAr').addEventListener('click', function(){ setLang('ar'); });
+    document.getElementById('aEn').addEventListener('click', function(){ setLang('en'); });
+    document.getElementById('btnCI').addEventListener('click', doCheckIn);
+    document.getElementById('btnCO').addEventListener('click', doCheckOut);
+    document.getElementById('inPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+    setLang(lang);
+    if(token){ role=localStorage.getItem('kms_role')||''; connectSignalR(); initApp(); }
+  } catch(e) {
+    console.error('Init error:', e);
+    document.body.innerHTML += '<div style="position:fixed;top:0;left:0;right:0;background:red;color:white;padding:1rem;z-index:9999">Error: '+e.message+'</div>';
+  }
 });
 
 async function doLogin() {
