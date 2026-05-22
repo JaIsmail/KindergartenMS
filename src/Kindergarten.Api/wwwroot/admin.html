@@ -303,6 +303,22 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="table-card"><div id="users-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
+  <!-- Attendance Page -->
+  <div class="page" id="page-attendance">
+    <div class="page-header">
+      <div>
+        <h3 id="h-attendance">تقرير الحضور</h3>
+        <p id="att-subtitle">حضور اليوم</p>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+        <input type="date" id="attDate" style="padding:0.4rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none">
+        <button class="btn btn-primary btn-sm" onclick="loadAttendance()">🔍 بحث</button>
+        <button class="btn btn-primary btn-sm" onclick="loadTodayAttendance()">📅 اليوم</button>
+      </div>
+    </div>
+    <div class="table-card"><div id="attendance-table"><div class="loading"><div class="spinner"></div></div></div></div>
+  </div>
+
   <div class="page" id="page-signalr">
     <div class="form-card">
       <h3 id="h-signalr">📡 مراقب الوقت الفعلي</h3>
