@@ -18,6 +18,40 @@ public class DevicesController : ControllerBase
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
+    // Test notification - Admin only
+    [HttpPost("test-notification")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> TestNotification(
+        [FromServices] Kindergarten.Core.Interfaces.INotificationService notify)
+    {
+        var devices = await _db.UserDevices.ToListAsync();
+        if(!devices.Any()) return Ok(new { message = "No devices registered" });
+
+        var results = await Task.WhenAll(devices.Select(d =>
+            notify.SendToDeviceAsync(new Kindergarten.Core.DTOs.SendNotificationDto
+            {
+                DeviceToken = d.DeviceToken,
+                TitleAr     = "اختبار الإشعارات 🔔",
+                TitleEn     = "Test Notification 🔔",
+                BodyAr      = "تم إرسال الإشعار بنجاح من KMS",
+                BodyEn      = "Notification sent successfully from KMS",
+                Data        = new() { ["type"] = "test" }
+            })
+        ));
+
+        return Ok(new { sent = results.Count(r => r), total = devices.Count });
+    }
+// List registered devices - Admin only
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetDevices()
+    {
+        var devices = await _db.UserDevices
+            .Select(d => new { d.UserId, d.Platform, d.UpdatedAt, token = d.DeviceToken.Substring(0, 20)+"..." })
+            .ToListAsync();
+        return Ok(devices);
+    }
+
     // Register or update device token
     [HttpPost("register")]
     public async Task<IActionResult> RegisterDevice([FromBody] RegisterDeviceDto dto)

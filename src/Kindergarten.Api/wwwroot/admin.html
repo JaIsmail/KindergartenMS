@@ -190,6 +190,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="nav-label" data-ar="النظام" data-en="System">النظام</div>
     <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
     <button class="nav-item" onclick="showPage('attendance')"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
+    <button class="nav-item" onclick="showPage('notifications')"><span class="icon">🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></button>
     <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
   </div>
   <div class="sidebar-footer"><div class="api-status"><div class="api-dot" id="apiDot"></div><span id="apiStatusText">جاري الاتصال...</span></div></div>
@@ -317,6 +318,19 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       </div>
     </div>
     <div class="table-card"><div id="attendance-table"><div class="loading"><div class="spinner"></div></div></div></div>
+  </div>
+
+  <div class="page" id="page-notifications">
+    <div class="page-header">
+      <div><h3>الإشعارات</h3><p>إدارة إشعارات FCM</p></div>
+    </div>
+    <div class="form-card">
+      <h4 style="margin-bottom:1rem">📱 الأجهزة المسجلة</h4>
+      <div id="devices-list"><div class="loading"><div class="spinner"></div></div></div>
+      <div style="margin-top:1rem">
+        <button class="btn btn-primary" onclick="sendTestNotification()">🔔 إرسال إشعار تجريبي لجميع الأجهزة</button>
+      </div>
+    </div>
   </div>
 
   <div class="page" id="page-signalr">
@@ -589,7 +603,7 @@ function showPage(page){
   document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
-  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance};
+  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance,notifications:loadDevices};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -710,6 +724,24 @@ async function saveCreateTrip(){
   }
 
   btn.disabled = false;
+}
+
+async function loadDevices(){
+  const data = await api('/api/devices');
+  const div = document.getElementById('devices-list');
+  if(!data||!data.length){
+    div.innerHTML = '<div class="empty"><div class="emoji">📱</div><h4>لا توجد أجهزة مسجلة</h4></div>';
+    return;
+  }
+  div.innerHTML = '<table><thead><tr><th>المستخدم</th><th>المنصة</th><th>آخر تحديث</th></tr></thead><tbody>'+
+    data.map(d=>'<tr><td>'+d.userId.substring(0,8)+'...</td><td>'+d.platform+'</td><td>'+new Date(d.updatedAt).toLocaleDateString()+'</td></tr>').join('')+
+  '</tbody></table>';
+}
+
+async function sendTestNotification(){
+  const result = await api('/api/devices/test-notification','POST',{});
+  if(result) showToast('✅ تم إرسال الإشعار إلى '+result.sent+' جهاز من أصل '+result.total,'success');
+  else showToast('فشل إرسال الإشعار','error');
 }
 
 async function loadTodayAttendance(){
