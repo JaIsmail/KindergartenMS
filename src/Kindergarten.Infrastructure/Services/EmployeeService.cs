@@ -111,10 +111,10 @@ public class EmployeeService : IEmployeeService
 
     public async Task<IEnumerable<AttendanceResponseDto>> GetAllAttendanceAsync(DateTime? date = null)
     {
-        var targetDate = date?.Date ?? DateTime.UtcNow.Date;
         return await _db.Attendance
             .Include(a => a.Employee).ThenInclude(e => e.User)
-            .Where(a => a.Date == targetDate)
+            .Where(a => date == null || a.Date == date.Value.Date)
+            .OrderByDescending(a => a.Date)
             .Select(a => new AttendanceResponseDto
             {
                 Id           = a.Id,
