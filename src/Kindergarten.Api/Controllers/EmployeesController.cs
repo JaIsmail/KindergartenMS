@@ -40,6 +40,14 @@ public class EmployeesController : ControllerBase
         return Ok(employee);
     }
 
+    [HttpGet("attendance/all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllAttendance()
+    {
+        var attendance = await _employeeService.GetAllAttendanceAsync(null);
+        return Ok(attendance);
+    }
+
     [HttpGet("attendance/today")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetTodayAttendance()
