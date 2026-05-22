@@ -718,12 +718,13 @@ async function loadTodayAttendance(){
 }
 
 async function loadAttendance(){
-  const date = document.getElementById('attDate').value || new Date().toISOString().split('T')[0];
+  const date = document.getElementById('attDate').value;
   const div = document.getElementById('attendance-table');
   div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   const ar = currentLang === 'ar';
 
-  const data = await api('/api/employees/attendance/date/'+date);
+  const endpoint = date ? '/api/employees/attendance/date/'+date : '/api/employees/attendance/all';
+  const data = await api(endpoint);
   document.getElementById('att-subtitle').textContent = ar ? 'حضور يوم '+date : 'Attendance for '+date;
 
   if(!data||data.length===0){
