@@ -594,7 +594,7 @@ function toast(msg, type) {
 function connectSignalR() {
   if(typeof signalR === 'undefined') return;
   signalrConn = new signalR.HubConnectionBuilder()
-    .withUrl(API+'/hubs/trip', {accessTokenFactory: function() { return token; }})
+    .withUrl(API+'/hubs/trip', {accessTokenFactory: function(){ return localStorage.getItem('kms_token')||''; }, transport: signalR.HttpTransportType.LongPolling})
     .withAutomaticReconnect()
     .build();
   signalrConn.on('LocationUpdated', function(tripId, lat, lng) {
