@@ -610,6 +610,44 @@ function connectSignalR() {
 }
 
 // Clock
+function initFCM() {
+  if(typeof firebase === 'undefined') return;
+  try {
+    if(!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey: "AIzaSyD9cZOHciYOa07oI3xWa6PyJc5K7Uw_quo",
+        authDomain: "kms-app-6af5c.firebaseapp.com",
+        projectId: "kms-app-6af5c",
+        storageBucket: "kms-app-6af5c.firebasestorage.app",
+        messagingSenderId: "511916590161",
+        appId: "1:511916590161:web:dcc1ee470a55d931306470"
+      });
+    }
+    var messaging = firebase.messaging();
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js').then(function(swReg) {
+        return Notification.requestPermission().then(function(permission) {
+          if(permission !== 'granted') return;
+          return messaging.getToken({
+            vapidKey: 'BIBE9LLfTPLfJs3VP0U7vj6Qhq4lPwmIOVZET5VnJpFn1SzpZP8AgA-mfZR3n-i94y23WcirD46zKaWy0Ei21es',
+            serviceWorkerRegistration: swReg
+          });
+        });
+      }).then(function(fcmToken) {
+        if(fcmToken) {
+          console.log('FCM ready');
+          apiCall('/api/devices/register','POST',{deviceToken:fcmToken,platform:'Web'});
+        }
+      }).catch(function(e){ console.log('FCM error:',e.message); });
+      messaging.onMessage(function(payload) {
+        var t = payload.notification ? payload.notification.title : 'KMS';
+        var b = payload.notification ? payload.notification.body  : '';
+        toast(t+': '+b,'ok');
+      });
+    }
+  } catch(e){ console.log('FCM init error:',e.message); }
+}
+
 setInterval(function() {
   var n = new Date();
   var c = document.getElementById('clock');
