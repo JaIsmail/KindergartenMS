@@ -423,9 +423,10 @@ function setLang(l) {
     if(el) el.textContent = v[l];
   });
   // Update profile lang buttons
-  const pAr=document.getElementById('pAr');
-  const pEn=document.getElementById('pEn');
-  if(pAr){pAr.className='lang-btn'+(l==='ar'?' active':'');pEn.className='lang-btn'+(l==='en'?' active':'');}
+  if(document.getElementById('pAr')){
+    document.getElementById('pAr').className='lang-btn'+(l==='ar'?' active':'');
+    document.getElementById('pEn').className='lang-btn'+(l==='en'?' active':'');
+  }
   // Rebuild nav
   buildNav();
   if(page) showPage(page);
