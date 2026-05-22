@@ -14,7 +14,7 @@
   <ScrollView>
     <VerticalStackLayout Padding="16" Spacing="12">
  <!-- Welcome Card -->
-      <Border BackgroundColor="#f97316" StrokeCornerRadius="16" Stroke="Transparent" Padding="20">
+      <Border BackgroundColor="#f97316" StrokeShape="RoundRectangle 16" Stroke="Transparent" Padding="20">
         <VerticalStackLayout Spacing="4">
           <Label x:Name="WelcomeLabel" Text="مرحباً" FontSize="22"
                  FontAttributes="Bold" TextColor="White"/>
