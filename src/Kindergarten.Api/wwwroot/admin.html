@@ -713,7 +713,7 @@ async function saveCreateTrip(){
 }
 
 async function loadTodayAttendance(){
-  document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('attDate').value = '';
   await loadAttendance();
 }
 
