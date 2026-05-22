@@ -189,6 +189,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   <div class="nav-section">
     <div class="nav-label" data-ar="النظام" data-en="System">النظام</div>
     <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
+    <button class="nav-item" onclick="showPage('attendance')"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
     <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
   </div>
   <div class="sidebar-footer"><div class="api-status"><div class="api-dot" id="apiDot"></div><span id="apiStatusText">جاري الاتصال...</span></div></div>
@@ -428,8 +429,8 @@ let signalrConnection=null;
 
 const T={
 ar:{
-  pages:{dashboard:'لوحة التحكم',children:'الأطفال',trips:'الرحلات',subscriptions:'الاشتراكات',payments:'المدفوعات',users:'المستخدمون',signalr:'الوقت الفعلي'},
-  subs:{dashboard:'نظرة عامة على النظام',children:'إدارة الأطفال المسجلين',trips:'عرض وإدارة الرحلات',subscriptions:'إدارة اشتراكات النقل',payments:'تتبع سجلات الدفع',users:'إدارة مستخدمي النظام',signalr:'اتصال SignalR المباشر'},
+  pages:{dashboard:'لوحة التحكم',children:'الأطفال',trips:'الرحلات',subscriptions:'الاشتراكات',payments:'المدفوعات',users:'المستخدمون',attendance:'الحضور',signalr:'الوقت الفعلي'},
+  subs:{dashboard:'نظرة عامة على النظام',children:'إدارة الأطفال المسجلين',trips:'عرض وإدارة الرحلات',subscriptions:'إدارة اشتراكات النقل',payments:'تتبع سجلات الدفع',users:'إدارة مستخدمي النظام',attendance:'تقرير حضور الموظفين',signalr:'اتصال SignalR المباشر'},
   apiLive:'متصل',apiOffline:'غير متصل',loading:'جاري التحميل...',noData:'لا توجد بيانات',
   refresh:'🔄 تحديث',addChild:'+ إضافة طفل',logout:'تسجيل الخروج',
   loginTitle:'مرحباً بعودتك',loginSub:'سجّل دخولك إلى لوحة الإدارة',
@@ -454,8 +455,8 @@ ar:{
     statChildren:'إجمالي الأطفال',statTrips:'إجمالي الرحلات',statSubs:'الاشتراكات',statUsers:'المستخدمون'}
 },
 en:{
-  pages:{dashboard:'Dashboard',children:'Children',trips:'Trips',subscriptions:'Subscriptions',payments:'Payments',users:'Users',signalr:'Real-Time'},
-  subs:{dashboard:'System overview',children:'Manage registered children',trips:'View and manage trips',subscriptions:'Manage subscriptions',payments:'Track payment records',users:'Manage system users',signalr:'Live SignalR connection'},
+  pages:{dashboard:'Dashboard',children:'Children',trips:'Trips',subscriptions:'Subscriptions',payments:'Payments',users:'Users',attendance:'Attendance',signalr:'Real-Time'},
+  subs:{dashboard:'System overview',children:'Manage registered children',trips:'View and manage trips',subscriptions:'Manage subscriptions',payments:'Track payment records',users:'Manage system users',attendance:'Employee attendance report',signalr:'Live SignalR connection'},
   apiLive:'Live',apiOffline:'Offline',loading:'Loading...',noData:'No data found',
   refresh:'🔄 Refresh',addChild:'+ Add Child',logout:'Logout',
   loginTitle:'Welcome back',loginSub:'Sign in to your admin dashboard',
@@ -572,7 +573,7 @@ function showPage(page){
   document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
-  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers};
+  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadTodayAttendance};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -693,6 +694,61 @@ async function saveCreateTrip(){
   }
 
   btn.disabled = false;
+}
+
+async function loadTodayAttendance(){
+  document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+  await loadAttendance();
+}
+
+async function loadAttendance(){
+  const date = document.getElementById('attDate').value || new Date().toISOString().split('T')[0];
+  const div = document.getElementById('attendance-table');
+  div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const ar = currentLang === 'ar';
+
+  const data = await api('/api/employees/attendance/date/'+date);
+  document.getElementById('att-subtitle').textContent = ar ? 'حضور يوم '+date : 'Attendance for '+date;
+
+  if(!data||data.length===0){
+    div.innerHTML = '<div class="empty"><div class="emoji">⏰</div><h4>'+(ar?'لا يوجد سجلات حضور لهذا اليوم':'No attendance records for this date')+'</h4></div>';
+    return;
+  }
+
+  const present = data.filter(r=>r.status==='Present').length;
+  const late    = data.filter(r=>r.status==='Late').length;
+  const absent  = data.filter(r=>r.status==='Absent').length;
+
+  div.innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;margin-bottom:1rem">'+
+      '<div style="background:#dcfce7;border-radius:12px;padding:1rem;text-align:center"><div style="font-size:1.5rem;font-weight:900;color:#16a34a">'+present+'</div><div style="font-size:0.78rem;color:#16a34a;font-weight:600">'+(ar?'حاضر':'Present')+'</div></div>'+
+      '<div style="background:#fff7ed;border-radius:12px;padding:1rem;text-align:center"><div style="font-size:1.5rem;font-weight:900;color:#ea580c">'+late+'</div><div style="font-size:0.78rem;color:#ea580c;font-weight:600">'+(ar?'متأخر':'Late')+'</div></div>'+
+      '<div style="background:#fee2e2;border-radius:12px;padding:1rem;text-align:center"><div style="font-size:1.5rem;font-weight:900;color:#dc2626">'+absent+'</div><div style="font-size:0.78rem;color:#dc2626;font-weight:600">'+(ar?'غائب':'Absent')+'</div></div>'+
+    '</div>'+
+    '<table><thead><tr>'+
+      '<th>'+(ar?'الموظف':'Employee')+'</th>'+
+      '<th>'+(ar?'وقت الحضور':'Check-in')+'</th>'+
+      '<th>'+(ar?'وقت الانصراف':'Check-out')+'</th>'+
+      '<th>'+(ar?'ساعات العمل':'Working Hours')+'</th>'+
+      '<th>'+(ar?'الحالة':'Status')+'</th>'+
+    '</tr></thead><tbody>'+
+    data.map(r=>
+      '<tr>'+
+        '<td><strong>'+(r.employeeName||'—')+'</strong></td>'+
+        '<td>'+(r.checkInTime?new Date(r.checkInTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>'+
+        '<td>'+(r.checkOutTime?new Date(r.checkOutTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>'+
+        '<td>'+(r.workingHours||'—')+'</td>'+
+        '<td>'+statusBadge(r.status)+'</td>'+
+      '</tr>'
+    ).join('')+
+    '</tbody></table>';
+}
+
+function statusBadge(s){
+  const m={Present:'badge-green',Late:'badge-orange',Absent:'badge-red',Created:'badge-gray'};
+  const ar = currentLang==='ar';
+  const labels={Present:ar?'حاضر':'Present',Late:ar?'متأخر':'Late',Absent:ar?'غائب':'Absent'};
+  return '<span class="badge '+(m[s]||'badge-gray')+'">'+(labels[s]||s)+'</span>';
 }
 
 async function loadTrips(){
