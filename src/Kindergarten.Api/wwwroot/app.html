@@ -2,484 +2,357 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#f97316">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KMS">
 <title>KMS</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: Arial, sans-serif; background: #f0f4f8; }
-.hidden { display: none !important; }
-#loginScreen {
-  min-height: 100vh;
-  background: #0f172a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-.card {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 360px;
-}
-.card h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-.card p { color: #64748b; margin-bottom: 1.5rem; font-size: 0.9rem; }
-label { display: block; font-size: 0.8rem; font-weight: bold; color: #475569; margin-bottom: 0.3rem; }
-input {
-  width: 100%;
-  padding: 0.7rem;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  margin-bottom: 1rem;
-}
-input:focus { outline: none; border-color: #f97316; }
-#loginBtn {
-  width: 100%;
-  padding: 0.8rem;
-  background: #f97316;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-}
-#loginBtn:active { background: #ea580c; }
-#loginError {
-  background: #fef2f2;
-  color: #dc2626;
-  padding: 0.6rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  margin-top: 0.8rem;
-  text-align: center;
-}
-#appScreen {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-.topbar {
-  background: #f97316;
-  color: white;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.topbar h2 { font-size: 1rem; }
-.topbar button {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  color: white;
-  padding: 0.3rem 0.7rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-.content { flex: 1; padding: 1rem; padding-bottom: 5rem; }
-.page { display: none; }
-.page.active { display: block; }
-.bottom-nav {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: white;
-  border-top: 1px solid #e2e8f0;
-  display: flex;
-}
-.tab {
-  flex: 1;
-  padding: 0.6rem;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 0.65rem;
-  color: #94a3b8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
-}
-.tab .icon { font-size: 1.3rem; }
-.tab.active { color: #f97316; }
-.hero {
-  background: linear-gradient(135deg, #f97316, #ea580c);
-  color: white;
-  border-radius: 16px;
-  padding: 1.2rem;
-  margin-bottom: 1rem;
-}
-.hero h2 { font-size: 1.1rem; margin-bottom: 0.2rem; }
-.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
-.stat {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-.stat .num { font-size: 1.8rem; font-weight: 900; }
-.stat .lbl { font-size: 0.72rem; color: #64748b; }
-.sec-title { font-size: 1rem; font-weight: bold; margin-bottom: 0.8rem; color: #0f172a; }
-.list { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
-.item {
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-.item:last-child { border-bottom: none; }
-.item-icon { font-size: 1.5rem; }
-.item-info .t { font-size: 0.9rem; font-weight: bold; }
-.item-info .s { font-size: 0.75rem; color: #94a3b8; }
-.badge {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  border-radius: 50px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  margin-left: auto;
-}
-.bg { background: #dcfce7; color: #16a34a; }
-.bb { background: #dbeafe; color: #2563eb; }
-.bo { background: #fff7ed; color: #ea580c; }
-.trip-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 0.8rem;
-  border-left: 4px solid #f97316;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-.trip-card.inprogress { border-color: #3b82f6; }
-.trip-card.completed { border-color: #22c55e; }
-.trip-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.trip-head h4 { font-size: 0.9rem; font-weight: bold; }
-.btn {
-  width: 100%;
-  padding: 0.7rem;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 0.5rem;
-}
-.btn-p { background: #f97316; color: white; }
-.btn-g { background: #22c55e; color: white; }
-.btn-r { background: #ef4444; color: white; }
-.btn-out { background: #f1f5f9; color: #ef4444; margin-top: 1rem; }
-.att-card {
-  background: #0f172a;
-  border-radius: 16px;
-  padding: 1.5rem;
-  color: white;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-.att-time { font-size: 3rem; font-weight: 900; margin: 0.5rem 0; }
-.att-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
-.att-box { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 0.8rem; }
-.att-box .l { font-size: 0.7rem; opacity: 0.6; }
-.att-box .v { font-size: 1rem; font-weight: bold; margin-top: 0.3rem; }
-.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
-.profile-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-.avatar {
-  width: 70px; height: 70px;
-  background: #f97316;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.8rem; font-weight: 900; color: white;
-  margin: 0 auto 0.8rem;
-}
-.lang-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
-.lang-btn { padding: 0.6rem; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; }
-.lang-btn.active { background: #f97316; color: white; }
-.lang-btn:not(.active) { background: #f1f5f9; color: #475569; }
-.empty { text-align: center; padding: 3rem; color: #94a3b8; }
-.spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #e2e8f0; border-top-color: #f97316; border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-#toast {
-  position: fixed;
-  bottom: 5rem; left: 1rem; right: 1rem;
-  background: #0f172a; color: white;
-  padding: 0.8rem; border-radius: 12px;
-  text-align: center; font-size: 0.85rem;
-  transform: translateY(20px); opacity: 0;
-  transition: all 0.3s; z-index: 9999;
-}
-#toast.show { transform: translateY(0); opacity: 1; }
-#toast.ok { background: #16a34a; }
-#toast.err { background: #ef4444; }
-</style>
-<style>
-#mapContainer { height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; display: none; }
-.gps-active { background: #dcfce7; border: 1px solid #22c55e; border-radius: 12px; padding: 0.8rem; margin-bottom: 1rem; display: none; }
-.gps-active .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; margin-left: 0.4rem; }
-@keyframes pulse2 { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
-.gps-active .dot { animation: pulse2 1.5s infinite; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--p:#f97316;--p2:#ea580c;--dark:#0f172a;--bg:#f0f4f8;--w:#fff;--b:#e2e8f0;--t:#0f172a;--t2:#475569;--t3:#94a3b8;--g:#22c55e;--bl:#3b82f6;--r:#ef4444;}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;font-size:15px;}
+.hidden{display:none!important;}
+/* Login */
+#loginScreen{min-height:100vh;background:var(--dark);display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+.login-card{background:var(--w);border-radius:20px;padding:2rem 1.5rem;width:100%;max-width:360px;box-shadow:0 25px 60px rgba(0,0,0,0.3);}
+.login-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+.logo{display:flex;align-items:center;gap:0.7rem;}
+.logo-ic{width:44px;height:44px;background:var(--p);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.logo h1{font-size:1rem;font-weight:900;}
+.logo p{font-size:0.7rem;color:var(--t3);}
+.lang-sw{display:flex;background:#f1f5f9;border-radius:8px;overflow:hidden;}
+.lang-sw button{padding:0.3rem 0.7rem;border:none;background:transparent;cursor:pointer;font-weight:700;font-size:0.8rem;}
+.lang-sw button.on{background:var(--p);color:white;border-radius:7px;}
+.login-card h2{font-size:1.4rem;font-weight:900;margin-bottom:0.3rem;}
+.login-card p{color:var(--t3);font-size:0.85rem;margin-bottom:1.5rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.78rem;font-weight:700;color:var(--t2);margin-bottom:0.4rem;}
+.field input{width:100%;padding:0.7rem 1rem;border:1.5px solid var(--b);border-radius:10px;font-size:0.9rem;outline:none;direction:ltr;}
+.field input:focus{border-color:var(--p);}
+#loginBtn{width:100%;padding:0.8rem;background:var(--p);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:0.3rem;}
+#loginBtn:active{background:var(--p2);}
+#loginBtn:disabled{background:var(--t3);}
+.err-box{background:#fef2f2;color:var(--r);padding:0.6rem;border-radius:8px;font-size:0.82rem;margin-top:0.8rem;text-align:center;}
+/* App */
+#appScreen{min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:var(--p);color:white;padding:0.8rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar h2{font-size:1rem;font-weight:700;}
+.topbar-r{display:flex;align-items:center;gap:0.5rem;}
+.top-lang{display:flex;background:rgba(255,255,255,0.2);border-radius:7px;overflow:hidden;}
+.top-lang button{padding:0.2rem 0.5rem;border:none;background:transparent;color:rgba(255,255,255,0.7);cursor:pointer;font-weight:700;font-size:0.75rem;}
+.top-lang button.on{background:white;color:var(--p);border-radius:6px;}
+.top-btn{background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:0.9rem;}
+.content{flex:1;padding:1rem;padding-bottom:5rem;overflow-y:auto;}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--b);display:flex;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.08);}
+.tab{flex:1;padding:0.6rem 0.3rem;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0.15rem;}
+.tab .ic{font-size:1.3rem;}
+.tab .lb{font-size:0.62rem;font-weight:600;color:var(--t3);}
+.tab.on .lb{color:var(--p);}
+.page{display:none;}
+.page.on{display:block;}
+/* Cards */
+.hero{background:linear-gradient(135deg,var(--p),var(--p2));color:white;border-radius:16px;padding:1.2rem;margin-bottom:1rem;}
+.hero h2{font-size:1.1rem;font-weight:800;}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;}
+.stat{background:white;border-radius:12px;padding:0.9rem;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+.stat .n{font-size:1.6rem;font-weight:900;}
+.stat .l{font-size:0.7rem;color:var(--t3);}
+.stitle{font-size:0.95rem;font-weight:800;margin-bottom:0.7rem;color:var(--t);}
+.lcard{background:white;border-radius:12px;overflow:hidden;margin-bottom:0.8rem;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+.litem{padding:0.8rem 1rem;border-bottom:1px solid #f8fafc;display:flex;align-items:center;gap:0.7rem;}
+.litem:last-child{border-bottom:none;}
+.lic{font-size:1.2rem;flex-shrink:0;}
+.linf .t{font-size:0.85rem;font-weight:700;}
+.linf .s{font-size:0.72rem;color:var(--t3);margin-top:0.1rem;}
+.badge{display:inline-block;padding:0.15rem 0.45rem;border-radius:50px;font-size:0.68rem;font-weight:700;margin-left:auto;}
+.bg{background:#dcfce7;color:#16a34a;}.bb{background:#dbeafe;color:#2563eb;}.bo{background:#fff7ed;color:#ea580c;}.br{background:#fee2e2;color:#dc2626;}.bgr{background:#f1f5f9;color:#64748b;}
+.tcard{background:white;border-radius:12px;padding:0.9rem;margin-bottom:0.7rem;box-shadow:0 2px 6px rgba(0,0,0,0.06);border-right:3px solid var(--p);}
+.tcard.inprogress{border-color:var(--bl);}
+.tcard.completed{border-color:var(--g);}
+.thead{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;}
+.thead h4{font-size:0.85rem;font-weight:800;}
+.tmeta{font-size:0.72rem;color:var(--t2);margin-bottom:0.4rem;}
+.crow{display:flex;justify-content:space-between;background:var(--bg);border-radius:7px;padding:0.35rem 0.6rem;margin-bottom:0.25rem;font-size:0.75rem;}
+.btn{width:100%;padding:0.65rem;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.85rem;margin-top:0.4rem;}
+.btn-p{background:var(--p);color:white;}
+.btn-g{background:var(--g);color:white;}
+.btn-r{background:var(--r);color:white;}
+.btn-out{background:#f1f5f9;color:var(--r);border:1px solid #fecaca;margin-top:1rem;}
+.btn2{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.8rem;}
+.acard{background:var(--dark);border-radius:16px;padding:1.3rem;color:white;margin-bottom:0.8rem;text-align:center;}
+.atime{font-size:2.8rem;font-weight:900;margin:0.3rem 0;}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin:0.7rem 0;}
+.abox{background:rgba(255,255,255,0.1);border-radius:9px;padding:0.6rem;}
+.abox .al{font-size:0.68rem;opacity:0.6;}
+.abox .av{font-size:1rem;font-weight:800;margin-top:0.2rem;}
+.pcard{background:white;border-radius:14px;padding:1.2rem;text-align:center;margin-bottom:0.8rem;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+.av{width:60px;height:60px;background:var(--p);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:900;color:white;margin:0 auto 0.7rem;}
+.pname{font-size:1.05rem;font-weight:800;}
+.pemail{font-size:0.78rem;color:var(--t3);direction:ltr;}
+.lang-card{background:white;border-radius:12px;padding:1rem;margin-bottom:0.8rem;}
+.lang-card p{font-size:0.82rem;font-weight:700;color:var(--t2);margin-bottom:0.6rem;}
+.lang-btns{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
+.lang-btn{padding:0.6rem;border:none;border-radius:9px;font-weight:700;cursor:pointer;font-size:0.85rem;}
+.lang-btn.on{background:var(--p);color:white;}
+.lang-btn:not(.on){background:#f1f5f9;color:var(--t2);}
+#mapBox{height:260px;border-radius:12px;overflow:hidden;margin-bottom:0.8rem;border:1px solid var(--b);display:none;}
+.gps-bar{background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:0.6rem 0.9rem;margin-bottom:0.7rem;font-size:0.78rem;color:#16a34a;font-weight:600;display:none;}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--t3);}
+.empty .em{font-size:2.5rem;margin-bottom:0.6rem;}
+.spin{display:inline-block;width:24px;height:24px;border:3px solid var(--b);border-top-color:var(--p);border-radius:50%;animation:spin 0.7s linear infinite;}
+#toast{position:fixed;bottom:5rem;left:1rem;right:1rem;background:var(--dark);color:white;padding:0.8rem 1rem;border-radius:12px;text-align:center;font-size:0.82rem;font-weight:600;z-index:9999;opacity:0;transform:translateY(20px);transition:all 0.3s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.ok{background:#16a34a;}
+#toast.err{background:var(--r);}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginScreen">
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-      <div style="display:flex;align-items:center;gap:0.7rem">
-        <div style="width:44px;height:44px;background:#f97316;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem">🏫</div>
-        <div><div style="font-weight:900;font-size:1rem">KMS</div><div style="font-size:0.7rem;color:#94a3b8" id="lSub">نظام إدارة الروضة</div></div>
-      </div>
-      <div style="display:flex;background:#f1f5f9;border-radius:8px;overflow:hidden">
-        <button id="lAr" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:#f97316;color:white;font-size:0.8rem">AR</button>
-        <button id="lEn" style="padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:transparent;color:#475569;font-size:0.8rem">EN</button>
-      </div>
+<div class="login-card">
+  <div class="login-hdr">
+    <div class="logo">
+      <div class="logo-ic">🏫</div>
+      <div><h1>KMS</h1><p id="lSub">نظام إدارة الروضة</p></div>
     </div>
-    <h1 id="lTitle">مرحباً بعودتك</h1>
-    <p id="lDesc">سجّل دخولك للمتابعة</p>
-    <label id="lEmail">البريد الإلكتروني</label>
-    <input type="email" id="inEmail" placeholder="user@kms.com">
-    <label id="lPass">كلمة المرور</label>
-    <input type="password" id="inPass">
-    <button id="loginBtn">تسجيل الدخول</button>
-    <div id="loginError" class="hidden"></div>
+    <div class="lang-sw">
+      <button id="lAr" class="on">AR</button>
+      <button id="lEn">EN</button>
+    </div>
   </div>
+  <h2 id="lTitle">مرحباً بعودتك</h2>
+  <p id="lDesc">سجّل دخولك للمتابعة</p>
+  <div class="field"><label id="lEmail">البريد الإلكتروني</label><input type="email" id="inEmail" placeholder="user@kms.com"></div>
+  <div class="field"><label id="lPass">كلمة المرور</label><input type="password" id="inPass"></div>
+  <button id="loginBtn">تسجيل الدخول</button>
+  <div id="errBox" class="err-box hidden"></div>
+</div>
 </div>
 
+<!-- APP -->
 <div id="appScreen" class="hidden">
   <div class="topbar">
     <h2 id="tbTitle">KMS</h2>
-    <div style="display:flex;gap:0.5rem;align-items:center">
-      <div style="display:flex;background:rgba(255,255,255,0.2);border-radius:6px;overflow:hidden">
-        <button id="aAr" style="padding:0.2rem 0.5rem;border:none;background:#f97316;color:white;cursor:pointer;font-weight:bold;font-size:0.75rem">AR</button>
-        <button id="aEn" style="padding:0.2rem 0.5rem;border:none;background:transparent;color:rgba(255,255,255,0.7);cursor:pointer;font-weight:bold;font-size:0.75rem">EN</button>
+    <div class="topbar-r">
+      <div class="top-lang">
+        <button id="aAr" class="on">AR</button>
+        <button id="aEn">EN</button>
       </div>
-      <button onclick="doLogout()">🚪</button>
+      <button class="top-btn" id="btnLogout">🚪</button>
     </div>
   </div>
 
   <div class="content">
-    <div class="page active" id="pg-home">
-      <div class="hero"><h2 id="wHello">مرحباً 👋</h2><p id="wName"></p></div>
+    <!-- HOME (Parent) -->
+    <div class="page on" id="pg-home">
+      <div class="hero"><h2 id="wHi">مرحباً 👋</h2><p id="wName"></p></div>
       <div class="stats">
-        <div class="stat"><div class="num" id="cCount">—</div><div class="lbl">الأطفال</div></div>
-        <div class="stat"><div class="num" id="sCount">—</div><div class="lbl">الاشتراكات</div></div>
+        <div class="stat"><div class="n" id="hCC">—</div><div class="l" id="hLC">الأطفال</div></div>
+        <div class="stat"><div class="n" id="hCS">—</div><div class="l" id="hLS">الاشتراكات</div></div>
       </div>
-      <div class="sec-title">أطفالي</div>
-      <div id="childList"><div class="empty"><div class="spinner"></div></div></div>
+      <div class="stitle" id="sMyC">أطفالي</div>
+      <div id="childList"><div class="empty"><div class="spin"></div></div></div>
     </div>
 
-    <div class="page" id="pg-ptrips">
-      <div class="sec-title" id="pTripsTitle">رحلات أطفالي</div>
-      <div id="parentMapContainer" style="height:300px;border-radius:12px;overflow:hidden;margin-bottom:1rem;display:none"><div id="parentMap" style="height:100%"></div></div>
-      <div id="parentTripStatus" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:0.8rem;margin-bottom:1rem;text-align:center;color:#1d4ed8;font-weight:bold"></div>
-      <div id="pTripList"><div class="empty"><div class="spinner"></div></div></div>
-    </div>
-
+    <!-- SUBSCRIPTIONS -->
     <div class="page" id="pg-subs">
-      <div class="sec-title">اشتراكاتي</div>
-      <div id="subList"><div class="empty"><div class="spinner"></div></div></div>
+      <div class="stitle" id="sSubs">اشتراكاتي</div>
+      <div id="subList"><div class="empty"><div class="spin"></div></div></div>
     </div>
 
+    <!-- PARENT TRIPS -->
+    <div class="page" id="pg-ptrips">
+      <div class="stitle" id="sPTrips">رحلات أطفالي</div>
+      <div id="mapBox"><div id="pMap" style="height:100%"></div></div>
+      <div id="pTripStatus" class="hidden" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:0.7rem;margin-bottom:0.7rem;text-align:center;color:#1d4ed8;font-weight:700;font-size:0.85rem"></div>
+      <div id="pTripList"><div class="empty"><div class="spin"></div></div></div>
+    </div>
+
+    <!-- DRIVER TRIPS -->
     <div class="page" id="pg-dtrips">
+      <div class="gps-bar" id="gpsBar">📍 <span id="gpsCoords">GPS نشط</span></div>
+      <div id="mapBox2" style="height:260px;border-radius:12px;overflow:hidden;margin-bottom:0.8rem;border:1px solid var(--b);display:none"><div id="dMap" style="height:100%"></div></div>
       <div id="activeBanner"></div>
-      <div class="gps-active" id="gpsStatus">
-        <span class="dot"></span>
-        <span id="gpsText">GPS نشط — يتم إرسال الموقع</span>
-      </div>
-      <div id="mapContainer"><div id="map" style="height:100%"></div></div>
-      <div class="sec-title">رحلاتي</div>
-      <div id="tripList"><div class="empty"><div class="spinner"></div></div></div>
+      <div class="stitle" id="sDTrips">رحلاتي</div>
+      <div id="dTripList"><div class="empty"><div class="spin"></div></div></div>
     </div>
 
+    <!-- ATTENDANCE -->
     <div class="page" id="pg-att">
-      <div class="att-card">
-        <div style="font-size:0.8rem;opacity:0.6" id="todayDate"></div>
-        <div class="att-time" id="clock">--:--</div>
-        <div id="attStatus" style="font-size:0.85rem;margin-top:0.3rem"></div>
-        <div class="att-grid">
-          <div class="att-box"><div class="l" id="lbCI">وقت الحضور</div><div class="v" id="ciTime">--:--</div></div>
-          <div class="att-box"><div class="l" id="lbCO">وقت الانصراف</div><div class="v" id="coTime">--:--</div></div>
+      <div class="acard">
+        <div id="todayDate" style="font-size:0.75rem;opacity:0.6"></div>
+        <div class="atime" id="clock">--:--</div>
+        <div id="attStatus" style="font-size:0.8rem;margin-top:0.2rem;opacity:0.8"></div>
+        <div class="agrid">
+          <div class="abox"><div class="al" id="lbCI">وقت الحضور</div><div class="av" id="ciTime">--:--</div></div>
+          <div class="abox"><div class="al" id="lbCO">وقت الانصراف</div><div class="av" id="coTime">--:--</div></div>
         </div>
       </div>
-      <div class="btn-row">
-        <button class="btn btn-g" id="btnCI">✅ تسجيل الحضور</button>
-        <button class="btn btn-r" id="btnCO">🔴 تسجيل الانصراف</button>
+      <div class="btn2">
+        <button class="btn btn-g" id="btnCI">✅ <span id="lCI">تسجيل الحضور</span></button>
+        <button class="btn btn-r" id="btnCO">🔴 <span id="lCO">تسجيل الانصراف</span></button>
       </div>
-      <div class="sec-title">سجل الحضور</div>
-      <div id="attList"><div class="empty"><div class="spinner"></div></div></div>
+      <div class="stitle" id="lAttH">سجل الحضور</div>
+      <div id="attList"><div class="empty"><div class="spin"></div></div></div>
     </div>
 
+    <!-- PROFILE -->
     <div class="page" id="pg-profile">
-      <div class="profile-card">
-        <div class="avatar" id="pAv">A</div>
-        <div style="font-size:1.1rem;font-weight:900" id="pName"></div>
-        <div style="font-size:0.8rem;color:#64748b;direction:ltr" id="pEmail"></div>
+      <div class="pcard">
+        <div class="av" id="pAv">?</div>
+        <div class="pname" id="pName"></div>
+        <div class="pemail" id="pEmail"></div>
         <div style="margin-top:0.5rem" id="pRole"></div>
       </div>
-      <div style="background:white;border-radius:12px;padding:1rem;margin-bottom:1rem">
-        <div style="font-size:0.85rem;font-weight:bold;margin-bottom:0.8rem;color:#475569">اللغة / Language</div>
-        <div class="lang-row">
-          <button class="lang-btn active" id="pAr">العربية</button>
+      <div class="lang-card">
+        <p id="lLang">اللغة / Language</p>
+        <div class="lang-btns">
+          <button class="lang-btn on" id="pAr">العربية</button>
           <button class="lang-btn" id="pEn">English</button>
         </div>
       </div>
-      <button class="btn btn-out" onclick="doLogout()">🚪 تسجيل الخروج</button>
+      <button class="btn btn-out" id="btnOut">🚪 تسجيل الخروج</button>
     </div>
   </div>
 
-  <nav class="bottom-nav" id="nav"></nav>
+  <nav class="bnav" id="bnav"></nav>
 </div>
 
 <div id="toast"></div>
 
 <script>
+'use strict';
 const API = 'https://kms-api-staging-kg01.azurewebsites.net';
 let token = localStorage.getItem('kms_token');
 let lang = localStorage.getItem('kms_lang') || 'ar';
 let role = localStorage.getItem('kms_role') || '';
-let page = '';
-let gpsInterval = null;
-let currentTripId = null;
-let map = null;
-let marker = null;
+let page = 'home';
+let gpsTimer = null;
+let dMap = null, pMap = null, dMarker = null, pMarker = null;
+let signalrConn = null;
 
-// Translations
 const TX = {
-  ar: { home:'الرئيسية', trips:'الرحلات', ptrips:'الرحلات', children:'الأطفال', subscriptions:'الاشتراكات', subs:'الاشتراكات', att:'الحضور', profile:'الملف الشخصي',
-        loginBtn:'تسجيل الدخول', logging:'جاري التحقق...', errW:'بيانات الدخول غير صحيحة', errC:'لا يمكن الاتصال بالخادم',
-        toSchool:'🏫 إلى الروضة', toHome:'🏠 إلى المنزل', start:'▶️ بدء الرحلة', end:'⏹️ إنهاء الرحلة',
-        active:'رحلة جارية 🚌', confirmEnd:'هل تريد إنهاء الرحلة؟', noData:'لا توجد بيانات',
-        checkedIn:'تم تسجيل الحضور ✅', checkedOut:'تم تسجيل الانصراف ✅', alreadyIn:'تم التسجيل مسبقاً', noCI:'لم يتم تسجيل الحضور',
-        tripOk:'بدأت الرحلة ✅', tripEnd:'انتهت الرحلة ✅', wHours:'ساعات العمل',
-        status:{Created:'تم الإنشاء',InProgress:'جارية',Completed:'مكتملة',Pending:'معلق',PickedUp:'تم الاستلام',DroppedOff:'تم التوصيل',Paid:'مدفوع',Overdue:'متأخر',Present:'حاضر',Late:'متأخر',Absent:'غائب'},
-        roles:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'} },
-  en: { home:'Home', trips:'Trips', ptrips:'Trips', children:'Children', subscriptions:'Subscriptions', subs:'Subscriptions', att:'Attendance', profile:'Profile',
-        loginBtn:'Sign In', logging:'Signing in...', errW:'Invalid email or password', errC:'Cannot connect to server',
-        toSchool:'🏫 To School', toHome:'🏠 To Home', start:'▶️ Start Trip', end:'⏹️ End Trip',
-        active:'Active Trip 🚌', confirmEnd:'End this trip?', noData:'No data found',
-        checkedIn:'Checked in ✅', checkedOut:'Checked out ✅', alreadyIn:'Already checked in', noCI:'No check-in today',
-        tripOk:'Trip started ✅', tripEnd:'Trip ended ✅', wHours:'Working hours',
-        status:{Created:'Created',InProgress:'In Progress',Completed:'Completed',Pending:'Pending',PickedUp:'Picked Up',DroppedOff:'Dropped Off',Paid:'Paid',Overdue:'Overdue',Present:'Present',Late:'Late',Absent:'Absent'},
-        roles:{Admin:'Admin',Parent:'Parent',Driver:'Driver',Employee:'Employee'} }
+  ar:{
+    sub:'نظام إدارة الروضة', title:'مرحباً بعودتك', desc:'سجّل دخولك للمتابعة',
+    email:'البريد الإلكتروني', pass:'كلمة المرور', loginBtn:'تسجيل الدخول', logging:'جاري التحقق...',
+    errW:'بيانات الدخول غير صحيحة', errC:'لا يمكن الاتصال بالخادم',
+    home:'الرئيسية', trips:'الرحلات', subs:'الاشتراكات', att:'الحضور', profile:'الملف الشخصي',
+    children:'الأطفال', myC:'أطفالي', mySubs:'اشتراكاتي', myTrips:'رحلاتي', childTrips:'رحلات أطفالي',
+    ciLbl:'وقت الحضور', coLbl:'وقت الانصراف', ciBtn:'تسجيل الحضور', coBtn:'تسجيل الانصراف', attHist:'سجل الحضور',
+    toSchool:'🏫 إلى الروضة', toHome:'🏠 إلى المنزل', startTrip:'▶️ بدء الرحلة', endTrip:'⏹️ إنهاء الرحلة',
+    activeTrip:'رحلة جارية 🚌', confirmEnd:'هل تريد إنهاء الرحلة؟', noData:'لا توجد بيانات',
+    checkedIn:'تم تسجيل الحضور ✅', checkedOut:'تم تسجيل الانصراف ✅', alreadyIn:'تم التسجيل مسبقاً', noCI:'لم يتم تسجيل الحضور',
+    tripOk:'بدأت الرحلة ✅', tripEnd:'انتهت الرحلة ✅', wHours:'ساعات العمل', langLbl:'اللغة', logout:'تسجيل الخروج',
+    gpsActive:'GPS نشط — يتم إرسال الموقع',
+    stat:{Created:'تم الإنشاء',InProgress:'جارية',Completed:'مكتملة',Pending:'معلق',PickedUp:'تم الاستلام',DroppedOff:'تم التوصيل',Paid:'مدفوع',Overdue:'متأخر',Present:'حاضر',Late:'متأخر',Absent:'غائب'},
+    role:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'}
+  },
+  en:{
+    sub:'Kindergarten Management System', title:'Welcome back', desc:'Sign in to continue',
+    email:'Email Address', pass:'Password', loginBtn:'Sign In', logging:'Signing in...',
+    errW:'Invalid email or password', errC:'Cannot connect to server',
+    home:'Home', trips:'Trips', subs:'Subscriptions', att:'Attendance', profile:'Profile',
+    children:'Children', myC:'My Children', mySubs:'My Subscriptions', myTrips:'My Trips', childTrips:'Trips',
+    ciLbl:'Check-in Time', coLbl:'Check-out Time', ciBtn:'Check In', coBtn:'Check Out', attHist:'Attendance History',
+    toSchool:'🏫 To School', toHome:'🏠 To Home', startTrip:'▶️ Start Trip', endTrip:'⏹️ End Trip',
+    activeTrip:'Active Trip 🚌', confirmEnd:'End this trip?', noData:'No data found',
+    checkedIn:'Checked in ✅', checkedOut:'Checked out ✅', alreadyIn:'Already checked in', noCI:'No check-in today',
+    tripOk:'Trip started ✅', tripEnd:'Trip ended ✅', wHours:'Working hours', langLbl:'Language', logout:'Sign Out',
+    gpsActive:'GPS Active — Sending location',
+    stat:{Created:'Created',InProgress:'In Progress',Completed:'Completed',Pending:'Pending',PickedUp:'Picked Up',DroppedOff:'Dropped Off',Paid:'Paid',Overdue:'Overdue',Present:'Present',Late:'Late',Absent:'Absent'},
+    role:{Admin:'Admin',Parent:'Parent',Driver:'Driver',Employee:'Employee'}
+  }
 };
 
 function t(k){ return TX[lang][k] || k; }
-function ts(k){ return TX[lang].status[k] || k; }
+function ts(k){ return TX[lang].stat[k] || k; }
+function tr(k){ return TX[lang].role[k] || k; }
+function fTime(d){ return new Date(d).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}); }
+function fDate(d){ return new Date(d).toLocaleDateString(lang==='ar'?'ar-SA':'en-US'); }
+function fPrice(p){ return lang==='ar'? p.toFixed(2)+' ريال' : 'SAR '+p.toFixed(2); }
+
+function sbadge(s){
+  const m={Created:'bo',InProgress:'bb',Completed:'bg',Pending:'bo',PickedUp:'bg',DroppedOff:'bg',Paid:'bg',Overdue:'br',Present:'bg',Late:'bo',Absent:'br'};
+  return '<span class="badge '+(m[s]||'bgr')+'">'+ts(s)+'</span>';
+}
 
 function setLang(l) {
   lang = l;
   localStorage.setItem('kms_lang', l);
-  const ar = l === 'ar';
   document.documentElement.lang = l;
-  document.documentElement.dir = ar ? 'rtl' : 'ltr';
-  // Login page buttons
-  document.getElementById('lAr').style.cssText = ar ? 'padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:#f97316;color:white;font-size:0.8rem' : 'padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:transparent;color:#475569;font-size:0.8rem';
-  document.getElementById('lEn').style.cssText = !ar ? 'padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:#f97316;color:white;font-size:0.8rem' : 'padding:0.3rem 0.7rem;border:none;cursor:pointer;font-weight:bold;background:transparent;color:#475569;font-size:0.8rem';
-  // App buttons
-  document.getElementById('aAr').style.background = ar ? '#f97316' : 'transparent';
-  document.getElementById('aAr').style.color = ar ? 'white' : 'rgba(255,255,255,0.7)';
-  document.getElementById('aEn').style.background = !ar ? '#f97316' : 'transparent';
-  document.getElementById('aEn').style.color = !ar ? 'white' : 'rgba(255,255,255,0.7)';
-  // Profile buttons
-  const pAr = document.getElementById('pAr');
-  const pEn = document.getElementById('pEn');
-  if(pAr) { pAr.className = 'lang-btn' + (ar?' active':''); pEn.className = 'lang-btn' + (!ar?' active':''); }
-  // Update texts
-  document.getElementById('lSub').textContent = ar ? 'نظام إدارة الروضة' : 'Kindergarten Management System';
-  document.getElementById('lTitle').textContent = ar ? 'مرحباً بعودتك' : 'Welcome back';
-  document.getElementById('lDesc').textContent = ar ? 'سجّل دخولك للمتابعة' : 'Sign in to continue';
-  document.getElementById('lEmail').textContent = ar ? 'البريد الإلكتروني' : 'Email Address';
-  document.getElementById('lPass').textContent = ar ? 'كلمة المرور' : 'Password';
-  document.getElementById('loginBtn').textContent = t('loginBtn');
-  // Update all translatable elements
-  const updates = {
-    'lbCI':   {ar:'وقت الحضور',      en:'Check-in Time'},
-    'lbCO':   {ar:'وقت الانصراف',    en:'Check-out Time'},
-    'btnCI':  {ar:'✅ تسجيل الحضور', en:'✅ Check In'},
-    'btnCO':  {ar:'🔴 تسجيل الانصراف',en:'🔴 Check Out'},
-    'lDesc':  {ar:'سجّل دخولك للمتابعة',en:'Sign in to continue'},
-    'lEmail': {ar:'البريد الإلكتروني',en:'Email Address'},
-    'lPass':  {ar:'كلمة المرور',      en:'Password'},
-    'lSub':   {ar:'نظام إدارة الروضة',en:'Kindergarten Management System'},
-    'lTitle': {ar:'مرحباً بعودتك',    en:'Welcome back'},
-    'pTripsTitle': {ar:'رحلات أطفالي',en:"Childrens Trips"},
-    'todayDate': null // skip - dynamic
+  document.documentElement.dir = l==='ar' ? 'rtl' : 'ltr';
+  // Login toggles
+  document.getElementById('lAr').className = l==='ar' ? 'on' : '';
+  document.getElementById('lEn').className = l==='en' ? 'on' : '';
+  // App toggles
+  document.getElementById('aAr').className = l==='ar' ? 'on' : '';
+  document.getElementById('aEn').className = l==='en' ? 'on' : '';
+  // Profile toggles
+  var pArEl = document.getElementById('pAr');
+  var pEnEl = document.getElementById('pEn');
+  if(pArEl) { pArEl.className = 'lang-btn' + (l==='ar' ? ' on' : ''); }
+  if(pEnEl) { pEnEl.className = 'lang-btn' + (l==='en' ? ' on' : ''); }
+  // Text updates
+  var els = {
+    lSub:'sub', lTitle:'title', lDesc:'desc', lEmail:'email', lPass:'pass', loginBtn:'loginBtn',
+    hLC:'children', hLS:'subs', sMyC:'myC', sSubs:'mySubs', sPTrips:'childTrips', sDTrips:'myTrips',
+    lbCI:'ciLbl', lbCO:'coLbl', lAttH:'attHist', lLang:'langLbl'
   };
-  Object.entries(updates).forEach(([id,v])=>{
-    if(!v) return;
-    const el=document.getElementById(id);
-    if(el) el.textContent = v[l];
+  Object.keys(els).forEach(function(id) {
+    var el = document.getElementById(id);
+    if(el) el.textContent = t(els[id]);
   });
-  // Update profile lang buttons
-  if(document.getElementById('pAr')){
-    document.getElementById('pAr').className='lang-btn'+(l==='ar'?' active':'');
-    document.getElementById('pEn').className='lang-btn'+(l==='en'?' active':'');
-  }
-  // Rebuild nav
+  var lci = document.getElementById('lCI');
+  var lco = document.getElementById('lCO');
+  if(lci) lci.textContent = t('ciBtn');
+  if(lco) lco.textContent = t('coBtn');
+  var btnOut = document.getElementById('btnOut');
+  if(btnOut) btnOut.textContent = '🚪 ' + t('logout');
   buildNav();
-  if(page) showPage(page);
+  if(page) {
+    var pgTitles = {home:t('home'),subs:t('subs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
+    var tb = document.getElementById('tbTitle');
+    if(tb) tb.textContent = pgTitles[page] || 'KMS';
+  }
 }
 
-async function api(path, method='GET', body=null) {
+async function apiCall(path, method, body) {
+  method = method || 'GET';
   try {
-    const r = await fetch(API+path, {
-      method,
-      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token,'Accept-Language':lang},
-      body: body ? JSON.stringify(body) : null
-    });
-    if(r.status===401){doLogout();return null;}
-    if(r.status===204) return {};
+    var opts = {
+      method: method,
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token,'Accept-Language':lang}
+    };
+    if(body) opts.body = JSON.stringify(body);
+    var r = await fetch(API+path, opts);
+    if(r.status === 401) { doLogout(); return null; }
+    if(r.status === 204) return {};
     return await r.json();
   } catch(e) { return null; }
 }
 
-// Login
-document.addEventListener('DOMContentLoaded', function() {
-  try {
-    document.getElementById('loginBtn').addEventListener('click', doLogin);
-    document.getElementById('lAr').addEventListener('click', function(){ setLang('ar'); });
-    document.getElementById('lEn').addEventListener('click', function(){ setLang('en'); });
-    document.getElementById('aAr').addEventListener('click', function(){ setLang('ar'); });
-    document.getElementById('aEn').addEventListener('click', function(){ setLang('en'); });
-    document.getElementById('btnCI').addEventListener('click', doCheckIn);
-    document.getElementById('btnCO').addEventListener('click', doCheckOut);
-    document.getElementById('inPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-    setLang(lang);
-    if(token){ role=localStorage.getItem('kms_role')||''; connectSignalR(); initApp(); }
-  } catch(e) {
-    console.error('Init error:', e);
-    document.body.innerHTML += '<div style="position:fixed;top:0;left:0;right:0;background:red;color:white;padding:1rem;z-index:9999">Error: '+e.message+'</div>';
-  }
-});
-
 async function doLogin() {
-  const email = document.getElementById('inEmail').value.trim();
-  const pass = document.getElementById('inPass').value;
-  const btn = document.getElementById('loginBtn');
-  const err = document.getElementById('loginError');
-  if(!email||!pass){ showErr(t('errW')); return; }
+  var email = document.getElementById('inEmail').value.trim();
+  var pass = document.getElementById('inPass').value;
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('errBox');
+  if(!email || !pass) { showErr(t('errW')); return; }
   btn.disabled = true;
   btn.textContent = t('logging');
   err.classList.add('hidden');
   try {
-    const r = await fetch(API+'/api/auth/login', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email, password:pass})
+    var r = await fetch(API+'/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email:email, password:pass})
     });
-    const d = await r.json();
+    var d = await r.json();
     if(d.token) {
       token = d.token;
       localStorage.setItem('kms_token', token);
@@ -499,9 +372,9 @@ async function doLogin() {
   btn.textContent = t('loginBtn');
 }
 
-function showErr(m) {
-  const e = document.getElementById('loginError');
-  e.textContent = m;
+function showErr(msg) {
+  var e = document.getElementById('errBox');
+  e.textContent = msg;
   e.classList.remove('hidden');
 }
 
@@ -509,22 +382,21 @@ function initApp() {
   role = localStorage.getItem('kms_role') || '';
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
-  const name = localStorage.getItem('kms_name') || '';
+  var name = localStorage.getItem('kms_name') || '';
   document.getElementById('wName').textContent = name;
   document.getElementById('pName').textContent = name;
   document.getElementById('pEmail').textContent = localStorage.getItem('kms_email') || '';
   document.getElementById('pAv').textContent = name ? name[0].toUpperCase() : '?';
-  document.getElementById('pRole').innerHTML = '<span style="background:#fff7ed;color:#ea580c;padding:0.2rem 0.6rem;border-radius:50px;font-size:0.75rem;font-weight:bold">' + (TX[lang].roles[role]||role) + '</span>';
-  // Attach profile lang buttons
-  document.getElementById('pAr').addEventListener('click', function(){ setLang('ar'); });
-  document.getElementById('pEn').addEventListener('click', function(){ setLang('en'); });
-  buildNav();
-  if(role==='Driver') showPage('dtrips');
-  else if(role==='Employee') showPage('att');
+  document.getElementById('pRole').innerHTML = '<span class="badge bb">'+tr(role)+'</span>';
+  setLang(lang);
+  if(role === 'Driver') showPage('dtrips');
+  else if(role === 'Employee') showPage('att');
   else showPage('home');
 }
 
 function doLogout() {
+  if(gpsTimer) { clearInterval(gpsTimer); gpsTimer = null; }
+  if(signalrConn) { signalrConn.stop(); signalrConn = null; }
   localStorage.clear();
   token = null; role = '';
   document.getElementById('appScreen').classList.add('hidden');
@@ -532,312 +404,235 @@ function doLogout() {
 }
 
 function buildNav() {
-  const nav = document.getElementById('nav');
-  let tabs = [];
-  if(role==='Driver') tabs=[{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
-  else if(role==='Employee') tabs=[{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
-  else tabs=[{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subscriptions')},{id:'profile',i:'👤',l:t('profile')}];
-  // Update topbar title
-  const titles = {home:t('home'),subs:t('subscriptions')||t('subs'),
-    ptrips:t('trips'),dtrips:t('trips'),att:t('att'),profile:t('profile')};
-  const tb2 = document.getElementById('tbTitle');
-  if(tb2 && page) tb2.textContent = titles[page]||'KMS';
-  // Update topbar title
-  const titles = {home:t('home'),subs:t('subscriptions')||t('subs'),
-    ptrips:t('trips'),dtrips:t('trips'),att:t('att'),profile:t('profile')};
-  const tb2 = document.getElementById('tbTitle');
-  if(tb2 && page) tb2.textContent = titles[page]||'KMS';
-  nav.innerHTML = tabs.map(tb =>
-    '<button class="tab'+(page===tb.id?' active':'')+'" data-page="'+tb.id+'"><span class="icon">'+tb.i+'</span><span>'+tb.l+'</span></button>'
-  ).join('');
-  nav.querySelectorAll('.tab').forEach(btn => {
-    btn.addEventListener('click', function(){ showPage(this.dataset.page); });
+  var tabs = [];
+  if(role === 'Driver') {
+    tabs = [{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
+  } else if(role === 'Employee') {
+    tabs = [{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
+  } else {
+    tabs = [{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subs')},{id:'profile',i:'👤',l:t('profile')}];
+  }
+  var nav = document.getElementById('bnav');
+  nav.innerHTML = tabs.map(function(tb) {
+    return '<button class="tab'+(page===tb.id?' on':'')+'" data-pg="'+tb.id+'"><span class="ic">'+tb.i+'</span><span class="lb">'+tb.l+'</span></button>';
+  }).join('');
+  nav.querySelectorAll('.tab').forEach(function(btn) {
+    btn.addEventListener('click', function() { showPage(this.dataset.pg); });
   });
 }
 
 function showPage(p) {
-  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-  const el = document.getElementById('pg-'+p);
-  if(el) el.classList.add('active');
+  document.querySelectorAll('.page').forEach(function(x) { x.classList.remove('on'); });
+  var el = document.getElementById('pg-'+p);
+  if(el) el.classList.add('on');
   page = p;
-  const titles = {home:t('home'),subs:t('subs'),ptrips:t('trips'),dtrips:t('trips'),att:t('att'),profile:t('profile')};
-  document.getElementById('tbTitle').textContent = titles[p] || 'KMS';
+  var pgTitles = {home:t('home'),subs:t('subs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
+  document.getElementById('tbTitle').textContent = pgTitles[p] || 'KMS';
   buildNav();
-  const loaders = {home:loadHome, subs:loadSubs, ptrips:loadParentTrips, dtrips:loadTrips, att:loadAtt};
+  var loaders = {home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt};
   if(loaders[p]) loaders[p]();
 }
 
-function sbadge(s,cls='bb') {
-  const m={Created:'bo',InProgress:'bb',Completed:'bg',Pending:'bo',PickedUp:'bg',DroppedOff:'bg',Paid:'bg',Overdue:'br',Present:'bg',Late:'bo',Absent:'br'};
-  return '<span class="badge '+(m[s]||'bb')+'">'+ts(s)+'</span>';
-}
-
 async function loadHome() {
-  const [ch, sb] = await Promise.all([api('/api/children'), api('/api/subscriptions')]);
-  document.getElementById('cCount').textContent = Array.isArray(ch) ? ch.length : 0;
-  document.getElementById('sCount').textContent = Array.isArray(sb) ? sb.length : 0;
-  const div = document.getElementById('childList');
-  if(!ch||!ch.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
-  div.innerHTML = '<div class="list">'+ch.map(c=>'<div class="item"><span class="item-icon">👶</span><div class="item-info"><div class="t">'+c.name+'</div><div class="s">'+c.class+'</div></div><span class="badge bb">'+c.class+'</span></div>').join('')+'</div>';
+  var ch = await apiCall('/api/children');
+  var sb = await apiCall('/api/subscriptions');
+  document.getElementById('hCC').textContent = Array.isArray(ch) ? ch.length : 0;
+  document.getElementById('hCS').textContent = Array.isArray(sb) ? sb.length : 0;
+  var div = document.getElementById('childList');
+  if(!ch || !ch.length) { div.innerHTML = '<div class="empty"><div class="em">👶</div>'+t('noData')+'</div>'; return; }
+  div.innerHTML = '<div class="lcard">'+ch.map(function(c) {
+    return '<div class="litem"><span class="lic">👶</span><div class="linf"><div class="t">'+c.name+'</div><div class="s">'+c.class+'</div></div><span class="badge bb">'+c.class+'</span></div>';
+  }).join('')+'</div>';
 }
 
 async function loadSubs() {
-  const data = await api('/api/subscriptions');
-  const div = document.getElementById('subList');
-  if(!data||!data.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
-  div.innerHTML = '<div class="list">'+data.map(s=>'<div class="item"><span class="item-icon">💳</span><div class="item-info"><div class="t">'+s.childName+'</div><div class="s">'+s.type+' • SAR '+s.price.toFixed(2)+'</div></div>'+sbadge(s.paymentStatus)+'</div>').join('')+'</div>';
+  var data = await apiCall('/api/subscriptions');
+  var div = document.getElementById('subList');
+  if(!data || !data.length) { div.innerHTML = '<div class="empty"><div class="em">💳</div>'+t('noData')+'</div>'; return; }
+  div.innerHTML = '<div class="lcard">'+data.map(function(s) {
+    return '<div class="litem"><span class="lic">💳</span><div class="linf"><div class="t">'+s.childName+'</div><div class="s">'+s.type+' • '+fPrice(s.price)+'</div></div>'+sbadge(s.paymentStatus)+'</div>';
+  }).join('')+'</div>';
 }
 
-async function loadTrips() {
-  const data = await api('/api/trips/driver');
-  const div = document.getElementById('tripList');
-  const banner = document.getElementById('activeBanner');
-  const trips = Array.isArray(data) ? data : (data?.id ? [data] : []);
-  if(!trips.length){ banner.innerHTML=''; div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
-  const active = trips.find(tr=>tr.status==='InProgress');
-  banner.innerHTML = active ? '<div style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:12px;padding:1rem;margin-bottom:1rem;color:white"><div style="font-size:0.8rem;opacity:0.8">'+t('active')+'</div><div style="font-weight:bold;margin:0.3rem 0">'+(active.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+active.id+'</div><button onclick="endTrip('+active.id+')" style="background:white;color:#1d4ed8;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;cursor:pointer;width:100%">'+t('end')+'</button></div>' : '';
-  div.innerHTML = trips.map(tr=>'<div class="trip-card '+tr.status.toLowerCase()+'"><div class="trip-head"><h4>'+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+tr.id+'</h4>'+sbadge(tr.status)+'</div><div style="font-size:0.75rem;color:#64748b;margin-bottom:0.5rem">📅 '+new Date(tr.date).toLocaleDateString()+(tr.startTime?' • ▶️ '+new Date(tr.startTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}):'')+'</div>'+tr.children.map(c=>'<div style="display:flex;justify-content:space-between;background:#f8fafc;border-radius:8px;padding:0.4rem 0.7rem;margin-bottom:0.3rem;font-size:0.8rem"><span>👤 '+c.childName+'</span><div>'+sbadge(c.pickupStatus)+' '+sbadge(c.dropoffStatus)+'</div></div>').join('')+(tr.status==='Created'?'<button class="btn btn-p" onclick="startTrip('+tr.id+')">'+t('start')+'</button>':'')+'</div>').join('');
-}
-
-async function loadParentTrips() {
-  const div = document.getElementById('pTripList');
-  const status = document.getElementById('parentTripStatus');
-  const mapCont = document.getElementById('parentMapContainer');
-  div.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
-
-  // Check for active trips
-  const trips = await api('/api/trips/parent');
-  if(!trips||!trips.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
-
-  const active = trips.find(tr=>tr.status==='InProgress');
+async function loadPTrips() {
+  var data = await apiCall('/api/trips/parent');
+  var div = document.getElementById('pTripList');
+  var statusEl = document.getElementById('pTripStatus');
+  var mapBox = document.getElementById('mapBox');
+  if(!data || !data.length) { div.innerHTML = '<div class="empty"><div class="em">🚌</div>'+t('noData')+'</div>'; return; }
+  var active = data.find(function(tr) { return tr.status === 'InProgress'; });
   if(active) {
-    status.style.display = 'block';
-    status.textContent = (lang==='ar'?'رحلة جارية':'Trip in progress') + ' 🚌';
-    mapCont.style.display = 'block';
-    initParentMap();
-  } else {
-    status.style.display = 'none';
-    mapCont.style.display = 'none';
-  }
-
-  div.innerHTML = '<div class="list">'+trips.slice(0,5).map(tr=>
-    '<div class="item"><span class="item-icon">'+(tr.direction==="ToKindergarten"?"🏫":"🏠")+'</span><div class="item-info"><div class="t">'+(tr.direction==="ToKindergarten"?t("toSchool"):t("toHome"))+'</div><div class="s">'+new Date(tr.date).toLocaleDateString()+'</div></div>'+sbadge(tr.status)+'</div>'
-  ).join('')+'</div>';
-}
-
-let parentMap = null;
-let parentMarker = null;
-
-function initParentMap() {
-  if(typeof L === 'undefined') {
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(css);
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => createParentMap();
-    document.head.appendChild(script);
-  } else {
-    createParentMap();
-  }
-}
-
-function createParentMap() {
-  if(parentMap) { parentMap.remove(); parentMap = null; }
-  parentMap = L.map('parentMap').setView([24.7136, 46.6753], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(parentMap);
-}
-
-function updateParentMap(lat, lng) {
-  if(!parentMap) return;
-  parentMap.setView([lat, lng], 15);
-  if(parentMarker) parentMarker.remove();
-  parentMarker = L.marker([lat, lng], {
-    icon: L.divIcon({
-      html: '<div style="background:#f97316;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">🚌</div>',
-      iconSize: [24, 24],
-      iconAnchor: [12, 12]
-    })
-  }).addTo(parentMap).bindPopup(lang==='ar'?'موقع السائق الآن':'Driver location').openPopup();
-}
-
-async function startTrip(id){ const r=await api('/api/trips/'+id+'/start','PUT'); if(r){toast(t('tripOk'),'ok');startGPS(id);loadTrips();} }
-async function endTrip(id){ if(!confirm(t('confirmEnd')))return; const r=await api('/api/trips/'+id+'/end','PUT'); if(r){stopGPS();toast(t('tripEnd'),'ok');loadTrips();} }
-
-async function loadAtt() {
-  const records = await api('/api/employees/my-attendance');
-  console.log('Attendance records:', records);
-  console.log('Attendance records:', records);
-  const div = document.getElementById('attList');
-  if(!records||!records.length){ div.innerHTML='<div class="empty">'+t('noData')+'</div>'; return; }
-  const today = records.find(r=>new Date(r.date).toDateString()===new Date().toDateString());
-  if(today){
-    document.getElementById('ciTime').textContent = today.checkInTime ? new Date(today.checkInTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}) : '--:--';
-    document.getElementById('coTime').textContent = today.checkOutTime ? new Date(today.checkOutTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}) : '--:--';
-    document.getElementById('attStatus').textContent = ts(today.status);
-  }
-  div.innerHTML = '<div class="list">'+records.slice(0,10).map(r=>'<div class="item"><span class="item-icon">📅</span><div class="item-info"><div class="t">'+new Date(r.date).toLocaleDateString()+'</div><div class="s">'+(r.workingHours?t('wHours')+': '+r.workingHours:'—')+'</div></div>'+sbadge(r.status)+'</div>').join('')+'</div>';
-}
-
-async function doCheckIn(){
-  document.getElementById('btnCI').disabled=true;
-  try {
-    const r=await api('/api/employees/checkin','POST',{biometricVerified:true});
-    console.log('CheckIn response:', JSON.stringify(r));
-    if(r===null){ toast('Not authorized - check login','err'); }
-    else if(r?.checkInTime){
-      document.getElementById('ciTime').textContent=new Date(r.checkInTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
-      document.getElementById('attStatus').textContent = r.status||'';
-      toast(t('checkedIn'),'ok');
-      await loadAtt();
-    } else if(r?.id){
-      toast(lang==='ar'?'تم تسجيل الحضور مسبقاً':'Already checked in','');
-    } else {
-      toast(JSON.stringify(r),'');
+    statusEl.textContent = t('activeTrip');
+    statusEl.classList.remove('hidden');
+    mapBox.style.display = 'block';
+    if(!pMap) {
+      pMap = L.map('pMap').setView([24.7136, 46.6753], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(pMap);
     }
-  } catch(e) { toast('Error: '+e.message,'err'); }
-  document.getElementById('btnCI').disabled=false;
+  }
+  div.innerHTML = '<div class="lcard">'+data.slice(0,5).map(function(tr) {
+    return '<div class="litem"><span class="lic">'+(tr.direction==='ToKindergarten'?'🏫':'🏠')+'</span><div class="linf"><div class="t">'+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+'</div><div class="s">'+fDate(tr.date)+'</div></div>'+sbadge(tr.status)+'</div>';
+  }).join('')+'</div>';
 }
 
-async function doCheckOut(){
-  document.getElementById('btnCO').disabled=true;
-  try {
-    const r=await api('/api/employees/checkout','POST',{});
-    console.log('CheckOut response:', JSON.stringify(r));
-    if(r===null){ toast('Not authorized - check login','err'); }
-    else if(r?.checkOutTime){
-      document.getElementById('coTime').textContent=new Date(r.checkOutTime).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
-      toast(t('checkedOut'),'ok');
-      await loadAtt();
-    } else {
-      toast(lang==='ar'?'لم يتم تسجيل الحضور اليوم':'No check-in found today','err');
-    }
-  } catch(e) { toast('Error: '+e.message,'err'); }
-  document.getElementById('btnCO').disabled=false;
+async function loadDTrips() {
+  var data = await apiCall('/api/trips/driver');
+  var div = document.getElementById('dTripList');
+  var banner = document.getElementById('activeBanner');
+  var trips = Array.isArray(data) ? data : (data && data.id ? [data] : []);
+  if(!trips.length) { banner.innerHTML=''; div.innerHTML='<div class="empty"><div class="em">🚌</div>'+t('noData')+'</div>'; return; }
+  var active = trips.find(function(tr) { return tr.status === 'InProgress'; });
+  if(active) {
+    banner.innerHTML = '<div style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:12px;padding:1rem;margin-bottom:0.8rem;color:white">'+
+      '<div style="font-size:0.78rem;opacity:0.8">'+t('activeTrip')+'</div>'+
+      '<div style="font-weight:800;margin:0.3rem 0">'+(active.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+active.id+'</div>'+
+      '<button onclick="endTrip('+active.id+')" style="background:white;color:#1d4ed8;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;width:100%;font-size:0.85rem">'+t('endTrip')+'</button></div>';
+  } else {
+    banner.innerHTML = '';
+  }
+  div.innerHTML = trips.map(function(tr) {
+    return '<div class="tcard '+tr.status.toLowerCase()+'">'+
+      '<div class="thead"><h4>'+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+tr.id+'</h4>'+sbadge(tr.status)+'</div>'+
+      '<div class="tmeta">📅 '+fDate(tr.date)+(tr.startTime?' • ▶️ '+fTime(tr.startTime):'')+'</div>'+
+      tr.children.map(function(c) {
+        return '<div class="crow"><span>👤 '+c.childName+'</span><span>'+sbadge(c.pickupStatus)+' '+sbadge(c.dropoffStatus)+'</span></div>';
+      }).join('')+
+      (tr.status==='Created'?'<button class="btn btn-p" onclick="startTrip('+tr.id+')">'+t('startTrip')+'</button>':'')+
+    '</div>';
+  }).join('');
 }
 
-// ── GPS TRACKING ──
+async function startTrip(id) {
+  var r = await apiCall('/api/trips/'+id+'/start','PUT');
+  if(r) { toast(t('tripOk'),'ok'); startGPS(id); loadDTrips(); }
+}
+
+async function endTrip(id) {
+  if(!confirm(t('confirmEnd'))) return;
+  var r = await apiCall('/api/trips/'+id+'/end','PUT');
+  if(r) { stopGPS(); toast(t('tripEnd'),'ok'); loadDTrips(); }
+}
+
 function startGPS(tripId) {
-  currentTripId = tripId;
-  document.getElementById('gpsStatus').style.display = 'block';
-  document.getElementById('mapContainer').style.display = 'block';
-  initMap();
-  gpsInterval = setInterval(async () => {
+  var box = document.getElementById('mapBox2');
+  var bar = document.getElementById('gpsBar');
+  box.style.display = 'block';
+  bar.style.display = 'block';
+  if(!dMap) {
+    dMap = L.map('dMap').setView([24.7136, 46.6753], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(dMap);
+  }
+  gpsTimer = setInterval(function() {
     if(!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(async pos => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      await api('/api/trips/location', 'POST', {tripId, latitude: lat, longitude: lng});
-      updateMap(lat, lng);
-      document.getElementById('gpsText').textContent =
-        (lang==='ar'?'GPS نشط ':'GPS Active ') + lat.toFixed(4) + ', ' + lng.toFixed(4);
-    }, err => {
-      console.log('GPS error:', err.message);
-    }, { enableHighAccuracy: true, maximumAge: 0 });
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      apiCall('/api/trips/location','POST',{tripId:tripId, latitude:lat, longitude:lng});
+      if(dMarker) dMarker.remove();
+      dMarker = L.marker([lat,lng]).addTo(dMap);
+      dMap.setView([lat,lng],15);
+      document.getElementById('gpsCoords').textContent = t('gpsActive')+' '+lat.toFixed(4)+', '+lng.toFixed(4);
+    });
   }, 5000);
 }
 
 function stopGPS() {
-  if(gpsInterval) { clearInterval(gpsInterval); gpsInterval = null; }
-  currentTripId = null;
-  document.getElementById('gpsStatus').style.display = 'none';
-  document.getElementById('mapContainer').style.display = 'none';
+  if(gpsTimer) { clearInterval(gpsTimer); gpsTimer = null; }
+  document.getElementById('gpsBar').style.display = 'none';
+  document.getElementById('mapBox2').style.display = 'none';
 }
 
-function initMap() {
-  if(!document.getElementById('map')) return;
-  if(typeof L === 'undefined') {
-    // Load Leaflet map
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(css);
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => createMap();
-    document.head.appendChild(script);
-  } else {
-    createMap();
+async function loadAtt() {
+  var records = await apiCall('/api/employees/my-attendance');
+  var div = document.getElementById('attList');
+  if(!records || !records.length) { div.innerHTML = '<div class="empty"><div class="em">📋</div>'+t('noData')+'</div>'; return; }
+  var today = records.find(function(r) { return new Date(r.date).toDateString() === new Date().toDateString(); });
+  if(today) {
+    document.getElementById('ciTime').textContent = today.checkInTime ? fTime(today.checkInTime) : '--:--';
+    document.getElementById('coTime').textContent = today.checkOutTime ? fTime(today.checkOutTime) : '--:--';
+    document.getElementById('attStatus').textContent = ts(today.status);
   }
+  div.innerHTML = '<div class="lcard">'+records.slice(0,10).map(function(r) {
+    return '<div class="litem"><span class="lic">📅</span><div class="linf"><div class="t">'+fDate(r.date)+'</div><div class="s">'+(r.workingHours ? t('wHours')+': '+r.workingHours : '—')+'</div></div>'+sbadge(r.status)+'</div>';
+  }).join('')+'</div>';
 }
 
-function createMap() {
-  if(map) { map.remove(); map = null; }
-  map = L.map('map').setView([24.7136, 46.6753], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-}
-
-function updateMap(lat, lng) {
-  if(!map) return;
-  map.setView([lat, lng], 15);
-  if(marker) marker.remove();
-  marker = L.marker([lat, lng], {
-    icon: L.divIcon({
-      html: '<div style="background:#f97316;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
-    })
-  }).addTo(map).bindPopup(lang==='ar'?'موقع السائق':'Driver Location').openPopup();
-}
-
-function toast(m,type=''){const t=document.getElementById('toast');t.textContent=m;t.className='show'+(type?' '+type:'');setTimeout(()=>t.className='',3000);}
-
-// Clock
-setInterval(function(){
-  const n=new Date();
-  const c=document.getElementById('clock');if(c)c.textContent=n.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
-  const d=document.getElementById('todayDate');if(d)d.textContent=n.toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-},1000);
-
-// ── SIGNALR REAL-TIME ──
-let signalrConn = null;
-
-async function connectSignalR() {
-  if(typeof signalR === 'undefined') {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js';
-    s.onload = startSignalR;
-    document.head.appendChild(s);
+async function doCheckIn() {
+  document.getElementById('btnCI').disabled = true;
+  var r = await apiCall('/api/employees/checkin','POST',{biometricVerified:true});
+  if(r && r.checkInTime) {
+    document.getElementById('ciTime').textContent = fTime(r.checkInTime);
+    document.getElementById('attStatus').textContent = ts(r.status);
+    toast(t('checkedIn'),'ok');
+    loadAtt();
   } else {
-    startSignalR();
+    toast(t('alreadyIn'),'');
   }
+  document.getElementById('btnCI').disabled = false;
 }
 
-function startSignalR() {
+async function doCheckOut() {
+  document.getElementById('btnCO').disabled = true;
+  var r = await apiCall('/api/employees/checkout','POST',{});
+  if(r && r.checkOutTime) {
+    document.getElementById('coTime').textContent = fTime(r.checkOutTime);
+    toast(t('checkedOut'),'ok');
+    loadAtt();
+  } else {
+    toast(t('noCI'),'');
+  }
+  document.getElementById('btnCO').disabled = false;
+}
+
+function toast(msg, type) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' '+type : '');
+  setTimeout(function() { el.className = ''; }, 3000);
+}
+
+function connectSignalR() {
+  if(typeof signalR === 'undefined') return;
   signalrConn = new signalR.HubConnectionBuilder()
-    .withUrl(API+'/hubs/trip', { accessTokenFactory: () => token })
+    .withUrl(API+'/hubs/trip', {accessTokenFactory: function() { return token; }})
     .withAutomaticReconnect()
     .build();
-
-  // Parent receives live GPS
-  signalrConn.on('LocationUpdated', (tripId, lat, lng) => {
+  signalrConn.on('LocationUpdated', function(tripId, lat, lng) {
     if(role !== 'Parent') return;
-    updateParentMap(lat, lng);
-    const s = document.getElementById('parentTripStatus');
-    if(s) s.textContent = (lang==='ar'?'موقع السائق: ':'Driver at: ') + lat.toFixed(4) + ', ' + lng.toFixed(4);
-    document.getElementById('parentMapContainer').style.display = 'block';
-    if(!parentMap) initParentMap();
+    if(!pMap) return;
+    if(pMarker) pMarker.remove();
+    pMarker = L.marker([lat,lng]).addTo(pMap).bindPopup(lang==='ar'?'موقع السائق':'Driver location').openPopup();
+    pMap.setView([lat,lng],15);
   });
-
-  signalrConn.on('TripStatusUpdated', (tripId, status) => {
-    toast(lang==='ar'?'تحديث الرحلة: '+status:'Trip update: '+status, 'ok');
-    if(page==='dtrips') loadTrips();
-    if(page==='ptrips') loadParentTrips();
-  });
-
-  signalrConn.on('ChildStatusUpdated', (tripId, childId, status) => {
-    toast(lang==='ar'?'تحديث الطفل: '+status:'Child update: '+status, 'ok');
-  });
-
-  signalrConn.start()
-    .then(() => console.log('SignalR connected'))
-    .catch(e => console.log('SignalR error:', e.message));
+  signalrConn.start().catch(function(e) { console.log('SignalR:', e.message); });
 }
 
+// Clock
+setInterval(function() {
+  var n = new Date();
+  var c = document.getElementById('clock');
+  if(c) c.textContent = n.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+  var d = document.getElementById('todayDate');
+  if(d) d.textContent = n.toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{weekday:'long',day:'numeric',month:'long'});
+}, 1000);
 
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('lAr').addEventListener('click', function() { setLang('ar'); });
+  document.getElementById('lEn').addEventListener('click', function() { setLang('en'); });
+  document.getElementById('aAr').addEventListener('click', function() { setLang('ar'); });
+  document.getElementById('aEn').addEventListener('click', function() { setLang('en'); });
+  document.getElementById('pAr').addEventListener('click', function() { setLang('ar'); });
+  document.getElementById('pEn').addEventListener('click', function() { setLang('en'); });
+  document.getElementById('btnLogout').addEventListener('click', doLogout);
+  document.getElementById('btnOut').addEventListener('click', doLogout);
+  document.getElementById('btnCI').addEventListener('click', doCheckIn);
+  document.getElementById('btnCO').addEventListener('click', doCheckOut);
+  document.getElementById('inPass').addEventListener('keydown', function(e) { if(e.key==='Enter') doLogin(); });
+  setLang(lang);
+  if(token) { role = localStorage.getItem('kms_role') || ''; initApp(); connectSignalR(); }
+});
 </script>
 </body>
 </html>
