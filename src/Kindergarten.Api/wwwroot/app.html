@@ -669,6 +669,45 @@ async function doCheckOut() {
   document.getElementById('btnCO').disabled = false;
 }
 
+
+async function loadLeave() {
+  var hoursEl = document.getElementById('monthlyHours');
+  var listEl  = document.getElementById('leaveList');
+  var ar = lang === 'ar';
+  var hours = await apiCall('/api/leave-requests/my-hours');
+  if(hours && hoursEl) {
+    hoursEl.innerHTML = (ar?'ساعات مستخدمة: ':'Used: ')+'<strong>'+hours.usedHours.toFixed(1)+'</strong>/4 '+(ar?'ساعات':'hrs')+
+      ' — '+(ar?'متبقي مجاناً: ':'Free remaining: ')+'<strong>'+hours.remainingFree.toFixed(1)+'</strong>';
+  }
+  var data = await apiCall('/api/leave-requests/my');
+  if(!data||!data.length){ listEl.innerHTML='<div class="empty"><div class="em">📋</div>'+(ar?'لا توجد طلبات':'No requests')+'</div>'; return; }
+  var sc={Pending:'bo',Approved:'bg',Rejected:'br'};
+  var sl={ar:{Pending:'معلق',Approved:'موافق عليه',Rejected:'مرفوض'},en:{Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}};
+  listEl.innerHTML='<div class="lcard">'+data.map(function(r){
+    return '<div class="litem"><span class="lic">📋</span><div class="linf"><div class="t">'+r.reason+'</div>'+
+      '<div class="s">'+r.hours.toFixed(1)+' '+(ar?'ساعة':'hrs')+(r.isPaid?'':' — '+(ar?'⚠️ خصم':'⚠️ Deduction'))+(r.adminNote?' — '+r.adminNote:'')+'</div></div>'+
+      '<span class="badge '+(sc[r.status]||'bgr')+'">'+(sl[lang][r.status]||r.status)+'</span></div>';
+  }).join('')+'</div>';
+}
+async function submitLeave() {
+  var reason = document.getElementById('leaveReason').value.trim();
+  var start  = document.getElementById('leaveStart').value;
+  var end    = document.getElementById('leaveEnd').value;
+  var ar     = lang === 'ar';
+  if(!reason||!start||!end){ toast(ar?'يرجى تعبئة جميع الحقول':'Please fill all fields','err'); return; }
+  if(new Date(end) <= new Date(start)){ toast(ar?'وقت النهاية يجب أن يكون بعد البداية':'End must be after start','err'); return; }
+  var btn = document.getElementById('btnSubmitLeave');
+  btn.disabled = true;
+  var r = await apiCall('/api/leave-requests','POST',{reason:reason,startTime:new Date(start).toISOString(),endTime:new Date(end).toISOString()});
+  if(r&&r.id){
+    toast(ar?'تم إرسال الطلب ✅':'Request submitted ✅','ok');
+    document.getElementById('leaveReason').value='';
+    document.getElementById('leaveStart').value='';
+    document.getElementById('leaveEnd').value='';
+    loadLeave();
+  } else { toast(ar?'فشل إرسال الطلب':'Failed to submit','err'); }
+  btn.disabled=false;
+}
 function loadNotifs(){
   var el=document.getElementById('lEnableNotif');
   if(el) el.textContent=lang==='ar'?'تفعيل الإشعارات':'Enable Notifications';
