@@ -304,7 +304,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div class="form-field"><label id="lbl-user-pass">كلمة المرور</label><input type="password" id="newUserPass"></div>
         <div class="form-field"><label id="lbl-user-phone">رقم الهاتف</label><input type="text" id="newUserPhone"></div>
       </div>
-      <div class="form-row full"><div class="form-field"><label id="lbl-user-role">الدور</label><select id="newUserRole"><option value="Parent" id="opt-parent">ولي أمر</option><option value="Driver" id="opt-driver">سائق</option><option value="Admin" id="opt-admin">مدير</option><option value="Employee" id="opt-employee">موظف</option></select></div></div>
+      <div class="form-row">
+        <div class="form-field"><label id="lbl-user-role">الدور</label><select id="newUserRole"><option value="Parent" id="opt-parent">ولي أمر</option><option value="Driver" id="opt-driver">سائق</option><option value="Admin" id="opt-admin">مدير</option><option value="Employee" id="opt-employee">موظف</option></select></div>
+        <div class="form-field"><label id="lbl-user-tenant">الروضة</label><select id="newUserTenant"><option value="">-- اختر الروضة --</option></select></div>
+      </div>
       <button class="btn btn-primary" id="btn-reg-user" onclick="registerUser()">تسجيل المستخدم</button>
     </div>
     <div class="section-header"><div><h3 id="h-all-users">المستخدمون</h3><p id="users-count">جاري التحميل...</p></div></div>
@@ -335,6 +338,51 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     </div>
     <div id="tenants-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem"></div>
     <div class="table-card"><div id="tenants-table"><div class="loading"><div class="spinner"></div></div></div></div>
+  </div>
+
+<!-- Edit Tenant Modal -->
+  <div class="modal-overlay" id="editTenantModal">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header">
+        <h3>تعديل بيانات الروضة</h3>
+        <button class="modal-close" onclick="closeModal('editTenantModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editTenantId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem">اسم الروضة (عربي)</label>
+            <input type="text" id="editTenantNameAr" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem">Name (English)</label>
+            <input type="text" id="editTenantNameEn" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.8rem">
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem">المدينة</label>
+            <input type="text" id="editTenantCity" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem">الهاتف</label>
+            <input type="text" id="editTenantPhone" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+        </div>
+        <div style="margin-top:0.8rem">
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem;display:block">الباقة</label>
+          <select id="editTenantPlan" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+            <option value="Basic">Basic — حتى 50 طفل</option>
+            <option value="Pro">Pro — حتى 200 طفل</option>
+            <option value="Enterprise">Enterprise — غير محدود</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('editTenantModal')">إلغاء</button>
+        <button class="btn btn-primary" onclick="updateTenant()">💾 حفظ التعديلات</button>
+      </div>
+    </div>
   </div>
 
 <!-- Add Tenant Modal -->
@@ -731,7 +779,8 @@ function showPage(page){
   document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
-  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants};
+  async function loadUsersPage(){await loadUsers();await loadTenantsDropdown();}
+const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsersPage,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -918,6 +967,7 @@ async function loadTenants(){
       '<td><strong>'+(t.usersCount||0)+'</strong></td>'+
       '<td><span class="badge '+(t.isActive?'badge-green':'badge-gray')+'">'+(t.isActive?(ar?'نشط':'Active'):(ar?'موقوف':'Inactive'))+'</span></td>'+
       '<td><div style="display:flex;gap:0.4rem">'+
+        '<button class="icon-btn" onclick="openEditTenantModal('+t.id+')" title="تعديل">✏️</button>'+
         '<button class="icon-btn icon-btn-edit" onclick="toggleTenant('+t.id+')" title="'+(t.isActive?(ar?'إيقاف':'Deactivate'):(ar?'تفعيل':'Activate'))+'">'+
           (t.isActive?'⏸️':'▶️')+
         '</button>'+
@@ -1432,11 +1482,42 @@ async function confirmDeleteUser(){
   }
 }
 
+async function openEditTenantModal(id){
+  const tenant=await api('/api/tenants/'+id);
+  if(!tenant)return;
+  document.getElementById('editTenantId').value=tenant.id;
+  document.getElementById('editTenantNameAr').value=tenant.nameAr||'';
+  document.getElementById('editTenantNameEn').value=tenant.nameEn||'';
+  document.getElementById('editTenantCity').value=tenant.city||'';
+  document.getElementById('editTenantPhone').value=tenant.phone||'';
+  document.getElementById('editTenantPlan').value=tenant.plan||'Basic';
+  openModal('editTenantModal');
+}
+async function updateTenant(){
+  const id=document.getElementById('editTenantId').value;
+  const body={
+    nameAr:document.getElementById('editTenantNameAr').value,
+    nameEn:document.getElementById('editTenantNameEn').value,
+    city:document.getElementById('editTenantCity').value,
+    phone:document.getElementById('editTenantPhone').value,
+    plan:document.getElementById('editTenantPlan').value,
+    isActive:true
+  };
+  const result=await api('/api/tenants/'+id,'PUT',body);
+  if(result?.id){showToast('✅ تم تحديث بيانات الروضة','success');closeModal('editTenantModal');loadTenants();}
+  else showToast('❌ فشل التحديث','error');
+}
+async function loadTenantsDropdown(){
+  const tenants=await api('/api/tenants');
+  const sel=document.getElementById('newUserTenant');
+  if(tenants&&sel){sel.innerHTML='<option value="">-- اختر الروضة --</option>'+tenants.map(t=>`<option value="${t.id}">${t.nameAr}</option>`).join('');}
+}
 async function registerUser(){
   const fullName=document.getElementById('newUserName').value;const email=document.getElementById('newUserEmail').value;
   const password=document.getElementById('newUserPass').value;const phoneNumber=document.getElementById('newUserPhone').value;const roleType=document.getElementById('newUserRole').value;
   if(!fullName||!email||!password){showToast(t('err.fill'),'error');return;}
-  const result=await api('/api/auth/register','POST',{fullName,email,password,phoneNumber,roleType});
+  const tenantId=parseInt(document.getElementById('newUserTenant').value)||1;
+  const result=await api('/api/auth/register','POST',{fullName,email,password,phoneNumber,roleType,tenantId});
   if(result?.token){showToast('✅ '+t('succ.user'),'success');loadUsers();}
   else showToast(result?.message||t('err.failed'),'error');
 }
