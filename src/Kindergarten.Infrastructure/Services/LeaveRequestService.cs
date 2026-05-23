@@ -86,7 +86,9 @@ public class LeaveRequestService : ILeaveRequestService
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
-        return await Task.WhenAll(requests.Select(MapAsync));
+        var results = new List<LeaveRequestResponseDto>();
+        foreach(var r in requests) results.Add(await MapAsync(r));
+        return results;
     }
 
     public async Task<IEnumerable<LeaveRequestResponseDto>> GetAllAsync()
@@ -96,7 +98,9 @@ public class LeaveRequestService : ILeaveRequestService
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
-        return await Task.WhenAll(requests.Select(MapAsync));
+        var results = new List<LeaveRequestResponseDto>();
+        foreach(var r in requests) results.Add(await MapAsync(r));
+        return results;
     }
 
     public async Task<LeaveRequestResponseDto?> ReviewAsync(int id, ReviewLeaveRequestDto dto, string adminId)
