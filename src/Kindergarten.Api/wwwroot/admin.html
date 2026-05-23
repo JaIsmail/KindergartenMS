@@ -326,7 +326,61 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="table-card"><div id="attendance-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
-  <!-- Permissions Page -->
+  <!-- Tenants Page -->
+  <div class="page" id="page-tenants">
+    <div class="page-header">
+      <div><h3 id="h-tenants">إدارة الروضات</h3><p id="tenants-subtitle">إنشاء وإدارة الروضات المسجلة</p></div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addTenantModal')">➕ إضافة روضة</button>
+    </div>
+    <div id="tenants-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem"></div>
+    <div class="table-card"><div id="tenants-table"><div class="loading"><div class="spinner"></div></div></div></div>
+  </div>
+
+<!-- Add Tenant Modal -->
+  <div class="modal-overlay" id="addTenantModal">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header">
+        <h3 id="atTitle">إضافة روضة جديدة</h3>
+        <button class="modal-close" onclick="closeModal('addTenantModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem" id="atNameAr">اسم الروضة (عربي)</label>
+            <input type="text" id="inTenantNameAr" placeholder="روضة النخيل" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem" id="atNameEn">Name (English)</label>
+            <input type="text" id="inTenantNameEn" placeholder="Al Nakheel KG" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.8rem">
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem" id="atCity">المدينة</label>
+            <input type="text" id="inTenantCity" placeholder="الرياض" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem" id="atPhone">الهاتف</label>
+            <input type="text" id="inTenantPhone" placeholder="0501234567" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+        </div>
+        <div style="margin-top:0.8rem">
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem;display:block" id="atPlan">الباقة</label>
+          <select id="inTenantPlan" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+            <option value="Basic">Basic — حتى 50 طفل</option>
+            <option value="Pro">Pro — حتى 200 طفل</option>
+            <option value="Enterprise">Enterprise — غير محدود</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('addTenantModal')" id="atCancel">إلغاء</button>
+        <button class="btn btn-primary" onclick="saveTenant()" id="atSave">➕ إضافة الروضة</button>
+      </div>
+    </div>
+  </div>
+
+<!-- Permissions Page -->
   <div class="page" id="page-permissions">
     <div class="page-header">
       <div><h3 id="h-permissions">إدارة الصلاحيات</h3><p id="perm-subtitle">منح وإلغاء الصلاحيات لكل مستخدم</p></div>
@@ -676,7 +730,7 @@ function showPage(page){
   document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
-  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions};
+  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -823,6 +877,83 @@ var currentPermUser = null;
 var allPermissions = [];
 var tempUserPerms = [];
 
+async function loadTenants(){
+  const div = document.getElementById('tenants-table');
+  const stats = document.getElementById('tenants-stats');
+  div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const ar = currentLang === 'ar';
+  const data = await api('/api/tenants') || [];
+
+  // Stats
+  const active = data.filter(t=>t.isActive).length;
+  const totalChildren = data.reduce((s,t)=>s+(t.childrenCount||0),0);
+  const totalUsers = data.reduce((s,t)=>s+(t.usersCount||0),0);
+  stats.innerHTML =
+    '<div class="stat-card"><div class="stat-number">'+data.length+'</div><div class="stat-label">'+(ar?'إجمالي الروضات':'Total KGs')+'</div></div>'+
+    '<div class="stat-card"><div class="stat-number">'+totalChildren+'</div><div class="stat-label">'+(ar?'إجمالي الأطفال':'Total Children')+'</div></div>'+
+    '<div class="stat-card"><div class="stat-number">'+totalUsers+'</div><div class="stat-label">'+(ar?'إجمالي المستخدمين':'Total Users')+'</div></div>';
+
+  if(!data.length){
+    div.innerHTML = '<div class="empty"><div class="emoji">🏫</div><h4>'+(ar?'لا توجد روضات':'No kindergartens found')+'</h4></div>';
+    return;
+  }
+ const planColors = {Basic:'badge-blue', Pro:'badge-orange', Enterprise:'badge-purple'};
+
+  div.innerHTML = '<table><thead><tr>'+
+    '<th>'+(ar?'الروضة':'KG')+'</th>'+
+    '<th>'+(ar?'المدينة':'City')+'</th>'+
+    '<th>'+(ar?'الباقة':'Plan')+'</th>'+
+    '<th>'+(ar?'الأطفال':'Children')+'</th>'+
+    '<th>'+(ar?'المستخدمون':'Users')+'</th>'+
+    '<th>'+(ar?'الحالة':'Status')+'</th>'+
+    '<th>'+(ar?'إجراء':'Action')+'</th>'+
+  '</tr></thead><tbody>'+
+  data.map(t=>
+    '<tr>'+
+      '<td><div><div style="font-weight:700">'+( ar?t.nameAr:t.nameEn)+'</div></div></td>'+
+      '<td>'+(t.city||'—')+'</td>'+
+      '<td><span class="badge '+(planColors[t.plan]||'badge-gray')+'">'+t.plan+'</span></td>'+
+      '<td><strong>'+(t.childrenCount||0)+'</strong></td>'+
+      '<td><strong>'+(t.usersCount||0)+'</strong></td>'+
+      '<td><span class="badge '+(t.isActive?'badge-green':'badge-gray')+'">'+(t.isActive?(ar?'نشط':'Active'):(ar?'موقوف':'Inactive'))+'</span></td>'+
+      '<td><div style="display:flex;gap:0.4rem">'+
+        '<button class="icon-btn icon-btn-edit" onclick="toggleTenant('+t.id+')" title="'+(t.isActive?(ar?'إيقاف':'Deactivate'):(ar?'تفعيل':'Activate'))+'">'+
+          (t.isActive?'⏸️':'▶️')+
+        '</button>'+
+      '</div></td>'+
+    '</tr>'
+  ).join('')+
+  '</tbody></table>';
+}
+async function toggleTenant(id){
+  const result = await api('/api/tenants/'+id+'/toggle','PUT',{});
+  if(result){
+    const ar = currentLang==='ar';
+    showToast(ar?'تم تحديث حالة الروضة':'KG status updated','success');
+    loadTenants();
+  }
+}
+async function saveTenant(){
+  const ar = currentLang==='ar';
+  const nameAr = document.getElementById('inTenantNameAr').value.trim();
+  const nameEn = document.getElementById('inTenantNameEn').value.trim();
+  const city   = document.getElementById('inTenantCity').value.trim();
+  const phone  = document.getElementById('inTenantPhone').value.trim();
+  const plan   = document.getElementById('inTenantPlan').value;
+
+  if(!nameAr||!nameEn){ showToast(ar?'يرجى تعبئة الاسم':'Please fill the name','error'); return; }
+
+  const result = await api('/api/tenants','POST',{nameAr,nameEn,city,phone,plan});
+  if(result && result.id){
+    showToast(ar?'تمت إضافة الروضة ✅':'KG added ✅','success');
+    closeModal('addTenantModal');
+    loadTenants();
+    // Clear fields
+    ['inTenantNameAr','inTenantNameEn','inTenantCity','inTenantPhone'].forEach(id=>{
+      document.getElementById(id).value='';
+    });
+  }
+}
 async function loadPermissions(){
   const div = document.getElementById('permissions-table');
   div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
