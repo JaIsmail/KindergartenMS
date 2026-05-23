@@ -76,7 +76,8 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.Email,          user.Email!),
             new Claim(ClaimTypes.Name,           user.FullName),
             new Claim(ClaimTypes.Role,           role),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("TenantId", user.TenantId.ToString())
         };
 
         var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes((_config["Jwt__Key"] ?? _config["Jwt:Key"])!));
@@ -98,6 +99,7 @@ public class AuthService : IAuthService
             Email    = user.Email!,
             FullName = user.FullName,
             Role     = role,
+            TenantId = user.TenantId,
             Expiry   = expiry
         };
     }

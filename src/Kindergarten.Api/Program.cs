@@ -115,6 +115,7 @@ app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAuthentication();
+app.UseMiddleware<Kindergarten.Api.Middleware.TenantMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 
