@@ -114,6 +114,32 @@ body{font-family:Arial,sans-serif;background:var(--bg);color:var(--t);min-height
 #toast.ok{background:#16a34a;}
 #toast.err{background:var(--r);}
 @keyframes spin{to{transform:rotate(360deg);}}
+
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.drawer-overlay.open{opacity:1;pointer-events:all;}
+.drawer{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:white;z-index:201;transition:right 0.3s;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,0.15);}
+html[lang="en"] .drawer{right:auto;left:-280px;}
+.drawer.open{right:0;}
+html[lang="en"] .drawer.open{left:0;right:auto;}
+.drawer-header{background:var(--p);padding:2rem 1.2rem 1.2rem;color:white;}
+.drawer-av{width:56px;height:56px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;margin-bottom:0.8rem;}
+.drawer-name{font-size:1rem;font-weight:800;}
+.drawer-email{font-size:0.75rem;opacity:0.8;direction:ltr;}
+.drawer-role{display:inline-block;background:rgba(255,255,255,0.2);padding:0.2rem 0.6rem;border-radius:50px;font-size:0.72rem;margin-top:0.4rem;}
+.drawer-items{flex:1;overflow-y:auto;padding:0.5rem 0;}
+.drawer-item{display:flex;align-items:center;gap:0.8rem;padding:0.9rem 1.2rem;cursor:pointer;transition:background 0.15s;border:none;background:none;width:100%;font-family:inherit;}
+.drawer-item:hover{background:#f8fafc;}
+.drawer-item.active{background:#fff7ed;}
+.drawer-item .di{font-size:1.3rem;width:28px;text-align:center;}
+.drawer-item .dt{font-size:0.9rem;font-weight:600;color:var(--t);}
+.drawer-item.active .dt{color:var(--p);}
+.drawer-divider{height:1px;background:var(--b);margin:0.3rem 0;}
+.drawer-footer{padding:1rem 1.2rem;border-top:1px solid var(--b);}
+.menu-btn{background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:1.2rem;}
+.notif-card{background:white;border-radius:12px;padding:1rem;margin-bottom:0.8rem;box-shadow:0 2px 6px rgba(0,0,0,0.06);display:flex;align-items:flex-start;gap:0.8rem;}
+.notif-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.notif-txt .t{font-size:0.85rem;font-weight:700;}
+.notif-txt .s{font-size:0.75rem;color:var(--t3);margin-top:0.2rem;}
 </style>
 </head>
 <body>
@@ -141,6 +167,20 @@ body{font-family:Arial,sans-serif;background:var(--bg);color:var(--t);min-height
 </div>
 
 <!-- APP -->
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-av" id="dAv">?</div>
+    <div class="drawer-name" id="dName"></div>
+    <div class="drawer-email" id="dEmail"></div>
+    <div class="drawer-role" id="dRole"></div>
+  </div>
+  <div class="drawer-items" id="drawerItems"></div>
+  <div class="drawer-footer">
+    <button class="btn btn-out" id="dLogout" style="margin:0">🚪 تسجيل الخروج</button>
+  </div>
+</div>
 <div id="appScreen" class="hidden">
   <div class="topbar">
     <h2 id="tbTitle">KMS</h2>
@@ -149,12 +189,30 @@ body{font-family:Arial,sans-serif;background:var(--bg);color:var(--t);min-height
         <button id="aAr" class="on">AR</button>
         <button id="aEn">EN</button>
       </div>
-      <button class="top-btn" id="btnLogout">🚪</button>
+      <button class="menu-btn" id="menuBtn">☰</button>
     </div>
   </div>
 
   <div class="content">
     <!-- HOME (Parent) -->
+    <div class="page" id="pg-notifs">
+      <div class="stitle" id="sNotifs">الإشعارات</div>
+      <div id="notifsList">
+        <div class="notif-card">
+          <div class="notif-ic" style="background:#dcfce7">✅</div>
+          <div class="notif-txt"><div class="t" id="n1t">تم استلام الطفل</div><div class="s" id="n1b">طفلك في أمان مع السائق</div></div>
+        </div>
+        <div class="notif-card">
+          <div class="notif-ic" style="background:#dbeafe">🚌</div>
+          <div class="notif-txt"><div class="t" id="n2t">بدأت الرحلة</div><div class="s" id="n2b">السائق في الطريق إليكم</div></div>
+        </div>
+        <div class="notif-card">
+          <div class="notif-ic" style="background:#fff7ed">⏰</div>
+          <div class="notif-txt"><div class="t" id="n3t">تنبيه انتهاء الاشتراك</div><div class="s" id="n3b">اشتراكك ينتهي خلال 7 أيام</div></div>
+        </div>
+      </div>
+      <button class="btn btn-p" onclick="initFCM()" style="margin-top:0.8rem">🔔 <span id="lEnableNotif">تفعيل الإشعارات</span></button>
+    </div>
     <div class="page on" id="pg-home">
       <div class="hero"><h2 id="wHi">مرحباً 👋</h2><p id="wName"></p></div>
       <div class="stats">
@@ -395,6 +453,7 @@ function initApp() {
   document.getElementById('pAv').textContent = name ? name[0].toUpperCase() : '?';
   document.getElementById('pRole').innerHTML = '<span class="badge bb">'+tr(role)+'</span>';
   setLang(lang);
+  buildDrawer();
   if(role === 'Driver') showPage('dtrips');
   else if(role === 'Employee') showPage('att');
   else showPage('home');
@@ -435,7 +494,7 @@ function showPage(p) {
   var pgTitles = {home:t('home'),subs:t('subs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
   document.getElementById('tbTitle').textContent = pgTitles[p] || 'KMS';
   buildNav();
-  var loaders = {home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt};
+  var loaders = {home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt,notifs:loadNotifs};
   if(loaders[p]) loaders[p]();
 }
 
@@ -590,6 +649,19 @@ async function doCheckOut() {
   document.getElementById('btnCO').disabled = false;
 }
 
+function loadNotifs(){
+  var el=document.getElementById('lEnableNotif');
+  if(el) el.textContent=lang==='ar'?'تفعيل الإشعارات':'Enable Notifications';
+  var sn=document.getElementById('sNotifs');
+  if(sn) sn.textContent=lang==='ar'?'الإشعارات':'Notifications';
+  var n1t=document.getElementById('n1t'); if(n1t) n1t.textContent=lang==='ar'?'تم استلام الطفل':'Child Picked Up';
+  var n1b=document.getElementById('n1b'); if(n1b) n1b.textContent=lang==='ar'?'طفلك في أمان مع السائق':'Your child is safe with the driver';
+  var n2t=document.getElementById('n2t'); if(n2t) n2t.textContent=lang==='ar'?'بدأت الرحلة':'Trip Started';
+  var n2b=document.getElementById('n2b'); if(n2b) n2b.textContent=lang==='ar'?'السائق في الطريق إليكم':'Driver is on the way';
+  var n3t=document.getElementById('n3t'); if(n3t) n3t.textContent=lang==='ar'?'تنبيه انتهاء الاشتراك':'Subscription Expiry';
+  var n3b=document.getElementById('n3b'); if(n3b) n3b.textContent=lang==='ar'?'اشتراكك ينتهي خلال 7 أيام':'Your subscription expires in 7 days';
+}
+
 function toast(msg, type) {
   var el = document.getElementById('toast');
   el.textContent = msg;
@@ -664,6 +736,39 @@ function initFCM() {
   } catch(e){ console.log('FCM init error:',e.message); }
 }
 
+
+function openDrawer(){
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+function buildDrawer(){
+  var name=localStorage.getItem('kms_name')||'';
+  var email=localStorage.getItem('kms_email')||'';
+  var dAv=document.getElementById('dAv'); if(dAv) dAv.textContent=name?name[0].toUpperCase():'?';
+  var dName=document.getElementById('dName'); if(dName) dName.textContent=name;
+  var dEmail=document.getElementById('dEmail'); if(dEmail) dEmail.textContent=email;
+  var dRole=document.getElementById('dRole'); if(dRole) dRole.textContent=tr(role);
+  var allItems=[
+    {id:'home',   i:'🏠', l:t('home'),       roles:['Parent','Admin']},
+    {id:'ptrips', i:'🚌', l:t('childTrips'), roles:['Parent','Admin']},
+    {id:'subs',   i:'💳', l:t('subs'),       roles:['Parent','Admin']},
+    {id:'dtrips', i:'🚌', l:t('myTrips'),    roles:['Driver']},
+    {id:'att',    i:'⏰', l:t('att'),        roles:['Employee']},
+    {id:'notifs', i:'🔔', l:lang==='ar'?'الإشعارات':'Notifications', roles:['Parent','Driver','Employee','Admin']},
+    {id:'profile',i:'👤', l:t('profile'),    roles:['Parent','Driver','Employee','Admin']},
+  ];
+  var items=allItems.filter(function(x){return x.roles.indexOf(role)!==-1;});
+  var di=document.getElementById('drawerItems');
+  if(di) di.innerHTML=items.map(function(item){
+    return '<button class="drawer-item'+(page===item.id?' active':'')+'" onclick="showPage(''+item.id+'');closeDrawer()">'+
+      '<span class="di">'+item.i+'</span><span class="dt">'+item.l+'</span></button>'+
+      '<div class="drawer-divider"></div>';
+  }).join('');
+}
 setInterval(function() {
   var n = new Date();
   var c = document.getElementById('clock');
