@@ -561,7 +561,9 @@ async function loadDTrips() {
       '<div class="thead"><h4>'+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+' #'+tr.id+'</h4>'+sbadge(tr.status)+'</div>'+
       '<div class="tmeta">📅 '+fDate(tr.date)+(tr.startTime?' • ▶️ '+fTime(tr.startTime):'')+'</div>'+
       tr.children.map(function(c) {
-        return '<div class="crow"><span>👤 '+c.childName+'</span><span>'+sbadge(c.pickupStatus)+' '+sbadge(c.dropoffStatus)+'</span></div>';
+        return '<div class="crow"><span>👤 '+c.childName+'</span><span>'+
+        (tr.direction==='ToKindergarten' ? sbadge(c.pickupStatus) : sbadge(c.dropoffStatus))+
+      '</span></div>';
       }).join('')+
       (tr.status==='Created'?'<button class="btn btn-p" onclick="startTrip('+tr.id+')">'+t('startTrip')+'</button>':'')+
     '</div>';
