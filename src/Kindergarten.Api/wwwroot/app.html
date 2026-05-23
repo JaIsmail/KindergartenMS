@@ -197,20 +197,7 @@ html[lang="en"] .drawer.open{left:0;right:auto;}
     <!-- HOME (Parent) -->
     <div class="page" id="pg-notifs">
       <div class="stitle" id="sNotifs">الإشعارات</div>
-      <div id="notifsList">
-        <div class="notif-card">
-          <div class="notif-ic" style="background:#dcfce7">✅</div>
-          <div class="notif-txt"><div class="t" id="n1t">تم استلام الطفل</div><div class="s" id="n1b">طفلك في أمان مع السائق</div></div>
-        </div>
-        <div class="notif-card">
-          <div class="notif-ic" style="background:#dbeafe">🚌</div>
-          <div class="notif-txt"><div class="t" id="n2t">بدأت الرحلة</div><div class="s" id="n2b">السائق في الطريق إليكم</div></div>
-        </div>
-        <div class="notif-card">
-          <div class="notif-ic" style="background:#fff7ed">⏰</div>
-          <div class="notif-txt"><div class="t" id="n3t">تنبيه انتهاء الاشتراك</div><div class="s" id="n3b">اشتراكك ينتهي خلال 7 أيام</div></div>
-        </div>
-      </div>
+      <div id="notifsList"></div>
       <button class="btn btn-p" onclick="initFCM()" style="margin-top:0.8rem">🔔 <span id="lEnableNotif">تفعيل الإشعارات</span></button>
     </div>
     <div class="page on" id="pg-home">
@@ -709,16 +696,54 @@ async function submitLeave() {
   btn.disabled=false;
 }
 function loadNotifs(){
-  var el=document.getElementById('lEnableNotif');
-  if(el) el.textContent=lang==='ar'?'تفعيل الإشعارات':'Enable Notifications';
-  var sn=document.getElementById('sNotifs');
-  if(sn) sn.textContent=lang==='ar'?'الإشعارات':'Notifications';
-  var n1t=document.getElementById('n1t'); if(n1t) n1t.textContent=lang==='ar'?'تم استلام الطفل':'Child Picked Up';
-  var n1b=document.getElementById('n1b'); if(n1b) n1b.textContent=lang==='ar'?'طفلك في أمان مع السائق':'Your child is safe with the driver';
-  var n2t=document.getElementById('n2t'); if(n2t) n2t.textContent=lang==='ar'?'بدأت الرحلة':'Trip Started';
-  var n2b=document.getElementById('n2b'); if(n2b) n2b.textContent=lang==='ar'?'السائق في الطريق إليكم':'Driver is on the way';
-  var n3t=document.getElementById('n3t'); if(n3t) n3t.textContent=lang==='ar'?'تنبيه انتهاء الاشتراك':'Subscription Expiry';
-  var n3b=document.getElementById('n3b'); if(n3b) n3b.textContent=lang==='ar'?'اشتراكك ينتهي خلال 7 أيام':'Your subscription expires in 7 days';
+  var ar = lang === 'ar';
+  var sn = document.getElementById('sNotifs');
+  if(sn) sn.textContent = ar?'الإشعارات':'Notifications';
+  var el = document.getElementById('lEnableNotif');
+  if(el) el.textContent = ar?'تفعيل الإشعارات':'Enable Notifications';
+
+  var list = document.getElementById('notifsList');
+  if(!list) return;
+
+// Role-based notification tips
+  var items = [];
+
+  if(role === 'Parent') {
+    items = [
+      {ic:'🚌', bg:'#dbeafe', t:ar?'رحلات الأطفال':'Children Trips',     b:ar?'ستصلك إشعارات عند بدء وانتهاء رحلات أطفالك':'You will be notified when trips start and end'},
+      {ic:'✅', bg:'#dcfce7', t:ar?'استلام الأطفال':'Child Pickup',        b:ar?'إشعار فوري عند استلام طفلك من المنزل':'Instant alert when your child is picked up'},
+      {ic:'⏰', bg:'#fff7ed', t:ar?'انتهاء الاشتراك':'Subscription Expiry',b:ar?'تنبيه قبل 7 و 3 أيام من انتهاء الاشتراك':'Alert 7 and 3 days before subscription expires'},
+    ];
+  } else if(role === 'Driver') {
+    items = [
+      {ic:'🚌', bg:'#dbeafe', t:ar?'رحلات جديدة':'New Trips',         b:ar?'إشعار عند تعيينك لرحلة جديدة':'Notification when assigned to a new trip'},
+      {ic:'📍', bg:'#dcfce7', t:ar?'تتبع GPS':'GPS Tracking',          b:ar?'يتم إرسال موقعك تلقائياً أثناء الرحلة':'Your location is sent automatically during trips'},
+      {ic:'👶', bg:'#fff7ed', t:ar?'حالة الأطفال':'Child Status',       b:ar?'تأكيد استلام وتوصيل كل طفل':'Confirm pickup and dropoff of each child'},
+    ];
+  } else if(role === 'Employee') {
+    items = [
+      {ic:'✅', bg:'#dcfce7', t:ar?'الحضور والانصراف':'Attendance',      b:ar?'تأكيد تسجيل الحضور والانصراف':'Confirmation of check-in and check-out'},
+      {ic:'📋', bg:'#dbeafe', t:ar?'طلبات الإذن':'Leave Requests',       b:ar?'إشعار عند الموافقة أو رفض طلب إذنك':'Alert when your leave request is approved or rejected'},
+      {ic:'⚠️', bg:'#fff7ed', t:ar?'تجاوز ساعات الإذن':'Leave Hours Warning',b:ar?'تنبيه عند تجاوز 4 ساعات شهرياً':'Warning when exceeding 4 hours per month'},
+    ];
+  } else if(role === 'Admin') {
+    items = [
+      {ic:'📋', bg:'#dbeafe', t:ar?'طلبات الإذن الجديدة':'New Leave Requests', b:ar?'إشعار عند تقديم موظف لطلب إذن':'Alert when an employee submits a leave request'},
+      {ic:'💳', bg:'#dcfce7', t:ar?'الاشتراكات المنتهية':'Expiring Subscriptions',b:ar?'تنبيه بالاشتراكات التي توشك على الانتهاء':'Alert for subscriptions expiring soon'},
+     ;
+}
+
+  if(!items.length) {
+    list.innerHTML = '<div class="empty"><div class="em">🔔</div>'+(ar?'لا توجد إشعارات':'No notifications')+'</div>';
+    return;
+  }
+
+  list.innerHTML = '<div class="lcard">'+items.map(function(item){
+    return '<div class="litem">'+
+      '<div class="lic" style="width:40px;height:40px;border-radius:10px;background:'+item.bg+';display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">'+item.ic+'</div>'+
+      '<div class="linf"><div class="t">'+item.t+'</div><div class="s">'+item.b+'</div></div>'+
+    '</div>';
+  }).join('')+'</div>';
 }
 
 function toast(msg, type) {
