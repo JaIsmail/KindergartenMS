@@ -140,6 +140,28 @@ html[lang="en"] .drawer.open{left:0;right:auto;}
 .notif-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
 .notif-txt .t{font-size:0.85rem;font-weight:700;}
 .notif-txt .s{font-size:0.75rem;color:var(--t3);margin-top:0.2rem;}
+
+.leave-card{background:white;border-radius:12px;padding:0.65rem;margin-bottom:0.5rem;box-shadow:0 2px 6px rgba(0,0,0,0.06);border-right:3px solid transparent;}
+.leave-card.pending{border-color:var(--p);}
+.leave-card.approved{border-color:var(--g);}
+.leave-card.rejected{border-color:var(--r);}
+html[lang="en"] .leave-card{border-right:none;border-left:3px solid transparent;}
+html[lang="en"] .leave-card.pending{border-left-color:var(--p);}
+html[lang="en"] .leave-card.approved{border-left-color:var(--g);}
+html[lang="en"] .leave-card.rejected{border-left-color:var(--r);}
+.leave-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.3rem;}
+.leave-reason{font-size:0.85rem;font-weight:700;flex:1;margin-left:0.5rem;}
+html[lang="en"] .leave-reason{margin-left:0;margin-right:0.5rem;}
+.leave-meta{display:grid;grid-template-columns:1fr 1fr;gap:0.25rem;margin-top:0.35rem;}
+.meta-item{display:flex;flex-direction:column;}
+.meta-label{font-size:0.62rem;color:var(--t3);font-weight:600;}
+.meta-value{font-size:0.75rem;color:var(--t2);font-weight:600;}
+.leave-footer{display:flex;justify-content:space-between;align-items:center;margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid #f8fafc;font-size:0.7rem;}
+.admin-note{color:var(--t3);font-style:italic;}
+.deduct-warn{color:var(--r);font-weight:700;}
+.hours-card-dark{background:var(--dark);border-radius:14px;padding:1rem;margin-bottom:1rem;color:white;}
+.hours-bar-w{height:6px;background:rgba(255,255,255,0.15);border-radius:50px;overflow:hidden;margin:0.5rem 0;}
+.hours-fill-w{height:100%;border-radius:50px;}
 </style>
 </head>
 <body>
@@ -255,16 +277,35 @@ html[lang="en"] .drawer.open{left:0;right:auto;}
     <!-- LEAVE REQUESTS -->
     <div class="page" id="pg-leave">
       <div class="stitle" id="sLeave">طلبات الإذن</div>
-      <div id="monthlyHours" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:0.8rem;margin-bottom:1rem;font-size:0.85rem;color:#1d4ed8"></div>
+
+      <!-- Monthly hours card -->
+      <div class="hours-card-dark" id="monthlyHours">
+        <div style="font-size:0.72rem;opacity:0.6;margin-bottom:0.4rem" id="hCardTitle">ساعات الإذن هذا الشهر</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:1.6rem;font-weight:900" id="hCardNum">0h</div>
+            <div style="font-size:0.75rem;opacity:0.5" id="hCardMax">من أصل 4 ساعات مجانية</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:1.2rem">📋</div>
+            <div style="font-size:0.68rem;opacity:0.6;margin-top:0.2rem" id="hCardRemain">متبقي: 4h</div>
+          </div>
+        </div>
+        <div class="hours-bar-w">
+          <div class="hours-fill-w" id="hCardFill" style="width:0%;background:var(--p)"></div>
+        </div>
+      </div>
+ <!-- New request form -->
       <div class="lcard" style="padding:1rem;margin-bottom:1rem">
-        <div class="stitle" id="sNewLeave" style="margin-bottom:0.8rem">طلب إذن جديد</div>
-        <div class="field"><label id="lLeaveReason">السبب</label><input type="text" id="leaveReason" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none"></div>
+        <div class="stitle" id="sNewLeave" style="margin-bottom:0.8rem">📝 طلب إذن جديد</div>
+        <div class="field"><label id="lLeaveReason">السبب</label><input type="text" id="leaveReason" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none;font-family:inherit"></div>
         <div class="field" style="margin-top:0.6rem"><label id="lLeaveStart">من</label><input type="datetime-local" id="leaveStart" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none" onchange="checkLeaveHours()"></div>
         <div class="field" style="margin-top:0.6rem"><label id="lLeaveEnd">إلى</label><input type="datetime-local" id="leaveEnd" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none" onchange="checkLeaveHours()"></div>
-        <div id="leaveWarning" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:0.8rem;margin-top:0.6rem;font-size:0.82rem;color:#dc2626;font-weight:600"></div>
-        <div id="leaveInfo" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:0.8rem;margin-top:0.6rem;font-size:0.82rem;color:#16a34a;font-weight:600"></div>
+        <div id="leaveWarning" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:0.65rem;margin-top:0.6rem;font-size:0.78rem;color:#dc2626;font-weight:600;line-height:1.6"></div>
+        <div id="leaveInfo" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:0.65rem;margin-top:0.6rem;font-size:0.78rem;color:#16a34a;font-weight:600"></div>
         <button class="btn btn-p" onclick="submitLeave()" style="margin-top:0.8rem" id="btnSubmitLeave">📋 إرسال الطلب</button>
       </div>
+
       <div class="stitle" id="sMyLeaves">طلباتي</div>
       <div id="leaveList"><div class="empty"><div class="spin"></div></div></div>
     </div>
@@ -664,19 +705,38 @@ async function loadLeave() {
   var listEl  = document.getElementById('leaveList');
   var ar = lang === 'ar';
   var hours = await apiCall('/api/leave-requests/my-hours');
-  if(hours && hoursEl) {
-    hoursEl.innerHTML = (ar?'ساعات مستخدمة: ':'Used: ')+'<strong>'+hours.usedHours.toFixed(1)+'</strong>/4 '+(ar?'ساعات':'hrs')+
-      ' — '+(ar?'متبقي مجاناً: ':'Free remaining: ')+'<strong>'+hours.remainingFree.toFixed(1)+'</strong>';
+  if(hours) {
+    var pct=Math.min((hours.usedHours/4)*100,100);
+    var fillColor=hours.usedHours>=4?'var(--r)':'var(--p)';
+    var numEl=document.getElementById('hCardNum'); if(numEl) numEl.textContent=hours.usedHours.toFixed(1)+'h';
+    var remEl=document.getElementById('hCardRemain'); if(remEl) remEl.textContent=(ar?'متبقي: ':'Remaining: ')+hours.remainingFree.toFixed(1)+'h';
+    var fillEl=document.getElementById('hCardFill'); if(fillEl){fillEl.style.width=pct+'%';fillEl.style.background=fillColor;}
+    var maxEl=document.getElementById('hCardMax'); if(maxEl) maxEl.textContent=(ar?'من أصل 4 ساعات مجانية':'of 4 free hours');
+    var titleEl=document.getElementById('hCardTitle'); if(titleEl) titleEl.textContent=(ar?'ساعات الإذن هذا الشهر':'Leave hours this month');
   }
   var data = await apiCall('/api/leave-requests/my');
   if(!data||!data.length){ listEl.innerHTML='<div class="empty"><div class="em">📋</div>'+(ar?'لا توجد طلبات':'No requests')+'</div>'; return; }
   var sc={Pending:'bo',Approved:'bg',Rejected:'br'};
   var sl={ar:{Pending:'معلق',Approved:'موافق عليه',Rejected:'مرفوض'},en:{Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}};
-  listEl.innerHTML='<div class="lcard">'+data.map(function(r){
-    return '<div class="litem"><span class="lic">📋</span><div class="linf"><div class="t">'+r.reason+'</div>'+
-      '<div class="s">'+r.hours.toFixed(1)+' '+(ar?'ساعة':'hrs')+(r.isPaid?'':' — '+(ar?'⚠️ خصم':'⚠️ Deduction'))+(r.adminNote?' — '+r.adminNote:'')+'</div></div>'+
-      '<span class="badge '+(sc[r.status]||'bgr')+'">'+(sl[lang][r.status]||r.status)+'</span></div>';
-  }).join('')+'</div>';
+  listEl.innerHTML=data.map(function(r){
+    var statusClass=r.status.toLowerCase();
+    var startDate=new Date(r.startTime).toLocaleDateString(ar?'ar-SA':'en-US',{month:'short',day:'numeric'});
+    var startTime=new Date(r.startTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'});
+    var endTime=new Date(r.endTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="leave-card '+statusClass+'">'+
+      '<div class="leave-head">'+
+        '<div class="leave-reason">'+r.reason+'</div>'+
+        '<span class="badge '+(sc[r.status]||'bgr')+'">'+(sl[lang][r.status]||r.status)+'</span>'+
+      '</div>'+
+      '<div class="leave-meta">'+
+        '<div class="meta-item"><span class="meta-label">'+(ar?'من':'From')+'</span><span class="meta-value">'+startDate+' '+startTime+'</span></div>'+
+        '<div class="meta-item"><span class="meta-label">'+(ar?'إلى':'To')+'</span><span class="meta-value">'+endTime+'</span></div>'+
+        '<div class="meta-item"><span class="meta-label">'+(ar?'الساعات':'Hours')+'</span><span class="meta-value"><strong>'+r.hours.toFixed(1)+'h</strong></span></div>'+
+        '<div class="meta-item"><span class="meta-label">'+(ar?'النوع':'Type')+'</span><span class="meta-value">'+(r.isPaid?'<span style="color:var(--bl);font-size:0.7rem;font-weight:700">'+(ar?'مدفوع':'Paid')+'</span>':'<span style="color:var(--r);font-size:0.7rem;font-weight:700">⚠️ '+(ar?'خصم':'Deduction')+'</span>')+'</span></div>'+
+      '</div>'+
+      (r.adminNote?'<div class="leave-footer"><span class="admin-note">💬 '+r.adminNote+'</span></div>':'')+
+    '</div>';
+  }).join('');
 }
 async function checkLeaveHours() {
   var start = document.getElementById('leaveStart').value;
