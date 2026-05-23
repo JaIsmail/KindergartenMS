@@ -1,0 +1,152 @@
+# KMS Project Notes
+
+---
+
+## Note 1: Test Notification Cycle 🟡
+- Create trip from Admin with driver + child
+- Driver starts trip → notification to parent
+- Driver picks up child → notification to parent
+- Driver ends trip → notification to parent
+- Verify notifications on browser and mobile
+
+---
+
+## Note 2: Fix Attendance Hours + Geo Restriction 🟠
+- **Problem:** system calculates from first check-in to last check-out only
+- **Required:**
+  - Calculate each check-in/check-out pair separately
+  - Sum all periods for actual total
+  - Detailed log per check-in/check-out as sub-record
+- **Geo Restriction:**
+  - Attendance only works inside kindergarten radius
+  - Admin sets location dynamically (lat, long, radius in meters)
+  - Error message if employee is outside range
+
+---
+
+## Note 3: Dynamic Lists in Admin 🟠
+- Admin can add/edit/delete:
+  - Class types (KG1, KG2, etc.)
+  - Subscription types
+  - Trip statuses
+  - Any other fixed lists in the system
+
+---
+
+## Note 4: Profile Picture + Password Update 🟡
+- In profile page (PWA + MAUI):
+  - Upload and change profile picture
+  - Change password
+
+---
+
+## Note 5: Fix onchange on DateTime Field 🟡
+- datetime-local field doesn't trigger onchange automatically on some devices
+- Solution: use onblur instead or add a confirm button
+
+---
+
+## Note 6: Flexible Permissions System 🔴
+- **Role groups:**
+  - Admin creates groups (driver, teacher, supervisor, nanny, etc.)
+  - Each group has specific permissions
+- **Assignment:**
+  - At user creation or after
+  - Group grants permissions automatically
+  - Individual permissions can be added/removed
+- **UI:** Users + Role Groups + Permissions under one section "Permissions & Roles"
+
+---
+
+## Note 7: Flexible Roles 🔴
+- Add new roles: accountant, supervisor, parent+employee
+- User can hold more than one role
+- Each role linked to a specific Tenant
+
+---
+
+## Note 8: Multi-Tenant SaaS ✅ DONE
+- Each kindergarten/school is an independent Tenant
+- User linked to a specific kindergarten
+- TenantId added to all tables
+- SuperAdmin role added
+- SuperAdmin dashboard
+- Data isolation between Tenants
+- **Completed:** Tenants table, TenantId in all tables+JWT, TenantMiddleware,
+  TenantsController, Tenants page in Admin, ITenantService+TenantService,
+  Global Query Filters in DbContext, TenantId in all Entities+Services,
+  Migrations applied, tested on Azure, pushed to GitHub
+- **Last migration:** AddTenantIdToTripChildAndLocation
+- **Git commit:** b7a55f8
+
+---
+
+## Note 9: Payment System 🟠
+- **Phase 1 (Manual):**
+  - Admin records payment manually
+  - Set amount, date, method
+  - Change subscription status to Paid
+  - Notify parent on confirmation
+  - Payments report + overdue list
+  - Alerts 7 and 3 days before due date
+- **Phase 2 (Moyasar):**
+  - Mada, STC Pay, Apple Pay
+  - Tamara, Tabby (installments)
+  - Payment link sent to parent
+  - Auto-confirmation after payment
+
+---
+
+## Note 10: VS Code Setup 🟡
+- Install: .NET 9 SDK, Azure CLI, Git
+- Install Extensions: C# Dev Kit, Azure Tools, GitLens
+- Clone repo
+- Configure local secrets
+- Run project locally
+- Deploy to Azure from VS Code
+
+---
+
+## Note 11: Group Permissions Pages 🟡
+- Merge Users + Role Groups + Permissions pages under one section in Admin
+
+---
+
+## Note 12: MAUI — Duplicate App Icon 🟢
+- Two icons appearing on device after install
+
+---
+
+## Note 13: MAUI — Language Toggle 🟢
+- Language toggle only available in login and profile pages
+- Should be accessible from all pages
+
+---
+
+## Note 14: MAUI — English Translation Not Working 🟢
+- Text stays in Arabic even when English is selected
+
+---
+
+## Note 15: MAUI — Logout Button Location 🟢
+- Logout button should be in the profile page
+
+---
+
+## Note 16: MAUI — Driver Map Missing 🟢
+- Driver map works in PWA but missing in MAUI
+
+---
+
+## Note 17: MAUI — Side Menu Missing 🟢
+- Side menu not implemented in MAUI (works in PWA)
+
+---
+
+## Priority Order
+| Priority | Notes |
+|----------|-------|
+| 🔴 Critical | 6, 7 |
+| 🟠 Core | 9, 2, 3 |
+| 🟡 Features | 1, 4, 5, 10, 11 |
+| 🟢 MAUI | 12, 13, 14, 15, 16, 17 |
