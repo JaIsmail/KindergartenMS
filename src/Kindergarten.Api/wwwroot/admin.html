@@ -155,6 +155,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
 .icon-btn-edit:hover{background:#dcfce7;}
 .icon-btn-delete{background:#fef2f2;color:#dc2626;}
 .icon-btn-delete:hover{background:#fee2e2;}
+.hours-bar{background:#f1f5f9;border-radius:50px;height:6px;margin-top:0.3rem;overflow:hidden;width:120px;}
+.hours-fill{height:100%;border-radius:50px;}
+.emp-modal-card{background:linear-gradient(135deg,#f97316,#ea580c);border-radius:12px;padding:1rem;margin-bottom:1rem;color:white;display:flex;align-items:center;gap:0.8rem;}
+.emp-modal-av{width:44px;height:44px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;}
 </style>
 </head>
 <body>
@@ -409,6 +413,21 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('createTripModal')" id="btnCancelTrip">إلغاء</button>
       <button class="btn btn-primary" onclick="saveCreateTrip()" id="btnSaveTrip">🚌 إنشاء الرحلة</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEAVE DETAILS MODAL -->
+<div class="modal-overlay" id="leaveDetailsModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <h3 id="ldmTitle">تفاصيل طلب الإذن</h3>
+      <button class="modal-close" onclick="closeModal('leaveDetailsModal')">✕</button>
+    </div>
+    <div id="ldmContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('leaveDetailsModal')" id="ldmClose">إغلاق</button>
+      <div id="ldmActions" style="display:flex;gap:0.5rem"></div>
     </div>
   </div>
 </div>
@@ -840,14 +859,13 @@ function renderLeaveTable(data){
       '</td>'+
       '<td>'+leaveStatusBadge(r.status)+'</td>'+
       '<td>'+startDate+'</td>'+
-      '<td>'+
+      '<td><div style="display:flex;gap:0.4rem">'+
+        '<button onclick="viewLeaveDetails('+r.id+')" class="icon-btn icon-btn-view" title="'+(ar?'تفاصيل':'Details')+'">👁️</button>'+
         (r.status==='Pending'?
-          '<div style="display:flex;gap:0.4rem">'+
-            '<button onclick="reviewLeave('+r.id+',\'Approved\')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>'+
-            '<button onclick="reviewLeave('+r.id+',\'Rejected\')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>'+
-          '</div>':
-          '<button onclick="viewLeaveDetails('+r.id+')" class="icon-btn icon-btn-view" title="'+(ar?'تفاصيل':'Details')+'">👁️</button>')+
-      '</td>'+
+          '<button onclick="reviewLeave('+r.id+',\'Approved\')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>'+
+          '<button onclick="reviewLeave('+r.id+',\'Rejected\')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>':
+          '')+
+      '</div></td>'+
     '</tr>';
   }).join('')+
   '</tbody></table>';
@@ -856,16 +874,38 @@ function renderLeaveTable(data){
 function viewLeaveDetails(id){
   const r = allLeaveRequests.find(x=>x.id===id);
   if(!r) return;
-  const ar=currentLang==='ar';
-  const msg =
-    (ar?'الموظف: ':'Employee: ')+r.employeeName+'\n'+
-    (ar?'السبب: ':'Reason: ')+r.reason+'\n'+
-    (ar?'من: ':'From: ')+new Date(r.startTime).toLocaleString(ar?'ar-SA':'en-US')+'\n'+
-    (ar?'إلى: ':'To: ')+new Date(r.endTime).toLocaleString(ar?'ar-SA':'en-US')+'\n'+
-    (ar?'الساعات: ':'Hours: ')+r.hours.toFixed(1)+'\n'+
-    (ar?'الحالة: ':'Status: ')+r.status+
-    (r.adminNote?'\n'+(ar?'ملاحظة الأدمن: ':'Admin note: ')+r.adminNote:'');
-  alert(msg);
+  const ar = currentLang==='ar';
+  const sc = {Pending:'background:#fff7ed;color:#ea580c', Approved:'background:#dcfce7;color:#16a34a', Rejected:'background:#fee2e2;color:#dc2626'};
+  const sl = {ar:{Pending:'معلق',Approved:'موافق عليه',Rejected:'مرفوض'}, en:{Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}};
+  const hoursColor = r.monthlyUsedHours>=4 ? '#dc2626' : '#16a34a';
+  const pct = Math.min((r.monthlyUsedHours/4)*100, 100);
+
+  document.getElementById('ldmTitle').textContent = ar?'تفاصيل طلب الإذن':'Leave Request Details';
+  document.getElementById('ldmClose').textContent = ar?'إغلاق':'Close';
+
+  document.getElementById('ldmContent').innerHTML =
+    '<div class="emp-modal-card">'+
+      '<div class="emp-modal-av">'+r.employeeName[0]+'</div>'+
+      '<div><div style="font-weight:800;font-size:0.95rem">'+r.employeeName+'</div>'+
+      '<div style="margin-top:0.3rem"><span class="badge" style="'+sc[r.status]+'">'+(sl[ar?'ar':'en'][r.status]||r.status)+'</span></div></div>'+
+    '</div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'السبب':'Reason')+'</span><span class="info-value" style="max-width:280px;white-space:pre-wrap">'+r.reason+'</span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'من':'From')+'</span><span class="info-value">'+new Date(r.startTime).toLocaleString(ar?'ar-SA':'en-US')+'</span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'إلى':'To')+'</span><span class="info-value">'+new Date(r.endTime).toLocaleString(ar?'ar-SA':'en-US')+'</span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'عدد الساعات':'Hours Requested')+'</span><span class="info-value"><strong>'+r.hours.toFixed(1)+'h</strong></span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'الساعات المستخدمة':'Monthly Used')+'</span>'+
+      '<span class="info-value"><div style="font-weight:700;color:'+hoursColor+'">'+r.monthlyUsedHours.toFixed(1)+'/4h</div>'+
+      '<div class="hours-bar"><div class="hours-fill" style="width:'+pct+'%;background:'+hoursColor+'"></div></div>'+
+      '<div style="font-size:0.72rem;color:'+hoursColor+';margin-top:0.2rem">'+(r.monthlyUsedHours>=4?(ar?'تجاوز الحد — خصم من الراتب':'Exceeds limit — salary deduction'):(ar?'ضمن الحد المسموح':'Within free limit'))+'</div></span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'النوع':'Type')+'</span><span class="info-value">'+(r.isPaid?'<span style="color:#16a34a;font-weight:700">✅ '+(ar?'مدفوع':'Paid')+'</span>':'<span style="color:#dc2626;font-weight:700">⚠️ '+(ar?'خصم من الراتب':'Salary Deduction')+'</span>')+'</span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'تاريخ الطلب':'Submitted')+'</span><span class="info-value">'+new Date(r.createdAt).toLocaleString(ar?'ar-SA':'en-US')+'</span></div>'+
+    (r.adminNote?'<div class="info-row"><span class="info-label">'+(ar?'ملاحظة الأدمن':'Admin Note')+'</span><span class="info-value" style="color:#f97316;font-weight:600">'+r.adminNote+'</span></div>':'');
+
+  document.getElementById('ldmActions').innerHTML = r.status==='Pending'?
+    '<button class="btn btn-primary btn-sm" style="background:#16a34a" onclick="reviewLeave('+r.id+',\'Approved\');closeModal(\'leaveDetailsModal\')">✅ '+(ar?'موافقة':'Approve')+'</button>'+
+    '<button class="btn btn-sm" style="background:#dc2626;color:white" onclick="reviewLeave('+r.id+',\'Rejected\');closeModal(\'leaveDetailsModal\')">❌ '+(ar?'رفض':'Reject')+'</button>':'';
+
+  openModal('leaveDetailsModal');
 }
 
 async function reviewLeave(id, status){
