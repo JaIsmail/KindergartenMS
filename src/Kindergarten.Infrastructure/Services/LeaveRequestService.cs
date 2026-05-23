@@ -66,8 +66,8 @@ public class LeaveRequestService : ILeaveRequestService
                 .FirstOrDefaultAsync(e => e.Id == employeeId);
             if (emp != null)
             {
-                await _notify.SendToParentAsync(
-                    emp.User.Id,
+                await _notify.SendToUserAsync(
+                    emp.UserId,
                     "تنبيه: خصم من الراتب ⚠️", "Warning: Salary Deduction ⚠️",
                     $"لقد تجاوزت حد {MonthlyFreeHours} ساعات شهرياً. هذا الإذن سيُخصم من راتبك.",
                     $"You exceeded {MonthlyFreeHours} free hours/month. This leave will be deducted from salary.",
@@ -116,8 +116,8 @@ public class LeaveRequestService : ILeaveRequestService
 
         // Notify employee
         var approved = dto.Status == "Approved";
-        await _notify.SendToParentAsync(
-            request.Employee.User.Id,
+        await _notify.SendToUserAsync(
+            request.Employee.UserId,
             approved ? "تمت الموافقة على طلبك ✅" : "تم رفض طلبك ❌",
             approved ? "Leave Request Approved ✅" : "Leave Request Rejected ❌",
             approved ? $"تمت الموافقة على إذنك. {(request.IsPaid ? "" : "سيتم خصمه من راتبك.")}"

@@ -144,7 +144,34 @@ public class NotificationService : INotificationService
         return results.Any(r => r);
     }
 
-    public async Task<bool> SendToAllParentsAsync(
+    public async Task<bool> SendToUserAsync(
+        string userId,
+        string titleAr, string titleEn,
+        string bodyAr,  string bodyEn,
+        Dictionary<string, string>? data = null)
+    {
+        var devices = await _db.UserDevices
+            .Where(d => d.UserId == userId)
+            .ToListAsync();
+
+        if (!devices.Any()) return false;
+
+        var results = await Task.WhenAll(devices.Select(device =>
+            SendToDeviceAsync(new SendNotificationDto
+            {
+                DeviceToken = device.DeviceToken,
+                TitleAr     = titleAr,
+                TitleEn     = titleEn,
+                BodyAr      = bodyAr,
+                BodyEn      = bodyEn,
+                Data        = data ?? new()
+            })
+        ));
+
+        return results.Any(r => r);
+    }
+
+ public async Task<bool> SendToAllParentsAsync(
         string titleAr, string titleEn,
         string bodyAr,  string bodyEn,
         Dictionary<string, string>? data = null)
