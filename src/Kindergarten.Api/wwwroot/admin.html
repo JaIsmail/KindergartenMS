@@ -192,6 +192,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   </div>
   <div class="nav-section">
     <div class="nav-label" data-ar="النظام" data-en="System">النظام</div>
+    <button class="nav-item" onclick="showPage('permissions')"><span class="icon">🔐</span><span data-ar="الصلاحيات" data-en="Permissions">الصلاحيات</span></button>
     <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
     <button class="nav-item" onclick="showPage('attendance')"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
     <button class="nav-item" onclick="showPage('leave')"><span class="icon">📋</span><span data-ar="طلبات الإذن" data-en="Leave Requests">طلبات الإذن</span></button>
@@ -323,6 +324,30 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       </div>
     </div>
     <div class="table-card"><div id="attendance-table"><div class="loading"><div class="spinner"></div></div></div></div>
+  </div>
+
+  <!-- Permissions Page -->
+  <div class="page" id="page-permissions">
+    <div class="page-header">
+      <div><h3 id="h-permissions">إدارة الصلاحيات</h3><p id="perm-subtitle">منح وإلغاء الصلاحيات لكل مستخدم</p></div>
+      <button class="btn btn-primary btn-sm" onclick="seedPermissions()">🌱 تهيئة الصلاحيات</button>
+    </div>
+    <div class="table-card"><div id="permissions-table"><div class="loading"><div class="spinner"></div></div></div></div>
+  </div>
+
+  <!-- User Permissions Modal -->
+  <div class="modal-overlay" id="userPermsModal">
+    <div class="modal" style="max-width:620px">
+      <div class="modal-header">
+        <h3 id="upmTitle">إدارة صلاحيات المستخدم</h3>
+        <button class="modal-close" onclick="closeModal('userPermsModal')">✕</button>
+      </div>
+      <div id="upmContent" style="padding:1.5rem;max-height:60vh;overflow-y:auto"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('userPermsModal')" id="upmClose">إلغاء</button>
+        <button class="btn btn-primary" onclick="saveUserPerms()" id="upmSave">💾 حفظ الصلاحيات</button>
+      </div>
+    </div>
   </div>
 
   <!-- Leave Requests Page -->
@@ -651,7 +676,7 @@ function showPage(page){
   document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
-  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests};
+  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -793,6 +818,131 @@ async function sendTestNotification(){
 }
 
 var allLeaveRequests = [];
+
+var currentPermUser = null;
+var allPermissions = [];
+var tempUserPerms = [];
+
+async function loadPermissions(){
+  const div = document.getElementById('permissions-table');
+  div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const ar = currentLang === 'ar';
+
+  // Load all permissions first
+  allPermissions = await api('/api/permissions') || [];
+
+  // Load users
+  const users = await api('/api/users') || [];
+  if(!users.length){
+    div.innerHTML = '<div class="empty"><div class="emoji">🔐</div><h4>'+(ar?'لا يوجد مستخدمون':'No users found')+'</h4></div>';
+    return;
+  }
+
+  const roleColors = {Admin:'badge-orange',Parent:'badge-blue',Driver:'badge-green',Employee:'badge-purple'};
+  const roleLabels = {ar:{Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف'}, en:{Admin:'Admin',Parent:'Parent',Driver:'Driver',Employee:'Employee'}};
+
+  div.innerHTML = '<table><thead><tr>'+
+    '<th>'+(ar?'المستخدم':'User')+'</th>'+
+    '<th>'+(ar?'الدور':'Role')+'</th>'+
+    '<th>'+(ar?'الصلاحيات':'Permissions')+'</th>'+
+    '<th>'+(ar?'إجراء':'Action')+'</th>'+
+  '</tr></thead><tbody>'+
+  users.map(u=>
+    '<tr>'+
+      '<td><div style="display:flex;align-items:center;gap:0.6rem">'+
+        '<div style="width:34px;height:34px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:0.85rem">'+u.fullName[0]+'</div>'+
+        '<div><div style="font-weight:700">'+u.fullName+'</div><div style="font-size:0.72rem;color:var(--text-muted)">'+u.email+'</div></div>'+
+      '</div></td>'+
+      '<td><span class="badge '+(roleColors[u.roleType]||'badge-gray')+'">'+(roleLabels[ar?'ar':'en'][u.roleType]||u.roleType)+'</span></td>'+
+      '<td><span id="pcount-'+u.id+'" style="font-weight:700;color:var(--primary)">—</span></td>'+
+      '<td><button class="icon-btn icon-btn-edit" onclick="openUserPerms(''+u.id+'',''+u.fullName+'')" title="'+(ar?'إدارة الصلاحيات':'Manage Permissions')+'">🔐</button></td>'+
+    '</tr>'
+  ).join('')+
+  '</tbody></table>';
+
+// Load permission counts
+  users.forEach(async u => {
+    const perms = await api('/api/permissions/user/'+u.id);
+    const count = perms ? perms.filter(p=>p.isGranted).length : 0;
+    const el = document.getElementById('pcount-'+u.id);
+    if(el) el.textContent = count + ' '+(ar?'صلاحية':'perms');
+  });
+}
+
+async function openUserPerms(userId, userName){
+  currentPermUser = userId;
+  const ar = currentLang === 'ar';
+  document.getElementById('upmTitle').textContent = (ar?'صلاحيات: ':'Permissions: ') + userName;
+  document.getElementById('upmClose').textContent = ar?'إلغاء':'Cancel';
+  document.getElementById('upmSave').textContent = ar?'💾 حفظ الصلاحيات':'💾 Save Permissions';
+
+  const perms = await api('/api/permissions/user/'+userId) || [];
+  tempUserPerms = perms.filter(p=>p.isGranted).map(p=>p.id);
+
+  // Group by category
+  const cats = {};
+  perms.forEach(p => {
+    if(!cats[p.category]) cats[p.category] = [];
+    cats[p.category].push(p);
+  });
+
+  let html = '';
+  Object.keys(cats).forEach(cat => {
+    html += '<div style="margin-bottom:1.2rem">'+
+      '<div style="font-size:0.75rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.6rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border)">'+cat+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">'+
+      cats[cat].map(p => {
+        const active = tempUserPerms.includes(p.id);
+        const name = ar ? p.displayNameAr : p.displayNameEn;
+        const desc = ar ? p.descriptionAr : p.descriptionEn;
+        return '<div id="pitem-'+p.id+'" style="display:flex;align-items:center;justify-content:space-between;background:'+(active?'#fff7ed':'#f8fafc')+';border-radius:10px;padding:0.6rem 0.8rem;border:1.5px solid '+(active?'#fed7aa':'transparent')+';transition:all 0.2s">'+
+          '<div><div style="font-size:0.82rem;font-weight:700">'+name+'</div>'+
+          '<div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.1rem">'+desc+'</div></div>'+
+          '<label style="position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer">'+
+            '<input type="checkbox"'+(active?' checked':'')+' style="opacity:0;width:0;height:0" onchange="toggleUserPerm('+p.id+',this.checked)">'+
+            '<span id="tslider-'+p.id+'" style="position:absolute;inset:0;background:'+(active?'var(--primary)':'#cbd5e1')+';border-radius:50px;transition:0.3s">'+
+              '<span style="position:absolute;width:16px;height:16px;background:white;border-radius:50%;top:3px;'+(active?'left:21px':'left:3px')+';transition:0.3s" id="tknob-'+p.id+'"></span>'+
+            '</span>'+
+          '</label>'+
+        '</div>';
+      }).join('')+
+      '</div></div>';
+  });
+
+document.getElementById('upmContent').innerHTML = html;
+  openModal('userPermsModal');
+}
+function toggleUserPerm(permId, checked){
+  if(checked && !tempUserPerms.includes(permId)) tempUserPerms.push(permId);
+  else if(!checked) tempUserPerms = tempUserPerms.filter(p=>p!==permId);
+
+  const item = document.getElementById('pitem-'+permId);
+  const slider = document.getElementById('tslider-'+permId);
+  const knob = document.getElementById('tknob-'+permId);
+  if(item){ item.style.background=checked?'#fff7ed':'#f8fafc'; item.style.borderColor=checked?'#fed7aa':'transparent'; }
+  if(slider) slider.style.background = checked?'var(--primary)':'#cbd5e1';
+  if(knob) knob.style.left = checked?'21px':'3px';
+}
+
+async function saveUserPerms(){
+  if(!currentPermUser) return;
+  const ar = currentLang==='ar';
+  const result = await api('/api/permissions/user/'+currentPermUser,'PUT',{permissionIds:tempUserPerms});
+  if(result){
+    showToast('✅ '+(ar?'تم حفظ الصلاحيات':'Permissions saved'),'success');
+    closeModal('userPermsModal');
+    loadPermissions();
+  }
+}
+
+async function seedPermissions(){
+  const ar = currentLang==='ar';
+  const result = await api('/api/permissions/seed','POST',{});
+  if(result){
+    showToast('✅ '+(ar?result.message:result.message),'success');
+    loadPermissions();
+  }
+}
 
 async function loadLeaveRequests(){
   const div=document.getElementById('leave-table');
