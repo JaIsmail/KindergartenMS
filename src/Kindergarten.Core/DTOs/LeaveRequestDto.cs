@@ -26,5 +26,6 @@ public class LeaveRequestResponseDto
     public string?  AdminNote    { get; set; }
     public bool     IsPaid       { get; set; }
     public DateTime CreatedAt    { get; set; }
-    public string?  ReviewedBy   { get; set; }
+    public string?  ReviewedBy      { get; set; }
+    public double   MonthlyUsedHours { get; set; }
 }

@@ -327,6 +327,25 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <div><h3 id="h-leave">طلبات الإذن</h3><p id="leave-subtitle">إدارة طلبات الإذن</p></div>
       <button class="btn btn-primary btn-sm" onclick="loadLeaveRequests()">🔄 تحديث</button>
     </div>
+    <!-- Filters -->
+    <div class="form-card" style="margin-bottom:1rem">
+      <div style="display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center">
+        <input type="text" id="filterEmployee" placeholder="اسم الموظف..." 
+               style="padding:0.4rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none;flex:1;min-width:150px"
+               oninput="filterLeaveRequests()">
+        <input type="date" id="filterDate" 
+               style="padding:0.4rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none"
+               onchange="filterLeaveRequests()">
+        <select id="filterStatus" onchange="filterLeaveRequests()"
+                style="padding:0.4rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none">
+          <option value="">كل الحالات</option>
+          <option value="Pending">معلق</option>
+          <option value="Approved">موافق عليه</option>
+          <option value="Rejected">مرفوض</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="clearLeaveFilters()">✕ مسح</button>
+      </div>
+    </div>
     <div class="table-card"><div id="leave-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
@@ -754,39 +773,99 @@ async function sendTestNotification(){
   else showToast('فشل إرسال الإشعار','error');
 }
 
+var allLeaveRequests = [];
+
 async function loadLeaveRequests(){
   const div=document.getElementById('leave-table');
   div.innerHTML='<div class="loading"><div class="spinner"></div></div>';
-  const ar=currentLang==='ar';
   const data=await api('/api/leave-requests');
+  allLeaveRequests = data || [];
+  renderLeaveTable(allLeaveRequests);
+}
+
+function filterLeaveRequests(){
+  const name   = document.getElementById('filterEmployee').value.toLowerCase();
+  const date   = document.getElementById('filterDate').value;
+  const status = document.getElementById('filterStatus').value;
+  let filtered = allLeaveRequests;
+  if(name)   filtered = filtered.filter(r=>r.employeeName.toLowerCase().includes(name));
+  if(date)   filtered = filtered.filter(r=>r.startTime.startsWith(date));
+  if(status) filtered = filtered.filter(r=>r.status===status);
+  renderLeaveTable(filtered);
+}
+
+function clearLeaveFilters(){
+  document.getElementById('filterEmployee').value='';
+  document.getElementById('filterDate').value='';
+  document.getElementById('filterStatus').value='';
+  renderLeaveTable(allLeaveRequests);
+}
+
+function renderLeaveTable(data){
+  const div=document.getElementById('leave-table');
+  const ar=currentLang==='ar';
   if(!data||!data.length){
     div.innerHTML='<div class="empty"><div class="emoji">📋</div><h4>'+(ar?'لا توجد طلبات':'No requests')+'</h4></div>';
     return;
   }
+
+  const leaveStatusBadge = (s) => {
+    const colors = {Pending:'background:#fff7ed;color:#ea580c', Approved:'background:#dcfce7;color:#16a34a', Rejected:'background:#fee2e2;color:#dc2626'};
+    const labels = {ar:{Pending:'معلق',Approved:'موافق عليه',Rejected:'مرفوض'}, en:{Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}};
+    return '<span class="badge" style="'+( colors[s]||'')+'">'+(labels[currentLang]?.[s]||s)+'</span>';
+  };
+
   div.innerHTML='<table><thead><tr>'+
     '<th>'+(ar?'الموظف':'Employee')+'</th>'+
+    '<th>'+(ar?'الساعات المستخدمة':'Used Hours')+'</th>'+
     '<th>'+(ar?'السبب':'Reason')+'</th>'+
-    '<th>'+(ar?'الساعات':'Hours')+'</th>'+
+    '<th>'+(ar?'ساعات الطلب':'Req. Hours')+'</th>'+
     '<th>'+(ar?'النوع':'Type')+'</th>'+
     '<th>'+(ar?'الحالة':'Status')+'</th>'+
+    '<th>'+(ar?'التاريخ':'Date')+'</th>'+
     '<th>'+(ar?'إجراء':'Action')+'</th>'+
   '</tr></thead><tbody>'+
-  data.map(r=>'<tr>'+
-    '<td><strong>'+r.employeeName+'</strong></td>'+
-    '<td>'+r.reason+'</td>'+
-    '<td>'+r.hours.toFixed(1)+'</td>'+
-    '<td>'+(r.isPaid?'<span class="badge badge-green">'+(ar?'مدفوع':'Paid')+'</span>':'<span class="badge badge-red">'+(ar?'خصم':'Deduction')+'</span>')+'</td>'+
-    '<td>'+statusBadge(r.status)+'</td>'+
-    '<td>'+
-      (r.status==='Pending'?
-        '<div style="display:flex;gap:0.4rem">'+
-          '<button onclick="reviewLeave('+r.id+',\'Approved\')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>'+
-          '<button onclick="reviewLeave('+r.id+',\'Rejected\')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>'+
-        '</div>':
-        '—')+
-    '</td>'+
-  '</tr>').join('')+
+  data.map(r=>{
+    const shortReason = r.reason.length > 30 ? r.reason.substring(0,30)+'...' : r.reason;
+    const startDate = new Date(r.startTime).toLocaleDateString(ar?'ar-SA':'en-US');
+    return '<tr>'+
+      '<td><strong>'+r.employeeName+'</strong></td>'+
+      '<td><span style="font-weight:700;color:'+(r.monthlyUsedHours>=4?'#dc2626':'#16a34a')+'">'+
+        (r.monthlyUsedHours||0).toFixed(1)+'/4h</span></td>'+
+      '<td title="'+r.reason+'">'+shortReason+'</td>'+
+      '<td><strong>'+r.hours.toFixed(1)+'h</strong></td>'+
+      '<td>'+(r.isPaid?
+        '<span class="badge badge-green">'+(ar?'مدفوع':'Paid')+'</span>':
+        '<span class="badge badge-red">⚠️ '+(ar?'خصم':'Deduction')+'</span>')+
+      '</td>'+
+      '<td>'+leaveStatusBadge(r.status)+'</td>'+
+      '<td>'+startDate+'</td>'+
+      '<td>'+
+        (r.status==='Pending'?
+          '<div style="display:flex;gap:0.4rem">'+
+            '<button onclick="reviewLeave('+r.id+',\'Approved\')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>'+
+            '<button onclick="reviewLeave('+r.id+',\'Rejected\')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>'+
+          '</div>':
+          '<button onclick="viewLeaveDetails('+r.id+')" class="icon-btn icon-btn-view" title="'+(ar?'تفاصيل':'Details')+'">👁️</button>')+
+      '</td>'+
+    '</tr>';
+  }).join('')+
   '</tbody></table>';
+}
+
+function viewLeaveDetails(id){
+  const r = allLeaveRequests.find(x=>x.id===id);
+  if(!r) return;
+  const ar=currentLang==='ar';
+  const msg =
+    (ar?'الموظف: ':'Employee: ')+r.employeeName+'\n'+
+    (ar?'السبب: ':'Reason: ')+r.reason+'\n'+
+    (ar?'من: ':'From: ')+new Date(r.startTime).toLocaleString(ar?'ar-SA':'en-US')+'\n'+
+    (ar?'إلى: ':'To: ')+new Date(r.endTime).toLocaleString(ar?'ar-SA':'en-US')+'\n'+
+    (ar?'الساعات: ':'Hours: ')+r.hours.toFixed(1)+'\n'+
+    (ar?'الحالة: ':'Status: ')+r.status+
+    (r.adminNote?'\n'+(ar?'ملاحظة الأدمن: ':'Admin note: ')+r.adminNote:'');
+  alert(msg);
 }
 
 async function reviewLeave(id, status){

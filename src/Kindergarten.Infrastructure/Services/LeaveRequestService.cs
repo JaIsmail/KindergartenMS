@@ -129,20 +129,26 @@ public class LeaveRequestService : ILeaveRequestService
 
         return await MapAsync(request);
     }
- private Task<LeaveRequestResponseDto> MapAsync(LeaveRequest r) =>
-        Task.FromResult(new LeaveRequestResponseDto
+
+
+    private async Task<LeaveRequestResponseDto> MapAsync(LeaveRequest r)
+    {
+        var monthlyHours = await GetMonthlyHoursAsync(r.EmployeeId);
+        return new LeaveRequestResponseDto
         {
-            Id           = r.Id,
-            EmployeeId   = r.EmployeeId,
-            EmployeeName = r.Employee?.User?.FullName ?? "",
-            Reason       = r.Reason,
-            StartTime    = r.StartTime,
-            EndTime      = r.EndTime,
-            Hours        = r.Hours,
-            Status       = r.Status,
-            AdminNote    = r.AdminNote,
-            IsPaid       = r.IsPaid,
-            CreatedAt    = r.CreatedAt,
-            ReviewedBy   = r.ReviewedBy
-        });
+            Id               = r.Id,
+            EmployeeId       = r.EmployeeId,
+            EmployeeName     = r.Employee?.User?.FullName ?? "",
+            Reason           = r.Reason,
+            StartTime        = r.StartTime,
+            EndTime          = r.EndTime,
+            Hours            = r.Hours,
+            Status           = r.Status,
+            AdminNote        = r.AdminNote,
+            IsPaid           = r.IsPaid,
+            CreatedAt        = r.CreatedAt,
+            ReviewedBy       = r.ReviewedBy,
+            MonthlyUsedHours = monthlyHours
+        };
+    }
 }
