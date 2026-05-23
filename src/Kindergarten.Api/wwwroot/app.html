@@ -259,8 +259,10 @@ html[lang="en"] .drawer.open{left:0;right:auto;}
       <div class="lcard" style="padding:1rem;margin-bottom:1rem">
         <div class="stitle" id="sNewLeave" style="margin-bottom:0.8rem">طلب إذن جديد</div>
         <div class="field"><label id="lLeaveReason">السبب</label><input type="text" id="leaveReason" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none"></div>
-        <div class="field" style="margin-top:0.6rem"><label id="lLeaveStart">من</label><input type="datetime-local" id="leaveStart" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none"></div>
-        <div class="field" style="margin-top:0.6rem"><label id="lLeaveEnd">إلى</label><input type="datetime-local" id="leaveEnd" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none"></div>
+        <div class="field" style="margin-top:0.6rem"><label id="lLeaveStart">من</label><input type="datetime-local" id="leaveStart" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none" onchange="checkLeaveHours()"></div>
+        <div class="field" style="margin-top:0.6rem"><label id="lLeaveEnd">إلى</label><input type="datetime-local" id="leaveEnd" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none" onchange="checkLeaveHours()"></div>
+        <div id="leaveWarning" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:0.8rem;margin-top:0.6rem;font-size:0.82rem;color:#dc2626;font-weight:600"></div>
+        <div id="leaveInfo" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:0.8rem;margin-top:0.6rem;font-size:0.82rem;color:#16a34a;font-weight:600"></div>
         <button class="btn btn-p" onclick="submitLeave()" style="margin-top:0.8rem" id="btnSubmitLeave">📋 إرسال الطلب</button>
       </div>
       <div class="stitle" id="sMyLeaves">طلباتي</div>
@@ -675,6 +677,47 @@ async function loadLeave() {
       '<div class="s">'+r.hours.toFixed(1)+' '+(ar?'ساعة':'hrs')+(r.isPaid?'':' — '+(ar?'⚠️ خصم':'⚠️ Deduction'))+(r.adminNote?' — '+r.adminNote:'')+'</div></div>'+
       '<span class="badge '+(sc[r.status]||'bgr')+'">'+(sl[lang][r.status]||r.status)+'</span></div>';
   }).join('')+'</div>';
+}
+async function checkLeaveHours() {
+  var start = document.getElementById('leaveStart').value;
+  var end   = document.getElementById('leaveEnd').value;
+  var warn  = document.getElementById('leaveWarning');
+  var info  = document.getElementById('leaveInfo');
+  if(!warn||!info) return;
+
+  if(!start||!end) { warn.style.display='none'; info.style.display='none'; return; }
+
+  var hours = (new Date(end) - new Date(start)) / 3600000;
+  if(hours <= 0) { warn.style.display='none'; info.style.display='none'; return; }
+
+  var ar = lang === 'ar';
+
+  // Get current monthly hours
+  var hoursData = await apiCall('/api/leave-requests/my-hours');
+  if(!hoursData) return;
+
+  var used      = hoursData.usedHours || 0;
+  var remaining = hoursData.remainingFree || 0;
+  var total     = used + hours;
+
+  if(total > 4) {
+    var deducted = total - 4;
+    var free     = hours - deducted;
+    warn.style.display = 'block';
+    info.style.display = 'none';
+    warn.innerHTML =
+      '⚠️ ' + (ar?'تحذير: تجاوز الحد المسموح':'Warning: Exceeds free limit') + '<br>' +
+      (ar?'الساعات المجانية المتبقية: ':'Free hours remaining: ') + '<strong>' + remaining.toFixed(1) + 'h</strong><br>' +
+      (ar?'ساعات هذا الطلب: ':'This request hours: ') + '<strong>' + hours.toFixed(1) + 'h</strong><br>' +
+      (ar?'سيتم خصم ':'Will deduct ') + '<strong>' + deducted.toFixed(1) + 'h</strong>' + (ar?' من راتبك':' from your salary');
+  } else {
+    warn.style.display = 'none';
+    info.style.display = 'block';
+    info.innerHTML =
+      '✅ ' + (ar?'ضمن الحد المسموح':'Within free limit') + '<br>' +
+      (ar?'الساعات المجانية المتبقية بعد الطلب: ':'Free hours remaining after request: ') +
+      '<strong>' + (remaining - hours).toFixed(1) + 'h</strong>';
+  }
 }
 async function submitLeave() {
   var reason = document.getElementById('leaveReason').value.trim();
