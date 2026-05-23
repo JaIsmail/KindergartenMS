@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
@@ -110,6 +111,24 @@ public class EmployeesController : ControllerBase
     {
         var records = await _employeeService.GetAttendanceAsync(GetUserId(), from, to);
         return Ok(records);
+    }
+
+    [HttpPost("ensure-driver/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> EnsureDriverEmployee(string userId,
+        [FromServices] Kindergarten.Infrastructure.Data.ApplicationDbContext db)
+    {
+        var existing = await db.Employees.FirstOrDefaultAsync(e => e.UserId == userId);
+        if (existing != null) return Ok(new { message = "Already exists", id = existing.Id });
+
+        var emp = new Kindergarten.Core.Entities.Employee
+        {
+            UserId   = userId,
+            Position = "Driver"
+        };
+        db.Employees.Add(emp);
+        await db.SaveChangesAsync();
+        return Ok(new { message = "Employee record created", id = emp.Id });
     }
 
     [HttpGet("profile")]

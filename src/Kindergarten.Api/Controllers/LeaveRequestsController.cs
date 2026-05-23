@@ -25,13 +25,13 @@ public class LeaveRequestsController : ControllerBase
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-    // Employee submits request
+    // Any staff member with an Employee record can submit
     [HttpPost]
-    [Authorize(Roles = "Employee")]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateLeaveRequestDto dto)
     {
         var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == GetUserId());
-        if (emp == null) return NotFound("Employee not found");
+        if (emp == null) return Forbid(); // Must have Employee record
 
         var result = await _service.CreateAsync(dto, emp.Id);
         return Ok(result);
@@ -47,9 +47,9 @@ public class LeaveRequestsController : ControllerBase
         return Ok(result);
     }
 
-    // Employee checks monthly hours used
+    // Any staff with Employee record checks hours
     [HttpGet("my-hours")]
-    [Authorize(Roles = "Employee")]
+    [Authorize]
     public async Task<IActionResult> GetMyHours()
     {
         var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == GetUserId());
