@@ -150,3 +150,20 @@
 | 🟠 Core | 9, 2, 3 |
 | 🟡 Features | 1, 4, 5, 10, 11 |
 | 🟢 MAUI | 12, 13, 14, 15, 16, 17 |
+
+---
+
+## Note 18: Add User — Missing Role Groups & Tenant Selection 🔴
+- When adding a new user, the form does not show:
+  - Role groups to be selected
+  - Tenant/entity list to assign the user to
+- Required: dropdown for role group + dropdown for tenant in the Add User form
+
+---
+
+## Note 19: Tenant Update Permission 🔴
+- After creating a tenant, there is no way to update it
+- Required:
+  - Add "Update Tenant" as a recorded permission in the permissions list
+  - This permission should be grantable to a user through their permission group
+  - Only users with this permission can edit tenant details
