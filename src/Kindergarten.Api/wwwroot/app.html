@@ -379,6 +379,7 @@ function setLang(l) {
   var btnOut = document.getElementById('btnOut');
   if(btnOut) btnOut.textContent = '🚪 ' + t('logout');
   buildNav();
+  if(typeof buildDrawer === 'function') buildDrawer();
   if(page) {
     var pgTitles = {home:t('home'),subs:t('subs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
     var tb = document.getElementById('tbTitle');
