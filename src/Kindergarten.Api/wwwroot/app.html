@@ -380,6 +380,8 @@ function setLang(l) {
   if(btnOut) btnOut.textContent = '🚪 ' + t('logout');
   buildNav();
   if(typeof buildDrawer === 'function') buildDrawer();
+  var loaderMap={home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt,notifs:loadNotifs};
+  if(page && loaderMap[page]) loaderMap[page]();
   if(page) {
     var pgTitles = {home:t('home'),subs:t('subs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
     var tb = document.getElementById('tbTitle');
