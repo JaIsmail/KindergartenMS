@@ -786,7 +786,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('aEn').addEventListener('click', function() { setLang('en'); });
   document.getElementById('pAr').addEventListener('click', function() { setLang('ar'); });
   document.getElementById('pEn').addEventListener('click', function() { setLang('en'); });
-  document.getElementById('btnLogout').addEventListener('click', doLogout);
+  var btnLogout=document.getElementById('btnLogout'); if(btnLogout) btnLogout.addEventListener('click',doLogout);
   document.getElementById('btnOut').addEventListener('click', doLogout);
   document.getElementById('btnCI').addEventListener('click', doCheckIn);
   document.getElementById('btnCO').addEventListener('click', doCheckOut);
