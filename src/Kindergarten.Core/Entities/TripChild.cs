@@ -4,6 +4,7 @@ public class TripChild
 {
     public int TripId { get; set; }
     public int ChildId { get; set; }
+    public int TenantId { get; set; } = 1;
     public string PickupStatus { get; set; } = "Pending";
     public string DropoffStatus { get; set; } = "Pending";
     public DateTime? PickupTime { get; set; }

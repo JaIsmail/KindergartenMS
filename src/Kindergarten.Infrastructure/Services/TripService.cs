@@ -9,7 +9,12 @@ namespace Kindergarten.Infrastructure.Services;
 public class TripService : ITripService
 {
     private readonly ApplicationDbContext _db;
-    public TripService(ApplicationDbContext db) => _db = db;
+    private readonly ITenantService _tenantService;
+    public TripService(ApplicationDbContext db, ITenantService tenantService)
+    {
+        _db = db;
+        _tenantService = tenantService;
+    }
 
     public async Task<TripResponseDto> CreateAsync(CreateTripDto dto)
     {
@@ -18,7 +23,8 @@ public class TripService : ITripService
             DriverId  = dto.DriverId,
             Direction = dto.Direction,
             Date      = dto.Date == default ? DateTime.UtcNow : dto.Date,
-            Status    = "Created"
+            Status    = "Created",
+            TenantId  = _tenantService.GetTenantId()
         };
         _db.Trips.Add(trip);
         await _db.SaveChangesAsync();
@@ -30,7 +36,8 @@ public class TripService : ITripService
                 TripId        = trip.Id,
                 ChildId       = childId,
                 PickupStatus  = "Pending",
-                DropoffStatus = "Pending"
+                DropoffStatus = "Pending",
+                TenantId      = _tenantService.GetTenantId()
             });
         }
         await _db.SaveChangesAsync();
@@ -98,7 +105,8 @@ public class TripService : ITripService
             TripId    = dto.TripId,
             Latitude  = dto.Latitude,
             Longitude = dto.Longitude,
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTime.UtcNow,
+            TenantId  = _tenantService.GetTenantId()
         });
         await _db.SaveChangesAsync();
         return true;

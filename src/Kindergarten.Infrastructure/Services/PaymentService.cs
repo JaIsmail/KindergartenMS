@@ -9,7 +9,12 @@ namespace Kindergarten.Infrastructure.Services;
 public class PaymentService : IPaymentService
 {
     private readonly ApplicationDbContext _db;
-    public PaymentService(ApplicationDbContext db) => _db = db;
+    private readonly ITenantService _tenantService;
+    public PaymentService(ApplicationDbContext db, ITenantService tenantService)
+    {
+        _db = db;
+        _tenantService = tenantService;
+    }
 
     public async Task<IEnumerable<PaymentResponseDto>> GetBySubscriptionAsync(int subscriptionId)
     {
@@ -33,7 +38,8 @@ public class PaymentService : IPaymentService
             SubscriptionId = dto.SubscriptionId,
             Amount         = dto.Amount,
             Method         = dto.Method,
-            PaymentDate    = DateTime.UtcNow
+            PaymentDate    = DateTime.UtcNow,
+            TenantId       = _tenantService.GetTenantId()
         };
 
         _db.Payments.Add(payment);

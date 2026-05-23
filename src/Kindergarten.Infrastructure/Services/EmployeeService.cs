@@ -9,7 +9,12 @@ namespace Kindergarten.Infrastructure.Services;
 public class EmployeeService : IEmployeeService
 {
     private readonly ApplicationDbContext _db;
-    public EmployeeService(ApplicationDbContext db) => _db = db;
+    private readonly ITenantService _tenantService;
+    public EmployeeService(ApplicationDbContext db, ITenantService tenantService)
+    {
+        _db = db;
+        _tenantService = tenantService;
+    }
 
     public async Task<IEnumerable<EmployeeResponseDto>> GetAllAsync()
     {
@@ -47,7 +52,8 @@ public class EmployeeService : IEmployeeService
         {
             UserId   = dto.UserId,
             Position = dto.Position,
-            Phone    = dto.Phone
+            Phone    = dto.Phone,
+            TenantId = _tenantService.GetTenantId()
         };
         _db.Employees.Add(employee);
         await _db.SaveChangesAsync();
@@ -68,7 +74,7 @@ public class EmployeeService : IEmployeeService
         if (existing != null && existing.CheckInTime.HasValue)
             return MapAttendance(existing, employee.Id);
 
-        var attendance = existing ?? new Attendance { EmployeeId = employee.Id, Date = today };
+        var attendance = existing ?? new Attendance { EmployeeId = employee.Id, Date = today, TenantId = _tenantService.GetTenantId() };
 
         attendance.CheckInTime = DateTime.UtcNow;
         attendance.Status      = DateTime.UtcNow.Hour >= 9 ? "Late" : "Present";

@@ -12,10 +12,12 @@ public class LeaveRequestService : ILeaveRequestService
     private readonly INotificationService  _notify;
     private const double MonthlyFreeHours = 4.0;
 
-    public LeaveRequestService(ApplicationDbContext db, INotificationService notify)
+    private readonly ITenantService _tenantService;
+    public LeaveRequestService(ApplicationDbContext db, INotificationService notify, ITenantService tenantService)
     {
-        _db     = db;
-        _notify = notify;
+        _db            = db;
+        _notify        = notify;
+        _tenantService = tenantService;
     }
 
     public async Task<double> GetMonthlyHoursAsync(int employeeId)
@@ -47,7 +49,8 @@ public class LeaveRequestService : ILeaveRequestService
             Hours      = hours,
             IsPaid     = isPaid,
             Status     = "Pending",
-            CreatedAt  = DateTime.UtcNow
+            CreatedAt  = DateTime.UtcNow,
+            TenantId   = _tenantService.GetTenantId()
         };
 
         _db.LeaveRequests.Add(request);

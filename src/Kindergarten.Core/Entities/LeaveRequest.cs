@@ -11,6 +11,7 @@ public class LeaveRequest
     public string Status      { get; set; } = "Pending"; // Pending, Approved, Rejected
     public string? AdminNote  { get; set; }
     public bool   IsPaid      { get; set; } = true; // false = deducted from salary
+    public int TenantId { get; set; } = 1;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ReviewedAt { get; set; }
     public string? ReviewedBy   { get; set; }

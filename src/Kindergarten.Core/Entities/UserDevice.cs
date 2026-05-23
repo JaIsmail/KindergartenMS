@@ -6,6 +6,7 @@ public class UserDevice
     public string UserId      { get; set; } = string.Empty;
     public string DeviceToken { get; set; } = string.Empty;
     public string Platform    { get; set; } = string.Empty; // Android, iOS
+    public int TenantId { get; set; } = 1;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation

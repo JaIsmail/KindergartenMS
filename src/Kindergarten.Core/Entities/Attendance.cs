@@ -7,6 +7,7 @@ public class Attendance
     public DateTime Date { get; set; }
     public DateTime? CheckInTime { get; set; }
     public DateTime? CheckOutTime { get; set; }
+    public int TenantId { get; set; } = 1;
     public string Status { get; set; } = "Present";
     public Employee Employee { get; set; } = null!;
 }

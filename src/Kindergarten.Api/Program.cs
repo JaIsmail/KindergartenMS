@@ -64,6 +64,8 @@ builder.Services.AddAuthentication(options =>
 });
 
 // ── Services
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<ITripService, TripService>();

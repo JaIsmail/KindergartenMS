@@ -9,7 +9,12 @@ namespace Kindergarten.Infrastructure.Services;
 public class ChildService : IChildService
 {
     private readonly ApplicationDbContext _db;
-    public ChildService(ApplicationDbContext db) => _db = db;
+    private readonly ITenantService _tenantService;
+    public ChildService(ApplicationDbContext db, ITenantService tenantService)
+    {
+        _db = db;
+        _tenantService = tenantService;
+    }
 
     public async Task<IEnumerable<ChildResponseDto>> GetAllAsync(string parentId)
     {
@@ -57,7 +62,8 @@ public class ChildService : IChildService
             BirthDate   = dto.BirthDate,
             Class       = dto.Class,
             HealthNotes = dto.HealthNotes,
-            ParentId    = parentId
+            ParentId    = parentId,
+            TenantId    = _tenantService.GetTenantId()
         };
 
         _db.Children.Add(child);
