@@ -764,7 +764,7 @@ function buildDrawer(){
   var items=allItems.filter(function(x){return x.roles.indexOf(role)!==-1;});
   var di=document.getElementById('drawerItems');
   if(di) di.innerHTML=items.map(function(item){
-    return '<button class="drawer-item'+(page===item.id?' active':'')+'" onclick="showPage(''+item.id+'');closeDrawer()">'+
+    return '<button class="drawer-item'+(page===item.id?' active':'')+'" data-pg="'+item.id+'" onclick="showPage(this.dataset.pg);closeDrawer()">'+
       '<span class="di">'+item.i+'</span><span class="dt">'+item.l+'</span></button>'+
       '<div class="drawer-divider"></div>';
   }).join('');
