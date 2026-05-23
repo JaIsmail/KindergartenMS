@@ -153,7 +153,7 @@
 
 ---
 
-## Note 18: Add User — Missing Role Groups & Tenant Selection 🔴
+## Note 18: Add User — Missing Role Groups & Tenant Selection ✅ DONE
 - When adding a new user, the form does not show:
   - Role groups to be selected
   - Tenant/entity list to assign the user to
@@ -161,7 +161,7 @@
 
 ---
 
-## Note 19: Tenant Update Permission 🔴
+## Note 19: Tenant Update Permission ✅ DONE
 - After creating a tenant, there is no way to update it
 - Required:
   - Add "Update Tenant" as a recorded permission in the permissions list
