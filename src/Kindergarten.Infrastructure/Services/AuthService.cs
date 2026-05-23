@@ -39,7 +39,8 @@ public class AuthService : IAuthService
             Email       = dto.Email,
             UserName    = dto.Email,
             PhoneNumber = dto.PhoneNumber,
-            RoleType    = dto.RoleType
+            RoleType    = dto.RoleType,
+            TenantId    = dto.TenantId
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);

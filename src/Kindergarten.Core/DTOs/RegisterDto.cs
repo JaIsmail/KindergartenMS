@@ -7,4 +7,5 @@ public class RegisterDto
     public string Password    { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string RoleType    { get; set; } = string.Empty; // Parent, Driver, Admin, Employee
+    public int    TenantId   { get; set; } = 1;
 }
