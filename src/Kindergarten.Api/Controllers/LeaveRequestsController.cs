@@ -38,7 +38,7 @@ public class LeaveRequestsController : ControllerBase
     }
 // Employee views own requests
     [HttpGet("my")]
-    [Authorize(Roles = "Employee")]
+    [Authorize]
     public async Task<IActionResult> GetMy()
     {
         var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == GetUserId());
