@@ -2,7 +2,9 @@ namespace Kindergarten.Core.Entities;
 
 public class Trip
 {
-    public int Id { get; set; }
+    public int Id       { get; set; }
+    public int? TenantId { get; set; } = 1;
+    public Tenant? Tenant { get; set; }
     public string DriverId { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public string Direction { get; set; } = string.Empty;

@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TripChild>    TripChildren  { get; set; }
     public DbSet<TripLocation>  TripLocations  { get; set; }
     public DbSet<Kindergarten.Core.Entities.LeaveRequest>   LeaveRequests   { get; set; }
+    public DbSet<Kindergarten.Core.Entities.Tenant>      Tenants         { get; set; }
     public DbSet<Kindergarten.Core.Entities.Permission>     Permissions     { get; set; }
     public DbSet<Kindergarten.Core.Entities.UserPermission> UserPermissions { get; set; }
     public DbSet<Employee>     Employees     { get; set; }
@@ -26,6 +27,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
+        // Tenant - TenantId is plain filter column, no FK
+        builder.Entity<Kindergarten.Core.Entities.ApplicationUser>().Ignore(e => e.Tenant);
+        builder.Entity<Kindergarten.Core.Entities.Child>().Ignore(e => e.Tenant);
+        builder.Entity<Kindergarten.Core.Entities.Trip>().Ignore(e => e.Tenant);
+        builder.Entity<Kindergarten.Core.Entities.Employee>().Ignore(e => e.Tenant);
+        builder.Entity<Kindergarten.Core.Entities.Subscription>().Ignore(e => e.Tenant);
         // TripChild — composite primary key
         builder.Entity<TripChild>()
             .HasKey(tc => new { tc.TripId, tc.ChildId });
