@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Kindergarten.Api.Hubs;
 using Kindergarten.Core.DTOs;
@@ -15,14 +16,17 @@ public class TripsController : ControllerBase
 {
     private readonly ITripService            _tripService;
     private readonly IHubContext<TripHub>    _hub;
-    private readonly INotificationService   _notify;
+    private readonly INotificationService    _notify;
+    private readonly Kindergarten.Infrastructure.Data.ApplicationDbContext _db;
 
     public TripsController(
         ITripService          tripService,
         IHubContext<TripHub>  hub,
-        INotificationService  notify)
+        INotificationService  notify,
+        Kindergarten.Infrastructure.Data.ApplicationDbContext db)
     {
         _tripService = tripService;
+        _db          = db;
         _hub         = hub;
         _notify      = notify;
     }
@@ -52,6 +56,38 @@ public class TripsController : ControllerBase
         var trip = await _tripService.GetByIdAsync(id);
         if (trip == null) return NotFound();
         return Ok(trip);
+    }
+
+    [HttpPost("fix-pending")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> FixPendingStatuses()
+    {
+        var trips = await _db.Trips
+            .Include(t => t.TripChildren)
+            .Where(t => t.Status == "Completed")
+            .ToListAsync();
+
+        int fixed_count = 0;
+        foreach (var trip in trips)
+        {
+            foreach (var tc in trip.TripChildren)
+            {
+                if (trip.Direction == "ToKindergarten" && tc.PickupStatus == "Pending")
+                {
+                    tc.PickupStatus = "PickedUp";
+                    tc.PickupTime   = trip.EndTime ?? DateTime.UtcNow;
+                    fixed_count++;
+                }
+                if (trip.Direction == "FromKindergarten" && tc.DropoffStatus == "Pending")
+                {
+                    tc.DropoffStatus = "DroppedOff";
+                    tc.DropoffTime   = trip.EndTime ?? DateTime.UtcNow;
+                    fixed_count++;
+                }
+            }
+        }
+        await _db.SaveChangesAsync();
+        return Ok(new { message = $"Fixed {fixed_count} pending statuses" });
     }
 
     [HttpGet("parent")]
