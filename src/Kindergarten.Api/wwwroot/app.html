@@ -265,6 +265,21 @@ html[lang="en"] .drawer.open{left:0;right:auto;}
       <div id="attList"><div class="empty"><div class="spin"></div></div></div>
     </div>
 
+    <!-- LEAVE REQUESTS -->
+    <div class="page" id="pg-leave">
+      <div class="stitle" id="sLeave">طلبات الإذن</div>
+      <div id="monthlyHours" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:0.8rem;margin-bottom:1rem;font-size:0.85rem;color:#1d4ed8"></div>
+      <div class="lcard" style="padding:1rem;margin-bottom:1rem">
+        <div class="stitle" id="sNewLeave" style="margin-bottom:0.8rem">طلب إذن جديد</div>
+        <div class="field"><label id="lLeaveReason">السبب</label><input type="text" id="leaveReason" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none"></div>
+        <div class="field" style="margin-top:0.6rem"><label id="lLeaveStart">من</label><input type="datetime-local" id="leaveStart" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none"></div>
+        <div class="field" style="margin-top:0.6rem"><label id="lLeaveEnd">إلى</label><input type="datetime-local" id="leaveEnd" style="width:100%;padding:0.6rem;border:1.5px solid var(--b);border-radius:8px;font-size:0.85rem;outline:none"></div>
+        <button class="btn btn-p" onclick="submitLeave()" style="margin-top:0.8rem" id="btnSubmitLeave">📋 إرسال الطلب</button>
+      </div>
+      <div class="stitle" id="sMyLeaves">طلباتي</div>
+      <div id="leaveList"><div class="empty"><div class="spin"></div></div></div>
+    </div>
+
     <!-- PROFILE -->
     <div class="page" id="pg-profile">
       <div class="pcard">
@@ -380,7 +395,7 @@ function setLang(l) {
   if(btnOut) btnOut.textContent = '🚪 ' + t('logout');
   buildNav();
   if(typeof buildDrawer === 'function') buildDrawer();
-  var loaderMap={home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt,notifs:loadNotifs};
+  var loaderMap={home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt,notifs:loadNotifs,leave:loadLeave};
   if(page && loaderMap[page]) loaderMap[page]();
   if(page) {
     var pgTitles = {home:t('home'),subs:t('subs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
@@ -497,7 +512,7 @@ function showPage(p) {
   var pgTitles = {home:t('home'),subs:t('subs'),ptrips:t('childTrips'),dtrips:t('myTrips'),att:t('att'),profile:t('profile')};
   document.getElementById('tbTitle').textContent = pgTitles[p] || 'KMS';
   buildNav();
-  var loaders = {home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt,notifs:loadNotifs};
+  var loaders = {home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt,notifs:loadNotifs,leave:loadLeave};
   if(loaders[p]) loaders[p]();
 }
 
@@ -763,6 +778,7 @@ function buildDrawer(){
     {id:'subs',   i:'💳', l:t('subs'),       roles:['Parent','Admin']},
     {id:'dtrips', i:'🚌', l:t('myTrips'),    roles:['Driver']},
     {id:'att',    i:'⏰', l:t('att'),        roles:['Employee']},
+    {id:'leave',  i:'📋', l:lang==='ar'?'الإذن':'Leave', roles:['Employee']},
     {id:'notifs', i:'🔔', l:lang==='ar'?'الإشعارات':'Notifications', roles:['Parent','Driver','Employee','Admin']},
     {id:'profile',i:'👤', l:t('profile'),    roles:['Parent','Driver','Employee','Admin']},
   ];

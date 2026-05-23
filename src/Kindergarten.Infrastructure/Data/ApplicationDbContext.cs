@@ -14,7 +14,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Payment>      Payments      { get; set; }
     public DbSet<Trip>         Trips         { get; set; }
     public DbSet<TripChild>    TripChildren  { get; set; }
-    public DbSet<TripLocation> TripLocations { get; set; }
+    public DbSet<TripLocation>  TripLocations  { get; set; }
+    public DbSet<Kindergarten.Core.Entities.LeaveRequest> LeaveRequests { get; set; }
     public DbSet<Employee>     Employees     { get; set; }
     public DbSet<Attendance>   Attendance    { get; set; }
     public DbSet<UserDevice>   UserDevices   { get; set; }

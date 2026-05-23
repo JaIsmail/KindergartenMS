@@ -190,6 +190,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="nav-label" data-ar="النظام" data-en="System">النظام</div>
     <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
     <button class="nav-item" onclick="showPage('attendance')"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
+    <button class="nav-item" onclick="showPage('leave')"><span class="icon">📋</span><span data-ar="طلبات الإذن" data-en="Leave Requests">طلبات الإذن</span></button>
     <button class="nav-item" onclick="showPage('notifications')"><span class="icon">🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></button>
     <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
   </div>
@@ -603,7 +604,7 @@ function showPage(page){
   document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
-  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance,notifications:loadDevices};
+  const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsers,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -742,6 +743,51 @@ async function sendTestNotification(){
   const result = await api('/api/devices/test-notification','POST',{});
   if(result) showToast('✅ تم إرسال الإشعار إلى '+result.sent+' جهاز من أصل '+result.total,'success');
   else showToast('فشل إرسال الإشعار','error');
+}
+
+async function loadLeaveRequests(){
+  const div=document.getElementById('leave-table');
+  div.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const ar=currentLang==='ar';
+  const data=await api('/api/leave-requests');
+  if(!data||!data.length){
+    div.innerHTML='<div class="empty"><div class="emoji">📋</div><h4>'+(ar?'لا توجد طلبات':'No requests')+'</h4></div>';
+    return;
+  }
+  div.innerHTML='<table><thead><tr>'+
+    '<th>'+(ar?'الموظف':'Employee')+'</th>'+
+    '<th>'+(ar?'السبب':'Reason')+'</th>'+
+    '<th>'+(ar?'الساعات':'Hours')+'</th>'+
+    '<th>'+(ar?'النوع':'Type')+'</th>'+
+    '<th>'+(ar?'الحالة':'Status')+'</th>'+
+    '<th>'+(ar?'إجراء':'Action')+'</th>'+
+  '</tr></thead><tbody>'+
+  data.map(r=>'<tr>'+
+    '<td><strong>'+r.employeeName+'</strong></td>'+
+    '<td>'+r.reason+'</td>'+
+    '<td>'+r.hours.toFixed(1)+'</td>'+
+    '<td>'+(r.isPaid?'<span class="badge badge-green">'+(ar?'مدفوع':'Paid')+'</span>':'<span class="badge badge-red">'+(ar?'خصم':'Deduction')+'</span>')+'</td>'+
+    '<td>'+statusBadge(r.status)+'</td>'+
+    '<td>'+
+      (r.status==='Pending'?
+        '<div style="display:flex;gap:0.4rem">'+
+          '<button onclick="reviewLeave('+r.id+','Approved')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>'+
+          '<button onclick="reviewLeave('+r.id+','Rejected')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>'+
+        '</div>':
+        '—')+
+    '</td>'+
+  '</tr>').join('')+
+  '</tbody></table>';
+}
+
+async function reviewLeave(id, status){
+  const ar=currentLang==='ar';
+  const note = status==='Rejected' ? prompt(ar?'سبب الرفض (اختياري):':'Rejection reason (optional):') : null;
+  const result=await api('/api/leave-requests/'+id+'/review','PUT',{status,adminNote:note});
+  if(result){
+    showToast('✅ '+(ar?'تم تحديث الطلب':'Request updated'),'success');
+    loadLeaveRequests();
+  }
 }
 
 async function loadTodayAttendance(){
