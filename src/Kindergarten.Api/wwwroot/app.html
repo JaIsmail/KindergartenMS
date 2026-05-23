@@ -763,6 +763,8 @@ function buildDrawer(){
     {id:'profile',i:'👤', l:t('profile'),    roles:['Parent','Driver','Employee','Admin']},
   ];
   var items=allItems.filter(function(x){return x.roles.indexOf(role)!==-1;});
+  var dLogoutBtn=document.getElementById('dLogout');
+  if(dLogoutBtn) dLogoutBtn.textContent='🚪 '+t('logout');
   var di=document.getElementById('drawerItems');
   if(di) di.innerHTML=items.map(function(item){
     return '<button class="drawer-item'+(page===item.id?' active':'')+'" data-pg="'+item.id+'" onclick="showPage(this.dataset.pg);closeDrawer()">'+
