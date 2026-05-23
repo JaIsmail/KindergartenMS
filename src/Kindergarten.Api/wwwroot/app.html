@@ -508,6 +508,7 @@ function initApp() {
 }
 
 function doLogout() {
+  closeDrawer();
   if(gpsTimer) { clearInterval(gpsTimer); gpsTimer = null; }
   if(signalrConn) { signalrConn.stop(); signalrConn = null; }
   localStorage.clear();
