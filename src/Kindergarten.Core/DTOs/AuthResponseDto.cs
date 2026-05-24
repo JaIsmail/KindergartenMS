@@ -8,5 +8,6 @@ public class AuthResponseDto
     public string Role    { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public DateTime Expiry   { get; set; }
-    public int     TenantId { get; set; }
+    public int          TenantId   { get; set; }
+    public List<string> RoleGroups { get; set; } = new();
 }

@@ -34,6 +34,9 @@ public DbSet<Child>        Children      { get; set; }
     public DbSet<TripChild>    TripChildren  { get; set; }
     public DbSet<TripLocation> TripLocations { get; set; }
     public DbSet<Kindergarten.Core.Entities.LeaveRequest>   LeaveRequests   { get; set; }
+    public DbSet<Kindergarten.Core.Entities.RoleGroup>           RoleGroups           { get; set; }
+    public DbSet<Kindergarten.Core.Entities.RoleGroupPermission> RoleGroupPermissions { get; set; }
+    public DbSet<Kindergarten.Core.Entities.UserRoleGroup>       UserRoleGroups       { get; set; }
     public DbSet<Kindergarten.Core.Entities.Tenant>         Tenants         { get; set; }
     public DbSet<Kindergarten.Core.Entities.Permission>     Permissions     { get; set; }
     public DbSet<Kindergarten.Core.Entities.UserPermission> UserPermissions { get; set; }
@@ -47,6 +50,10 @@ public DbSet<Child>        Children      { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // RoleGroupPermission composite key
+        builder.Entity<Kindergarten.Core.Entities.RoleGroupPermission>()
+            .HasKey(rp => new { rp.RoleGroupId, rp.PermissionId });
 
         // Global Query Filters — تصفية تلقائية بـ TenantId
         builder.Entity<Child>()

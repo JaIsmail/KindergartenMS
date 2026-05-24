@@ -28,11 +28,9 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
     {
-        // Check if user exists
         var existing = await _userManager.FindByEmailAsync(dto.Email);
         if (existing != null) return null;
 
-        // Create user
         var user = new ApplicationUser
         {
             FullName    = dto.FullName,
@@ -46,7 +44,6 @@ public class AuthService : IAuthService
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded) return null;
 
-        // Create role if not exists and assign
         if (!await _roleManager.RoleExistsAsync(dto.RoleType))
             await _roleManager.CreateAsync(new IdentityRole(dto.RoleType));
 
@@ -81,9 +78,9 @@ public class AuthService : IAuthService
             new Claim("TenantId", user.TenantId.ToString())
         };
 
-        var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes((_config["Jwt__Key"] ?? _config["Jwt:Key"])!));
-        var creds   = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiry  = DateTime.UtcNow.AddDays(7);
+        var key    = new SymmetricSecurityKey(Encoding.UTF8.GetBytes((_config["Jwt__Key"] ?? _config["Jwt:Key"])!));
+        var creds  = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expiry = DateTime.UtcNow.AddDays(7);
 
         var token = new JwtSecurityToken(
             issuer:             _config["Jwt__Issuer"] ?? _config["Jwt:Issuer"],
