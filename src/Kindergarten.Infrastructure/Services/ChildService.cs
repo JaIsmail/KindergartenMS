@@ -18,7 +18,7 @@ public class ChildService : IChildService
 
     public async Task<IEnumerable<ChildResponseDto>> GetAllAsync(string? parentId)
     {
-        var query = _db.Children.Include(c => c.Parent);
+        var query = _db.Children.Include(c => c.Parent).AsQueryable();
         if(!string.IsNullOrEmpty(parentId))
             query = query.Where(c => c.ParentId == parentId);
         return await query
