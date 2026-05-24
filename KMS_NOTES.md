@@ -47,6 +47,7 @@
 ---
 
 ## Note 6: Flexible Permissions System ✅ DONE
+- **Pending Note 7:** Role dropdown in Add/Edit User will be replaced by Permission Groups
 - **Role groups:**
   - Admin creates groups (driver, teacher, supervisor, nanny, etc.)
   - Each group has specific permissions
