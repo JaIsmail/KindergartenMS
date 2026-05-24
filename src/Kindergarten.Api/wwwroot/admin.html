@@ -1563,6 +1563,7 @@ async function loadUsers(){
         '<button data-id="'+u.id+'" data-action="view" class="user-action-btn icon-btn icon-btn-view" title="'+(currentLang==='ar'?'عرض':'View')+'">👁️</button>'+
         '<button data-id="'+u.id+'" data-action="edit" class="user-action-btn icon-btn icon-btn-edit" title="'+(currentLang==='ar'?'تعديل':'Edit')+'">✏️</button>'+
         '<button data-id="'+u.id+'" data-name="'+u.fullName+'" data-action="delete" class="user-action-btn icon-btn icon-btn-delete" title="'+(currentLang==='ar'?'حذف':'Delete')+'">🗑️</button>'+
+        '<button class="icon-btn" onclick="openAssignGroup(\''+u.id+'\',\''+u.fullName+'\')" title="'+(currentLang==='ar'?'تعيين مجموعة':'Assign Group')+'">👥</button>'+
       '</div></td>'+
     '</tr>').join('')+
   '</tbody></table>';
