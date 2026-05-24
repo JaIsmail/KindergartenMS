@@ -1050,6 +1050,18 @@ var currentPermUser = null;
 var allPermissions = [];
 var tempUserPerms = [];
 
+const cityMap = {
+  'الرياض':'Riyadh','جدة':'Jeddah','مكة المكرمة':'Mecca','المدينة المنورة':'Medina',
+  'الدمام':'Dammam','الخبر':'Khobar','الظهران':'Dhahran','تبوك':'Tabuk',
+  'بريدة':'Buraidah','عبها':'Abha','خميس مشيط':'Khamis Mushait','حائل':'Hail',
+  'نجران':'Najran','الجوف':'Al-Jouf','الطائف':'Taif','ينبع':'Yanbu',
+  'القصيم':'Al-Qassim','الأحساء':'Al-Ahsa','القطيف':'Qatif','جازان':'Jazan'
+};
+function translateCity(city, ar){
+  if(!city) return '—';
+  if(ar) return city;
+  return cityMap[city] || city;
+}
 async function loadTenants(){
   const grid = document.getElementById('tenants-grid');
   grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
@@ -1084,7 +1096,7 @@ async function loadTenants(){
         '<div class="tc-logo" style="background:'+color+'20;color:'+color+'">'+emoji+'</div>'+
         '<div class="tc-info">'+
           '<div class="tc-name">'+(ar?t.nameAr:t.nameEn)+'</div>'+
-          '<div class="tc-city">📍 '+(t.city||'—')+'</div>'+
+          '<div class="tc-city">📍 '+translateCity(t.city, ar)+'</div>'+
           '<div class="tc-badges">'+
             '<span class="badge '+(t.isActive?'badge-green':'badge-gray')+'">'+(t.isActive?(ar?'نشط':'Active'):(ar?'موقوف':'Inactive'))+'</span>'+
             '<span class="badge '+(planBadge[t.plan]||'badge-gray')+'">'+t.plan+'</span>'+
