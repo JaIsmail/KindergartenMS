@@ -168,3 +168,19 @@
   - Add "Update Tenant" as a recorded permission in the permissions list
   - This permission should be grantable to a user through their permission group
   - Only users with this permission can edit tenant details
+
+---
+
+## Note 20: Role Groups System ✅ DONE
+- RoleGroup entity + RoleGroupPermission + UserRoleGroup tables
+- RoleGroupsController with full CRUD
+- Role Groups management page in Admin Dashboard
+- JWT token includes role groups
+- Users can be assigned to multiple role groups
+
+---
+
+## Note 21: Fix TenantId=0 Data ✅ DONE
+- Added fix-tenant-data endpoint
+- All existing data migrated to TenantId=1
+- Leave requests, attendance, users all restored
