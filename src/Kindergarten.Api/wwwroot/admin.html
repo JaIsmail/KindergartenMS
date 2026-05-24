@@ -1064,16 +1064,8 @@ async function loadTenants(){
   document.getElementById('tstat-active-lbl').textContent = active+' '+(ar?'نشطة':'active');
   document.getElementById('tstat-kids').textContent = totalChildren;
   document.getElementById('tstat-users').textContent = totalUsers;
-  // Get revenue from platform stats
-  const pStats = await api('/api/tenants/platform-stats');
-  if(pStats){
-    document.getElementById('tstat-rev').textContent = (pStats.totalRevenue||0).toLocaleString();
-    // Update tenant cards with revenue data
-    data.forEach(function(t){
-      const ps = pStats.tenants ? pStats.tenants.find(function(x){return x.id===t.id;}) : null;
-      if(ps) t.revenue = ps.revenue;
-    });
-  }
+  const totalRevenue = data.reduce((s,t)=>s+(t.totalRevenue||0),0);
+  document.getElementById('tstat-rev').textContent = totalRevenue.toLocaleString();
 
   if(!data.length){
     grid.innerHTML = '<div class="empty"><div class="emoji">🏫</div><h4>'+(ar?'لا توجد روضات':'No kindergartens found')+'</h4></div>';
@@ -1104,7 +1096,6 @@ async function loadTenants(){
         '<div class="tc-stat"><div class="tc-n" style="color:'+color+'">'+(t.usersCount||0)+'</div><div class="tc-l">'+(ar?'مستخدم':'users')+'</div></div>'+
         '<div class="tc-stat"><div class="tc-n" style="color:'+color+'">'+(t.tripsCount||0)+'</div><div class="tc-l">'+(ar?'رحلة':'trips')+'</div></div>'+
       '</div>'+
-      '<div class="tc-revenue">💰 '+(t.revenue||0).toLocaleString()+' '+(ar?'ريال':'SAR')+'</div>'+
       '<div style="font-size:0.78rem;color:var(--text2);font-weight:600;margin-bottom:0.7rem">💰 '+(t.totalRevenue||0).toLocaleString()+' '+(ar?'ريال':'SAR')+'</div>'+
       '<div class="tc-actions">'+
         '<button class="btn-tc-manage">🔧 '+(ar?'إدارة':'Manage')+'</button>'+
