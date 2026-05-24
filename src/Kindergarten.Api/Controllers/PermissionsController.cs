@@ -89,25 +89,32 @@ public class PermissionsController : ControllerBase
         var permissions = new List<Permission>
         {
             // Trips
-            new() { Name="ManageTrips",        Category="Trips",    DisplayNameAr="إدارة الرحلات",          DisplayNameEn="Manage Trips",          DescriptionAr="إنشاء وتعديل وإنهاء الرحلات",         DescriptionEn="Create, edit and end trips" },
-            new() { Name="TrackTrips",          Category="Trips",    DisplayNameAr="تتبع الرحلات",           DisplayNameEn="Track Trips",           DescriptionAr="مشاهدة الرحلات الجارية",               DescriptionEn="View ongoing trips" },
+            new() { Name="ManageTrips",         Category="Trips",         DisplayNameAr="إدارة الرحلات",           DisplayNameEn="Manage Trips",           DescriptionAr="إنشاء وتعديل وإنهاء الرحلات",   DescriptionEn="Create, edit and end trips" },
+            new() { Name="TrackTrips",           Category="Trips",         DisplayNameAr="تتبع الرحلات",            DisplayNameEn="Track Trips",            DescriptionAr="مشاهدة الرحلات الجارية",         DescriptionEn="View ongoing trips" },
             // HR
-            new() { Name="SubmitLeaveRequest",  Category="HR",       DisplayNameAr="طلب الإذن",              DisplayNameEn="Submit Leave",          DescriptionAr="تقديم طلبات الإذن والغياب",            DescriptionEn="Submit leave and absence requests" },
-            new() { Name="ManageAttendance",    Category="HR",       DisplayNameAr="إدارة الحضور",           DisplayNameEn="Manage Attendance",     DescriptionAr="تسجيل ومراجعة الحضور",                 DescriptionEn="Record and review attendance" },
-            new() { Name="ViewOwnAttendance",   Category="HR",       DisplayNameAr="عرض الحضور الشخصي",     DisplayNameEn="View Own Attendance",   DescriptionAr="مشاهدة سجل الحضور الخاص",              DescriptionEn="View personal attendance record" },
+            new() { Name="SubmitLeaveRequest",   Category="HR",            DisplayNameAr="طلب الإذن",               DisplayNameEn="Submit Leave",           DescriptionAr="تقديم طلبات الإذن",              DescriptionEn="Submit leave requests" },
+            new() { Name="ManageLeaveRequests",  Category="HR",            DisplayNameAr="إدارة طلبات الإذن",       DisplayNameEn="Manage Leave Requests",  DescriptionAr="مراجعة والموافقة على الطلبات",   DescriptionEn="Review and approve leave requests" },
+            new() { Name="ManageAttendance",     Category="HR",            DisplayNameAr="إدارة الحضور",            DisplayNameEn="Manage Attendance",      DescriptionAr="تسجيل ومراجعة الحضور",           DescriptionEn="Record and review attendance" },
+            new() { Name="ViewOwnAttendance",    Category="HR",            DisplayNameAr="عرض الحضور الشخصي",      DisplayNameEn="View Own Attendance",    DescriptionAr="مشاهدة سجل الحضور الخاص",        DescriptionEn="View personal attendance record" },
             // Finance
-            new() { Name="ViewFinancials",      Category="Finance",  DisplayNameAr="عرض المالية",            DisplayNameEn="View Financials",       DescriptionAr="الاطلاع على التقارير المالية",          DescriptionEn="Access financial reports" },
-            new() { Name="ManagePayments",      Category="Finance",  DisplayNameAr="إدارة المدفوعات",        DisplayNameEn="Manage Payments",       DescriptionAr="تسجيل ومتابعة المدفوعات",              DescriptionEn="Record and track payments" },
-            new() { Name="ViewReports",         Category="Finance",  DisplayNameAr="التقارير",               DisplayNameEn="View Reports",          DescriptionAr="عرض جميع تقارير النظام",               DescriptionEn="View all system reports" },
+            new() { Name="ViewFinancials",       Category="Finance",       DisplayNameAr="عرض المالية",             DisplayNameEn="View Financials",        DescriptionAr="الاطلاع على التقارير المالية",    DescriptionEn="Access financial reports" },
+            new() { Name="ManagePayments",       Category="Finance",       DisplayNameAr="إدارة المدفوعات",         DisplayNameEn="Manage Payments",        DescriptionAr="تسجيل ومتابعة المدفوعات",         DescriptionEn="Record and track payments" },
+            new() { Name="ManageSubscriptions",  Category="Finance",       DisplayNameAr="إدارة الاشتراكات",        DisplayNameEn="Manage Subscriptions",   DescriptionAr="إنشاء وتعديل الاشتراكات",         DescriptionEn="Create and edit subscriptions" },
+            new() { Name="ViewSubscriptions",    Category="Finance",       DisplayNameAr="عرض الاشتراكات",          DisplayNameEn="View Subscriptions",     DescriptionAr="مشاهدة الاشتراكات",               DescriptionEn="View subscriptions" },
+            new() { Name="ViewReports",          Category="Finance",       DisplayNameAr="التقارير",                DisplayNameEn="View Reports",           DescriptionAr="عرض جميع تقارير النظام",          DescriptionEn="View all system reports" },
             // Users
-            new() { Name="ManageUsers",         Category="Users",    DisplayNameAr="إدارة المستخدمين",      DisplayNameEn="Manage Users",          DescriptionAr="إضافة وتعديل وحذف المستخدمين",         DescriptionEn="Add, edit and delete users" },
-            new() { Name="ManageChildren",      Category="Users",    DisplayNameAr="إدارة الأطفال",          DisplayNameEn="Manage Children",       DescriptionAr="إضافة وتعديل بيانات الأطفال",          DescriptionEn="Add and edit children data" },
-            new() { Name="ViewChildren",        Category="Users",    DisplayNameAr="عرض الأطفال",            DisplayNameEn="View Children",         DescriptionAr="مشاهدة بيانات الأطفال",                DescriptionEn="View children data" },
+            new() { Name="ManageUsers",          Category="Users",         DisplayNameAr="إدارة المستخدمين",       DisplayNameEn="Manage Users",           DescriptionAr="إضافة وتعديل وحذف المستخدمين",   DescriptionEn="Add, edit and delete users" },
+            new() { Name="ViewUsers",            Category="Users",         DisplayNameAr="عرض المستخدمين",          DisplayNameEn="View Users",             DescriptionAr="مشاهدة قائمة المستخدمين",         DescriptionEn="View users list" },
+            new() { Name="ManageChildren",       Category="Users",         DisplayNameAr="إدارة الأطفال",           DisplayNameEn="Manage Children",        DescriptionAr="إضافة وتعديل بيانات الأطفال",     DescriptionEn="Add and edit children data" },
+            new() { Name="ViewChildren",         Category="Users",         DisplayNameAr="عرض الأطفال",             DisplayNameEn="View Children",          DescriptionAr="مشاهدة بيانات الأطفال",           DescriptionEn="View children data" },
+            // Permissions
+            new() { Name="ManagePermissions",    Category="Permissions",   DisplayNameAr="إدارة الصلاحيات",         DisplayNameEn="Manage Permissions",     DescriptionAr="منح وإلغاء صلاحيات المستخدمين",   DescriptionEn="Grant and revoke user permissions" },
+            new() { Name="ManageRoleGroups",     Category="Permissions",   DisplayNameAr="إدارة مجموعات الأدوار",   DisplayNameEn="Manage Role Groups",     DescriptionAr="إنشاء وتعديل مجموعات الأدوار",    DescriptionEn="Create and edit role groups" },
             // Tenants
-            new() { Name="UpdateTenant", Category="Tenants", DisplayNameAr="تعديل الروضة", DisplayNameEn="Update Tenant", DescriptionAr="تعديل بيانات الروضة", DescriptionEn="Edit kindergarten details" },
-            new() { Name="ManageTenants", Category="Tenants", DisplayNameAr="إدارة الروضات", DisplayNameEn="Manage Tenants", DescriptionAr="إضافة وتعديل وحذف الروضات", DescriptionEn="Add, edit and delete kindergartens" },
+            new() { Name="UpdateTenant",         Category="Tenants",       DisplayNameAr="تعديل الروضة",            DisplayNameEn="Update Tenant",          DescriptionAr="تعديل بيانات الروضة",             DescriptionEn="Edit kindergarten details" },
+            new() { Name="ManageTenants",        Category="Tenants",       DisplayNameAr="إدارة الروضات",           DisplayNameEn="Manage Tenants",         DescriptionAr="إضافة وتعديل وحذف الروضات",       DescriptionEn="Add, edit and delete kindergartens" },
             // Notifications
-            new() { Name="SendNotifications",   Category="Notifications", DisplayNameAr="إرسال الإشعارات", DisplayNameEn="Send Notifications",    DescriptionAr="إرسال إشعارات للمستخدمين",             DescriptionEn="Send notifications to users" },
+            new() { Name="SendNotifications",    Category="Notifications", DisplayNameAr="إرسال الإشعارات",         DisplayNameEn="Send Notifications",     DescriptionAr="إرسال إشعارات للمستخدمين",        DescriptionEn="Send notifications to users" },
         };
 
         _db.Permissions.AddRange(permissions);
