@@ -159,6 +159,21 @@ html[lang="en"] #toast{left:auto;right:2rem;}
 .hours-fill{height:100%;border-radius:50px;}
 .emp-modal-card{background:linear-gradient(135deg,#f97316,#ea580c);border-radius:12px;padding:1rem;margin-bottom:1rem;color:white;display:flex;align-items:center;gap:0.8rem;}
 .emp-modal-av{width:44px;height:44px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;}
+
+.tenant-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.tenant-card{background:white;border-radius:14px;padding:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-top:3px solid var(--primary);cursor:pointer;transition:all 0.2s;}
+.tenant-card:hover{box-shadow:0 8px 20px rgba(0,0,0,0.1);transform:translateY(-2px);}
+.tenant-card.inactive{border-top-color:#94a3b8;opacity:0.7;}
+.tc-head{display:flex;align-items:center;gap:0.8rem;margin-bottom:0.8rem;}
+.tc-logo{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.tc-name{font-size:0.92rem;font-weight:800;}
+.tc-city{font-size:0.72rem;color:var(--text-muted);}
+.tc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;padding-top:0.8rem;border-top:1px solid var(--border);}
+.tc-stat{text-align:center;}
+.tc-stat .n{font-size:1rem;font-weight:900;color:var(--primary);}
+.tc-stat .l{font-size:0.62rem;color:var(--text-muted);}
+.tc-actions{display:flex;gap:0.4rem;margin-top:0.8rem;padding-top:0.6rem;border-top:1px solid var(--border);}
+.platform-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
 </style>
 </head>
 <body>
@@ -340,7 +355,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <div><h3 id="h-tenants">إدارة الروضات</h3><p id="tenants-subtitle">إنشاء وإدارة الروضات المسجلة</p></div>
       <button class="btn btn-primary btn-sm" onclick="openModal('addTenantModal')">➕ إضافة روضة</button>
     </div>
-    <div id="tenants-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem"></div>
+    <div id="tenants-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem"></div>
     <div class="table-card"><div id="tenants-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 

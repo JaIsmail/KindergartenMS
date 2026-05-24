@@ -128,4 +128,36 @@ public class TenantsController : ControllerBase
         return Ok(new { message = "All TenantId=0 data fixed to TenantId=1" });
     }
 
+
+    // Platform-wide stats for SuperAdmin
+    [HttpGet("platform-stats")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
+    public async Task<IActionResult> GetPlatformStats()
+    {
+        var tenants = await _db.Tenants.ToListAsync();
+        var stats = new
+        {
+            totalTenants    = tenants.Count,
+            activeTenants   = tenants.Count(t => t.IsActive),
+            inactiveTenants = tenants.Count(t => !t.IsActive),
+            totalUsers      = await _db.Users.CountAsync(),
+            totalChildren   = await _db.Children.CountAsync(),
+            totalTrips      = await _db.Trips.CountAsync(),
+            totalRevenue    = await _db.Payments.SumAsync(p => (decimal?)p.Amount) ?? 0,
+            tenants         = tenants.Select(t => new {
+                t.Id, t.NameAr, t.NameEn, t.City, t.Plan, t.IsActive, t.CreatedAt,
+                usersCount    = _db.Users.Count(u => u.TenantId == t.Id),
+                childrenCount = _db.Children.Count(c => c.TenantId == t.Id),
+                tripsCount    = _db.Trips.Count(tr => tr.TenantId == t.Id),
+                revenue       = _db.Payments
+                    .Where(p => _db.Subscriptions
+                        .Where(s => s.TenantId == t.Id)
+                        .Select(s => s.Id)
+                        .Contains(p.SubscriptionId))
+                    .Sum(p => (decimal?)p.Amount) ?? 0
+            })
+        };
+        return Ok(stats);
+    }
+
 }
