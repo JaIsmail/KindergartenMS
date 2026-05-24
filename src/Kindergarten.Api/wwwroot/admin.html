@@ -174,6 +174,33 @@ html[lang="en"] #toast{left:auto;right:2rem;}
 .tc-stat .l{font-size:0.62rem;color:var(--text-muted);}
 .tc-actions{display:flex;gap:0.4rem;margin-top:0.8rem;padding-top:0.6rem;border-top:1px solid var(--border);}
 .platform-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+
+/* Tenant cards */
+.platform-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+.platform-stat-card{background:white;border-radius:14px;padding:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.platform-stat-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:0.8rem;}
+.platform-stat-number{font-size:1.8rem;font-weight:900;line-height:1;}
+.platform-stat-label{font-size:0.75rem;color:var(--text3);margin-top:0.3rem;}
+.platform-stat-trend{font-size:0.72rem;color:#22c55e;margin-top:0.2rem;font-weight:600;}
+.tenant-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;}
+.tenant-card{background:white;border-radius:14px;padding:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,0.05);border-top:3px solid var(--primary);transition:all 0.2s;}
+.tenant-card:hover{box-shadow:0 8px 20px rgba(0,0,0,0.1);transform:translateY(-2px);}
+.tenant-card.inactive{border-top-color:#94a3b8;opacity:0.7;}
+.tc-head{display:flex;align-items:flex-start;gap:0.8rem;margin-bottom:0.8rem;}
+.tc-logo{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.tc-info{flex:1;}
+.tc-name{font-size:0.92rem;font-weight:800;color:var(--text);}
+.tc-city{font-size:0.72rem;color:var(--text3);margin-top:0.2rem;}
+.tc-badges{display:flex;gap:0.4rem;margin-top:0.4rem;flex-wrap:wrap;}
+.tc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;padding:0.8rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:0.8rem 0;}
+.tc-stat{text-align:center;}
+.tc-stat .tc-n{font-size:1rem;font-weight:900;}
+.tc-stat .tc-l{font-size:0.62rem;color:var(--text3);margin-top:0.1rem;}
+.tc-actions{display:flex;gap:0.4rem;margin-top:0.8rem;}
+.btn-tc-manage{flex:1;padding:0.5rem;background:var(--primary);color:white;border:none;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;font-size:0.78rem;}
+.btn-tc-edit{padding:0.5rem 0.8rem;background:#f1f5f9;color:var(--text2);border:none;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;font-size:0.78rem;}
+.btn-tc-on{padding:0.5rem 0.8rem;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;font-size:0.78rem;}
+.btn-tc-off{padding:0.5rem 0.8rem;background:#dcfce7;color:#16a34a;border:none;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;font-size:0.78rem;}
 </style>
 </head>
 <body>
@@ -352,11 +379,16 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   <!-- Tenants Page -->
   <div class="page" id="page-tenants">
     <div class="page-header">
-      <div><h3 id="h-tenants">إدارة الروضات</h3><p id="tenants-subtitle">إنشاء وإدارة الروضات المسجلة</p></div>
+      <div><h3 id="h-tenants">إدارة الروضات</h3><p id="tenants-subtitle">إنشاء وإدارة الروضات المسجلة في المنصة</p></div>
       <button class="btn btn-primary btn-sm" onclick="openModal('addTenantModal')">➕ إضافة روضة</button>
     </div>
-    <div id="tenants-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem"></div>
-    <div class="table-card"><div id="tenants-table"><div class="loading"><div class="spinner"></div></div></div></div>
+    <div class="platform-stats-grid">
+      <div class="platform-stat-card"><div class="platform-stat-ic" style="background:#fff7ed">🏫</div><div class="platform-stat-number" id="tstat-total">—</div><div class="platform-stat-label" id="tstat-total-lbl">إجمالي الروضات</div><div class="platform-stat-trend" id="tstat-active-lbl">— نشطة</div></div>
+      <div class="platform-stat-card"><div class="platform-stat-ic" style="background:#dcfce7">👶</div><div class="platform-stat-number" id="tstat-kids">—</div><div class="platform-stat-label" id="tstat-kids-lbl">إجمالي الأطفال</div></div>
+      <div class="platform-stat-card"><div class="platform-stat-ic" style="background:#dbeafe">👥</div><div class="platform-stat-number" id="tstat-users">—</div><div class="platform-stat-label" id="tstat-users-lbl">المستخدمون</div></div>
+      <div class="platform-stat-card"><div class="platform-stat-ic" style="background:#f3e8ff">💰</div><div class="platform-stat-number" id="tstat-rev">—</div><div class="platform-stat-label" id="tstat-rev-lbl">الإيرادات (ريال)</div></div>
+    </div>
+    <div class="tenant-cards-grid" id="tenants-grid"></div>
   </div>
 
 <!-- Edit Tenant Modal -->
@@ -412,33 +444,34 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <button class="modal-close" onclick="closeModal('addTenantModal')">✕</button>
       </div>
       <div class="modal-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
-            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem" id="atNameAr">اسم الروضة (عربي)</label>
-            <input type="text" id="inTenantNameAr" placeholder="روضة النخيل" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
-          </div>
-          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
-            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem" id="atNameEn">Name (English)</label>
-            <input type="text" id="inTenantNameEn" placeholder="Al Nakheel KG" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
-          </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem" id="atNameAr">الاسم (عربي)</label><input type="text" id="inTenantNameAr" placeholder="روضة النخيل" style="width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
+          <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem" id="atNameEn">Name (English)</label><input type="text" id="inTenantNameEn" placeholder="Al Nakheel KG" style="width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.8rem">
-          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
-            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem" id="atCity">المدينة</label>
-            <input type="text" id="inTenantCity" placeholder="الرياض" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem" id="atCity">المدينة</label>
+            <select id="inTenantCity" style="width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+              <option value="">-- اختر المدينة --</option>
+              <option>الرياض</option><option>جدة</option><option>مكة المكرمة</option>
+              <option>المدينة المنورة</option><option>الدمام</option><option>الخبر</option>
+              <option>الظهران</option><option>تبوك</option><option>بريدة</option>
+              <option>عبها</option><option>خميس مشيط</option><option>حائل</option>
+              <option>نجران</option><option>الجوف</option><option>الطائف</option>
+              <option>ينبع</option><option>القصيم</option><option>الأحساء</option>
+              <option>القطيف</option><option>جازان</option>
+            </select>
           </div>
-          <div class="info-row" style="flex-direction:column;align-items:flex-start;border:none;padding:0">
-            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem" id="atPhone">الهاتف</label>
-            <input type="text" id="inTenantPhone" placeholder="0501234567" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
-          </div>
+          <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem" id="atPhone">الهاتف</label><input type="text" id="inTenantPhone" placeholder="0501234567" style="width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
         </div>
-        <div style="margin-top:0.8rem">
-          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem;display:block" id="atPlan">الباقة</label>
-          <select id="inTenantPlan" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
-            <option value="Basic">Basic — حتى 50 طفل</option>
-            <option value="Pro">Pro — حتى 200 طفل</option>
-            <option value="Enterprise">Enterprise — غير محدود</option>
-          </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">البريد الإلكتروني</label><input type="email" id="inTenantEmail" placeholder="admin@kg.com" style="width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
+          <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem" id="atPlan">الباقة</label>
+            <select id="inTenantPlan" style="width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+              <option value="Basic">Basic — حتى 50 طفل</option>
+              <option value="Pro">Pro — حتى 200 طفل</option>
+              <option value="Enterprise">Enterprise — غير محدود</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -1018,53 +1051,59 @@ var allPermissions = [];
 var tempUserPerms = [];
 
 async function loadTenants(){
-  const div = document.getElementById('tenants-table');
-  const stats = document.getElementById('tenants-stats');
-  div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const grid = document.getElementById('tenants-grid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   const ar = currentLang === 'ar';
   const data = await api('/api/tenants') || [];
 
-  // Stats
+  // Update stats
   const active = data.filter(t=>t.isActive).length;
   const totalChildren = data.reduce((s,t)=>s+(t.childrenCount||0),0);
   const totalUsers = data.reduce((s,t)=>s+(t.usersCount||0),0);
-  stats.innerHTML =
-    '<div class="stat-card"><div class="stat-number">'+data.length+'</div><div class="stat-label">'+(ar?'إجمالي الروضات':'Total KGs')+'</div></div>'+
-    '<div class="stat-card"><div class="stat-number">'+totalChildren+'</div><div class="stat-label">'+(ar?'إجمالي الأطفال':'Total Children')+'</div></div>'+
-    '<div class="stat-card"><div class="stat-number">'+totalUsers+'</div><div class="stat-label">'+(ar?'إجمالي المستخدمين':'Total Users')+'</div></div>';
+  document.getElementById('tstat-total').textContent = data.length;
+  document.getElementById('tstat-active-lbl').textContent = active+' '+(ar?'نشطة':'active');
+  document.getElementById('tstat-kids').textContent = totalChildren;
+  document.getElementById('tstat-users').textContent = totalUsers;
+  document.getElementById('tstat-rev').textContent = '—';
 
   if(!data.length){
-    div.innerHTML = '<div class="empty"><div class="emoji">🏫</div><h4>'+(ar?'لا توجد روضات':'No kindergartens found')+'</h4></div>';
+    grid.innerHTML = '<div class="empty"><div class="emoji">🏫</div><h4>'+(ar?'لا توجد روضات':'No kindergartens found')+'</h4></div>';
     return;
   }
- const planColors = {Basic:'badge-blue', Pro:'badge-orange', Enterprise:'badge-purple'};
 
-  div.innerHTML = '<table><thead><tr>'+
-    '<th>'+(ar?'الروضة':'KG')+'</th>'+
-    '<th>'+(ar?'المدينة':'City')+'</th>'+
-    '<th>'+(ar?'الباقة':'Plan')+'</th>'+
-    '<th>'+(ar?'الأطفال':'Children')+'</th>'+
-    '<th>'+(ar?'المستخدمون':'Users')+'</th>'+
-    '<th>'+(ar?'الحالة':'Status')+'</th>'+
-    '<th>'+(ar?'إجراء':'Action')+'</th>'+
-  '</tr></thead><tbody>'+
-  data.map(t=>
-    '<tr>'+
-      '<td><div><div style="font-weight:700">'+( ar?t.nameAr:t.nameEn)+'</div></div></td>'+
-      '<td>'+(t.city||'—')+'</td>'+
-      '<td><span class="badge '+(planColors[t.plan]||'badge-gray')+'">'+t.plan+'</span></td>'+
-      '<td><strong>'+(t.childrenCount||0)+'</strong></td>'+
-      '<td><strong>'+(t.usersCount||0)+'</strong></td>'+
-      '<td><span class="badge '+(t.isActive?'badge-green':'badge-gray')+'">'+(t.isActive?(ar?'نشط':'Active'):(ar?'موقوف':'Inactive'))+'</span></td>'+
-      '<td><div style="display:flex;gap:0.4rem">'+
-        '<button class="icon-btn" onclick="openEditTenantModal('+t.id+')" title="تعديل">✏️</button>'+
-        '<button class="icon-btn icon-btn-edit" onclick="toggleTenant('+t.id+')" title="'+(t.isActive?(ar?'إيقاف':'Deactivate'):(ar?'تفعيل':'Activate'))+'">'+
+  const planBadge = {Basic:'badge-blue', Pro:'badge-orange', Enterprise:'badge-purple'};
+  const colors = ['#f97316','#3b82f6','#22c55e','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'];
+  const emojis = ['🌴','⭐','🌸','🔮','🎯','🌟','🏡','🎨'];
+
+  grid.innerHTML = data.map((t,i)=>{
+    const color = colors[i % colors.length];
+    const emoji = emojis[i % emojis.length];
+    return '<div class="tenant-card'+(t.isActive?'':' inactive')+'" style="border-top-color:'+color+'">'+
+      '<div class="tc-head">'+
+        '<div class="tc-logo" style="background:'+color+'20;color:'+color+'">'+emoji+'</div>'+
+        '<div class="tc-info">'+
+          '<div class="tc-name">'+(ar?t.nameAr:t.nameEn)+'</div>'+
+          '<div class="tc-city">📍 '+(t.city||'—')+'</div>'+
+          '<div class="tc-badges">'+
+            '<span class="badge '+(t.isActive?'badge-green':'badge-gray')+'">'+(t.isActive?(ar?'نشط':'Active'):(ar?'موقوف':'Inactive'))+'</span>'+
+            '<span class="badge '+(planBadge[t.plan]||'badge-gray')+'">'+t.plan+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="tc-stats">'+
+        '<div class="tc-stat"><div class="tc-n" style="color:'+color+'">'+(t.childrenCount||0)+'</div><div class="tc-l">'+(ar?'طفل':'kids')+'</div></div>'+
+        '<div class="tc-stat"><div class="tc-n" style="color:'+color+'">'+(t.usersCount||0)+'</div><div class="tc-l">'+(ar?'مستخدم':'users')+'</div></div>'+
+        '<div class="tc-stat"><div class="tc-n" style="color:'+color+'">—</div><div class="tc-l">'+(ar?'رحلة':'trips')+'</div></div>'+
+      '</div>'+
+      '<div class="tc-actions">'+
+        '<button class="btn-tc-manage">🔧 '+(ar?'إدارة':'Manage')+'</button>'+
+        '<button class="btn-tc-edit" onclick="openEditTenantModal('+t.id+')">✏️</button>'+
+        '<button class="'+(t.isActive?'btn-tc-on':'btn-tc-off')+'" onclick="toggleTenant('+t.id+')">'+
           (t.isActive?'⏸️':'▶️')+
         '</button>'+
-      '</div></td>'+
-    '</tr>'
-  ).join('')+
-  '</tbody></table>';
+      '</div>'+
+    '</div>';
+  }).join('');
 }
 async function toggleTenant(id){
   const result = await api('/api/tenants/'+id+'/toggle','PUT',{});
@@ -1084,7 +1123,8 @@ async function saveTenant(){
 
   if(!nameAr||!nameEn){ showToast(ar?'يرجى تعبئة الاسم':'Please fill the name','error'); return; }
 
-  const result = await api('/api/tenants','POST',{nameAr,nameEn,city,phone,plan});
+  const email  = document.getElementById('inTenantEmail')?.value.trim();
+  const result = await api('/api/tenants','POST',{nameAr,nameEn,city,phone,email,plan});
   if(result && result.id){
     showToast(ar?'تمت إضافة الروضة ✅':'KG added ✅','success');
     closeModal('addTenantModal');
