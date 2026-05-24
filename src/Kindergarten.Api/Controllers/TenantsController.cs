@@ -113,4 +113,19 @@ public class TenantsController : ControllerBase
 
         return Ok(new { message = "Default tenant created", tenantId = tenant.Id });
     }
+
+    // Fix all data with TenantId = 0
+    [HttpPost("fix-tenant-data")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> FixTenantData()
+    {
+        await _db.Database.ExecuteSqlRawAsync("UPDATE LeaveRequests SET TenantId = 1 WHERE TenantId = 0");
+        await _db.Database.ExecuteSqlRawAsync("UPDATE AspNetUsers SET TenantId = 1 WHERE TenantId = 0");
+        await _db.Database.ExecuteSqlRawAsync("UPDATE Children SET TenantId = 1 WHERE TenantId = 0");
+        await _db.Database.ExecuteSqlRawAsync("UPDATE Trips SET TenantId = 1 WHERE TenantId = 0");
+        await _db.Database.ExecuteSqlRawAsync("UPDATE Employees SET TenantId = 1 WHERE TenantId = 0");
+        await _db.Database.ExecuteSqlRawAsync("UPDATE Subscriptions SET TenantId = 1 WHERE TenantId = 0");
+        return Ok(new { message = "All TenantId=0 data fixed to TenantId=1" });
+    }
+
 }
