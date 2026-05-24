@@ -59,7 +59,11 @@
 
 ---
 
-## Note 7: Flexible Roles 🔴
+## Note 7: Flexible Roles ✅ DONE (Partial)
+- SuperAdmin impersonation implemented
+- SuperAdmin can manage any tenant
+- Data isolation verified per tenant
+- Remaining: Unify Role dropdown with Permission Groups
 - Add new roles: accountant, supervisor, parent+employee
 - User can hold more than one role
 - Each role linked to a specific Tenant
