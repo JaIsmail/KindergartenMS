@@ -1159,11 +1159,7 @@ async function loadTenants(){
     '</div>';
   }).join('');
 }
-async function manageTenant(id){
-  const ar = currentLang === 'ar';
-  // For now show alert - will implement tenant context switching later
-  showToast(ar?'سيتم تطوير إدارة الروضة قريباً':'Tenant management coming soon','success');
-}
+
 
 async function toggleTenant(id){
   const result = await api('/api/tenants/'+id+'/toggle','PUT',{});
