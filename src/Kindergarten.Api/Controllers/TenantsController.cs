@@ -1,9 +1,16 @@
 using Kindergarten.Core.DTOs;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Kindergarten.Core.Entities;
 using Kindergarten.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Kindergarten.Api.Controllers;
 
@@ -12,7 +19,15 @@ namespace Kindergarten.Api.Controllers;
 public class TenantsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
-    public TenantsController(ApplicationDbContext db) => _db = db;
+    private readonly IConfiguration _config;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public TenantsController(ApplicationDbContext db, IConfiguration config, UserManager<ApplicationUser> userManager)
+    {
+        _db = db;
+        _config = config;
+        _userManager = userManager;
+    }
 
     // SuperAdmin only
     [HttpGet]
@@ -209,6 +224,55 @@ public class TenantsController : ControllerBase
             email   = user.Email,
             tenantId = id,
             tenantName = tenant.NameAr
+        });
+    }
+
+
+    // SuperAdmin impersonates a tenant - generates token with tenant context
+    [HttpPost("{id}/impersonate")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
+    public async Task<IActionResult> Impersonate(int id,
+        [FromServices] IConfiguration config,
+        [FromServices] Microsoft.AspNetCore.Identity.UserManager<Kindergarten.Core.Entities.ApplicationUser> userManager)
+    {
+        var tenant = await _db.Tenants.FindAsync(id);
+        if (tenant == null) return NotFound("Tenant not found");
+
+        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var currentUser = await userManager.FindByIdAsync(currentUserId ?? "");
+        if (currentUser == null) return Unauthorized();
+
+        // Generate impersonation token with tenant context
+        var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
+        {
+            new(System.Security.Claims.ClaimTypes.NameIdentifier, currentUser.Id),
+            new(System.Security.Claims.ClaimTypes.Email, currentUser.Email!),
+            new(System.Security.Claims.ClaimTypes.Name, currentUser.FullName),
+            new(System.Security.Claims.ClaimTypes.Role, "Admin"), // Act as Admin in this tenant
+            new("TenantId", id.ToString()),
+            new("ImpersonatingTenant", id.ToString()),
+            new("ImpersonatingTenantName", tenant.NameAr),
+            new("OriginalRole", currentUser.RoleType),
+            new("jti", Guid.NewGuid().ToString())
+        };
+
+        var key    = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+            System.Text.Encoding.UTF8.GetBytes((config["Jwt__Key"] ?? config["Jwt:Key"])!));
+        var creds  = new Microsoft.IdentityModel.Tokens.SigningCredentials(key, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256);
+        var token  = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(
+            issuer:             config["Jwt__Issuer"] ?? config["Jwt:Issuer"],
+            audience:           config["Jwt__Audience"] ?? config["Jwt:Audience"],
+            claims:             claims,
+            expires:            DateTime.UtcNow.AddHours(2),
+            signingCredentials: creds
+        );
+
+        return Ok(new {
+            token          = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(token),
+            tenantId       = id,
+            tenantNameAr   = tenant.NameAr,
+            tenantNameEn   = tenant.NameEn,
+            isImpersonating = true
         });
     }
 

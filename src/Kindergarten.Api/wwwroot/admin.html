@@ -748,6 +748,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   </div>
 </div>
 
+<div id="impersonation-banner" style="display:none;background:#f97316;color:white;padding:0.6rem 1.2rem;display:none;align-items:center;justify-content:space-between;font-family:inherit;font-size:0.85rem;font-weight:700;position:sticky;top:0;z-index:999">
+  <span>🏫 <span id="impersonation-tenant-name"></span> — <span id="impersonation-label">أنت تدير هذه الروضة الآن</span></span>
+  <button onclick="exitImpersonation()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:0.3rem 0.8rem;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:700;font-size:0.82rem">✕ خروج</button>
+</div>
 <div id="toast"></div>
 <script>
 const API='https://kms-api-staging-kg01.azurewebsites.net';
@@ -1050,6 +1054,42 @@ var currentPermUser = null;
 var allPermissions = [];
 var tempUserPerms = [];
 
+async function manageTenant(id, name){
+  const result = await api('/api/tenants/'+id+'/impersonate','POST');
+  if(!result?.token){ showToast('❌ فشل التبديل','error'); return; }
+  // Save original token
+  if(!sessionStorage.getItem('originalToken')){
+    sessionStorage.setItem('originalToken', token);
+    sessionStorage.setItem('originalTenantId', tenantId||'');
+  }
+  // Switch to impersonated token
+  token = result.token;
+  tenantId = result.tenantId;
+  localStorage.setItem('kms_token', token);
+  // Show banner
+  const ar = currentLang === 'ar';
+  document.getElementById('impersonation-tenant-name').textContent = name;
+  document.getElementById('impersonation-label').textContent = ar ? 'أنت تدير هذه الروضة الآن' : 'You are now managing this KG';
+  document.getElementById('impersonation-banner').style.display = 'flex';
+  // Reload current page data
+  showToast('✅ '+(ar?'تم التبديل إلى ':'Switched to ')+name,'success');
+  showPage('dashboard');
+}
+
+function exitImpersonation(){
+  const original = sessionStorage.getItem('originalToken');
+  if(original){
+    token = original;
+    tenantId = sessionStorage.getItem('originalTenantId');
+    localStorage.setItem('kms_token', token);
+    sessionStorage.removeItem('originalToken');
+    sessionStorage.removeItem('originalTenantId');
+  }
+  document.getElementById('impersonation-banner').style.display = 'none';
+  showToast('✅ '+(currentLang==='ar'?'تم الخروج من وضع الإدارة':'Exited management mode'),'success');
+  showPage('tenants');
+}
+
 const cityMap = {
   'الرياض':'Riyadh','جدة':'Jeddah','مكة المكرمة':'Mecca','المدينة المنورة':'Medina',
   'الدمام':'Dammam','الخبر':'Khobar','الظهران':'Dhahran','تبوك':'Tabuk',
@@ -1110,7 +1150,7 @@ async function loadTenants(){
       '</div>'+
       '<div style="font-size:0.78rem;color:var(--text2);font-weight:600;margin-bottom:0.7rem">💰 '+(t.totalRevenue||0).toLocaleString()+' '+(ar?'ريال':'SAR')+'</div>'+
       '<div class="tc-actions">'+
-        '<button class="btn-tc-manage">🔧 '+(ar?'إدارة':'Manage')+'</button>'+
+        '<button class="btn-tc-manage" onclick="manageTenant('+t.id+',\''+(ar?t.nameAr:t.nameEn)+'\')" >🔧 '+(ar?'إدارة':'Manage')+'</button>'+
         '<button class="btn-tc-edit" onclick="openEditTenantModal('+t.id+')">✏️</button>'+
         '<button class="'+(t.isActive?'btn-tc-on':'btn-tc-off')+'" onclick="toggleTenant('+t.id+')">'+
           (t.isActive?'⏸️':'▶️')+
