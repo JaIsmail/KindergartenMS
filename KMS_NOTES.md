@@ -184,3 +184,15 @@
 - Added fix-tenant-data endpoint
 - All existing data migrated to TenantId=1
 - Leave requests, attendance, users all restored
+
+---
+
+## Note 20: Tenant City — Edit Modal Missing Dropdown 🟡
+- Edit Tenant modal uses a text input for city instead of a dropdown
+- Required: Replace city text input in Edit Tenant modal with the same dropdown used in Add Tenant modal
+
+## Note 21: Tenant City — Stored in Arabic Only 🟡
+- City is stored in Arabic in the DB
+- Frontend should translate to English when language is EN
+- City translation map added to tenant cards ✅
+- Need to apply same translation to any other place city is displayed
