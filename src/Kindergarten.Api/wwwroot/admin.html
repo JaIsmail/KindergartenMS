@@ -431,14 +431,79 @@ html[lang="en"] #toast{left:auto;right:2rem;}
 
 <!-- Permissions Page -->
   <div class="page" id="page-permissions">
+    <!-- Permission Groups Section -->
     <div class="page-header">
-      <div><h3 id="h-permissions">إدارة الصلاحيات</h3><p id="perm-subtitle">منح وإلغاء الصلاحيات لكل مستخدم</p></div>
-      <button class="btn btn-primary btn-sm" onclick="seedPermissions()">🌱 تهيئة الصلاحيات</button>
+      <div><h3>مجموعات الصلاحيات</h3><p>إنشاء وإدارة مجموعات الأدوار</p></div>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn btn-primary btn-sm" onclick="openAddGroupModal()">➕ مجموعة جديدة</button>
+        <button class="btn btn-ghost btn-sm" onclick="seedPermissions()">🌱 تهيئة الصلاحيات</button>
+      </div>
+    </div>
+    <div class="table-card" style="margin-bottom:1.5rem"><div id="groups-table"><div class="loading"><div class="spinner"></div></div></div></div>
+
+    <!-- User Permissions Section -->
+    <div class="page-header">
+      <div><h3 id="h-permissions">صلاحيات المستخدمين</h3><p id="perm-subtitle">منح وإلغاء الصلاحيات لكل مستخدم</p></div>
     </div>
     <div class="table-card"><div id="permissions-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
-  <!-- User Permissions Modal -->
+  <!-- Add Permission Group Modal -->
+  <div class="modal-overlay" id="addGroupModal">
+    <div class="modal" style="max-width:580px">
+      <div class="modal-header">
+        <h3 id="groupModalTitle">إنشاء مجموعة صلاحيات</h3>
+        <button class="modal-close" onclick="closeModal('addGroupModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem">
+        <input type="hidden" id="editGroupId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.4rem">اسم المجموعة (عربي)</label>
+            <input type="text" id="groupNameAr" placeholder="مثال: سائق" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.4rem">Group Name (English)</label>
+            <input type="text" id="groupNameEn" placeholder="e.g. Driver" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.4rem">الوصف</label>
+          <input type="text" id="groupDescription" placeholder="وصف مختصر للمجموعة" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+        </div>
+        <div>
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.8rem">الصلاحيات</label>
+          <div id="groupPermsList" style="display:flex;flex-direction:column;gap:0.5rem;max-height:280px;overflow-y:auto"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('addGroupModal')">إلغاء</button>
+        <button class="btn btn-primary" onclick="saveGroup()">💾 حفظ المجموعة</button>
+      </div>
+    </div>
+  </div>
+<!-- Assign Group to User Modal -->
+  <div class="modal-overlay" id="assignGroupModal">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-header">
+        <h3>تعيين مجموعة للمستخدم</h3>
+        <button class="modal-close" onclick="closeModal('assignGroupModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem">
+        <input type="hidden" id="assignUserId">
+        <p id="assignUserName" style="font-weight:700;margin-bottom:1rem"></p>
+        <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.4rem">اختر المجموعة</label>
+        <select id="assignGroupSelect" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          <option value="">-- اختر مجموعة --</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('assignGroupModal')">إلغاء</button>
+        <button class="btn btn-primary" onclick="assignGroupToUser()">✅ تعيين</button>
+      </div>
+    </div>
+  </div>
+ <!-- User Permissions Modal -->
   <div class="modal-overlay" id="userPermsModal">
     <div class="modal" style="max-width:620px">
       <div class="modal-header">
@@ -1005,7 +1070,130 @@ async function saveTenant(){
     });
   }
 }
+
 async function loadPermissions(){
+  await loadGroups();
+  await loadPermissionsTable();
+}
+
+async function loadGroups(){
+  const div = document.getElementById('groups-table');
+  div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const ar = currentLang === 'ar';
+  const groups = await api('/api/permission-groups') || [];
+  if(!groups.length){
+    div.innerHTML = '<div class="empty"><div class="emoji">👥</div><h4>'+(ar?'لا توجد مجموعات':'No groups found')+'</h4></div>';
+    return;
+  }
+  div.innerHTML = '<table><thead><tr>'+
+    '<th>'+(ar?'المجموعة':'Group')+'</th>'+
+    '<th>'+(ar?'الصلاحيات':'Permissions')+'</th>'+
+    '<th>'+(ar?'إجراء':'Action')+'</th>'+
+  '</tr></thead><tbody>'+
+  groups.map(g=>
+    '<tr>'+
+      '<td><div style="font-weight:700">'+(ar?g.nameAr:g.nameEn)+'</div><div style="font-size:0.72rem;color:var(--text-muted)">'+g.description+'</div></td>'+
+      '<td><span style="font-weight:700;color:var(--primary)">'+g.permissions.length+' '+(ar?'صلاحية':'perms')+'</span></td>'+
+      '<td style="display:flex;gap:0.4rem">'+
+        '<button class="icon-btn" onclick="openEditGroup('+g.id+')" title="'+(ar?'تعديل':'Edit')+'">✏️</button>'+
+        '<button class="icon-btn icon-btn-delete" onclick="deleteGroup('+g.id+')" title="'+(ar?'حذف':'Delete')+'">🗑️</button>'+
+      '</td>'+
+    '</tr>'
+  ).join('')+
+  '</tbody></table>';
+}
+
+async function openAddGroupModal(){
+  document.getElementById('editGroupId').value = '';
+  document.getElementById('groupNameAr').value = '';
+  document.getElementById('groupNameEn').value = '';
+  document.getElementById('groupDescription').value = '';
+  document.getElementById('groupModalTitle').textContent = 'إنشاء مجموعة صلاحيات';
+  await loadGroupPermsList([]);
+  openModal('addGroupModal');
+}
+
+async function openEditGroup(id){
+  const group = await api('/api/permission-groups/'+id);
+  if(!group) return;
+  document.getElementById('editGroupId').value = group.id;
+  document.getElementById('groupNameAr').value = group.nameAr;
+  document.getElementById('groupNameEn').value = group.nameEn;
+  document.getElementById('groupDescription').value = group.description||'';
+  document.getElementById('groupModalTitle').textContent = 'تعديل المجموعة';
+  const selectedIds = group.permissions.map(p=>p.id);
+  await loadGroupPermsList(selectedIds);
+  openModal('addGroupModal');
+}
+
+async function loadGroupPermsList(selectedIds=[]){
+  const perms = await api('/api/permissions') || [];
+  const div = document.getElementById('groupPermsList');
+  const categories = [...new Set(perms.map(p=>p.category))];
+  const ar = currentLang === 'ar';
+  div.innerHTML = categories.map(cat=>
+    '<div style="margin-bottom:0.8rem">'+
+    '<div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);margin-bottom:0.4rem;text-transform:uppercase">'+cat+'</div>'+
+    perms.filter(p=>p.category===cat).map(p=>
+      '<label style="display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0;cursor:pointer">'+
+      '<input type="checkbox" value="'+p.id+'" '+(selectedIds.includes(p.id)?'checked':'')+' style="width:16px;height:16px;cursor:pointer">'+
+      '<span style="font-size:0.85rem">'+(ar?p.displayNameAr:p.displayNameEn)+'</span>'+
+      '</label>'
+    ).join('')+
+    '</div>'
+  ).join('');
+}
+
+async function saveGroup(){
+  const id = document.getElementById('editGroupId').value;
+  const nameAr = document.getElementById('groupNameAr').value;
+  const nameEn = document.getElementById('groupNameEn').value;
+  const description = document.getElementById('groupDescription').value;
+  if(!nameAr||!nameEn){showToast('يرجى إدخال اسم المجموعة','error');return;}
+  const checkboxes = document.querySelectorAll('#groupPermsList input[type=checkbox]:checked');
+  const permissionIds = [...checkboxes].map(cb=>parseInt(cb.value));
+  const body = {nameAr, nameEn, description, permissionIds};
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? '/api/permission-groups/'+id : '/api/permission-groups';
+  const result = await api(url, method, body);
+  if(result?.id||result?.message){
+    showToast('✅ '+(id?'تم تحديث المجموعة':'تم إنشاء المجموعة'),'success');
+    closeModal('addGroupModal');
+    loadGroups();
+  } else showToast('❌ فشل الحفظ','error');
+}
+
+async function deleteGroup(id){
+  if(!confirm('هل أنت متأكد من حذف هذه المجموعة؟')) return;
+  const result = await api('/api/permission-groups/'+id,'DELETE');
+  if(result?.message){showToast('✅ تم حذف المجموعة','success');loadGroups();}
+  else showToast('❌ فشل الحذف','error');
+}
+
+async function openAssignGroup(userId, userName){
+  document.getElementById('assignUserId').value = userId;
+  document.getElementById('assignUserName').textContent = userName;
+  const groups = await api('/api/permission-groups') || [];
+  const ar = currentLang === 'ar';
+  const sel = document.getElementById('assignGroupSelect');
+  sel.innerHTML = '<option value="">-- اختر مجموعة --</option>'+
+    groups.map(g=>'<option value="'+g.id+'">'+(ar?g.nameAr:g.nameEn)+'</option>').join('');
+  openModal('assignGroupModal');
+}
+
+async function assignGroupToUser(){
+  const userId = document.getElementById('assignUserId').value;
+  const groupId = document.getElementById('assignGroupSelect').value;
+  if(!groupId){showToast('يرجى اختيار مجموعة','error');return;}
+  const result = await api('/api/permission-groups/'+groupId+'/assign/'+userId,'POST');
+  if(result?.message){
+    showToast('✅ تم تعيين المجموعة للمستخدم','success');
+    closeModal('assignGroupModal');
+    loadPermissionsTable();
+  } else showToast('❌ فشل التعيين','error');
+}
+
+async function loadPermissionsTable(){
   const div = document.getElementById('permissions-table');
   div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   const ar = currentLang === 'ar';
