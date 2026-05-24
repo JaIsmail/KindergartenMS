@@ -1105,6 +1105,7 @@ async function loadTenants(){
         '<div class="tc-stat"><div class="tc-n" style="color:'+color+'">—</div><div class="tc-l">'+(ar?'رحلة':'trips')+'</div></div>'+
       '</div>'+
       '<div class="tc-revenue">💰 '+(t.revenue||0).toLocaleString()+' '+(ar?'ريال':'SAR')+'</div>'+
+      '<div style="font-size:0.78rem;color:var(--text2);font-weight:600;margin-bottom:0.7rem">💰 '+(t.totalRevenue||0).toLocaleString()+' '+(ar?'ريال':'SAR')+'</div>'+
       '<div class="tc-actions">'+
         '<button class="btn-tc-manage">🔧 '+(ar?'إدارة':'Manage')+'</button>'+
         '<button class="btn-tc-edit" onclick="openEditTenantModal('+t.id+')">✏️</button>'+
