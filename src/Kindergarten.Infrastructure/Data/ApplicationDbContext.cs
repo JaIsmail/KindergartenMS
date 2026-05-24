@@ -40,6 +40,9 @@ public DbSet<Child>        Children      { get; set; }
     public DbSet<Employee>     Employees     { get; set; }
     public DbSet<Attendance>   Attendance    { get; set; }
     public DbSet<UserDevice>   UserDevices   { get; set; }
+    public DbSet<PermissionGroup>           PermissionGroups           { get; set; }
+    public DbSet<PermissionGroupPermission> PermissionGroupPermissions { get; set; }
+    public DbSet<UserPermissionGroup>       UserPermissionGroups       { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -64,6 +67,10 @@ public DbSet<Child>        Children      { get; set; }
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
         builder.Entity<UserDevice>()
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
+        builder.Entity<PermissionGroup>()
+            .HasQueryFilter(x => x.TenantId == CurrentTenantId);
+        builder.Entity<UserPermissionGroup>()
+            .HasQueryFilter(x => x.TenantId == CurrentTenantId);
 
   // Tenant navigation — no FK
         builder.Entity<Kindergarten.Core.Entities.ApplicationUser>().Ignore(e => e.Tenant);
@@ -76,6 +83,30 @@ public DbSet<Child>        Children      { get; set; }
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
         builder.Entity<TripLocation>()
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
+
+        // PermissionGroupPermission — composite primary key
+        builder.Entity<PermissionGroupPermission>()
+            .HasKey(x => new { x.GroupId, x.PermissionId });
+        builder.Entity<PermissionGroupPermission>()
+            .HasOne(x => x.Group)
+            .WithMany(g => g.GroupPermissions)
+            .HasForeignKey(x => x.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<PermissionGroupPermission>()
+            .HasOne(x => x.Permission)
+            .WithMany()
+            .HasForeignKey(x => x.PermissionId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<UserPermissionGroup>()
+            .HasOne(x => x.User)
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<UserPermissionGroup>()
+            .HasOne(x => x.Group)
+            .WithMany(g => g.UserGroups)
+            .HasForeignKey(x => x.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // TripChild — composite primary key
         builder.Entity<TripChild>()
