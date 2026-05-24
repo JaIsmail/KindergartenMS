@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Kindergarten.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -18,15 +19,23 @@ public class UsersController : ControllerBase
         _userManager = userManager;
     }
 
+    private int GetTenantId() =>
+        int.TryParse(User.FindFirstValue("TenantId"), out var id) ? id : 1;
+    private bool IsSuperAdmin() => User.IsInRole("SuperAdmin");
+
     // GET all users
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _userManager.Users
+        var query = IsSuperAdmin()
+            ? _userManager.Users
+            : _userManager.Users.Where(u => u.TenantId == GetTenantId());
+
+        var users = await query
             .OrderByDescending(u => u.Id)
             .Select(u => new {
                 u.Id, u.FullName, u.Email,
-                u.PhoneNumber, u.RoleType, u.Address
+                u.PhoneNumber, u.RoleType, u.Address, u.TenantId
             })
             .ToListAsync();
         return Ok(users);
