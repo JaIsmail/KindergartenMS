@@ -20,7 +20,10 @@ public class ChildrenController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var children = await _childService.GetAllAsync(GetUserId());
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+        var isAdminOrSuper = role == "Admin" || role == "SuperAdmin";
+        var parentId = isAdminOrSuper ? null : GetUserId();
+        var children = await _childService.GetAllAsync(parentId);
         return Ok(children);
     }
 

@@ -16,11 +16,12 @@ public class ChildService : IChildService
         _tenantService = tenantService;
     }
 
-    public async Task<IEnumerable<ChildResponseDto>> GetAllAsync(string parentId)
+    public async Task<IEnumerable<ChildResponseDto>> GetAllAsync(string? parentId)
     {
-        return await _db.Children
-            .Include(c => c.Parent)
-            .Where(c => c.ParentId == parentId)
+        var query = _db.Children.Include(c => c.Parent);
+        if(!string.IsNullOrEmpty(parentId))
+            query = query.Where(c => c.ParentId == parentId);
+        return await query
             .Select(c => new ChildResponseDto
             {
                 Id          = c.Id,

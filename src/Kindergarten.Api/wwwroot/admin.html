@@ -757,6 +757,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
 <script>
 const API='https://kms-api-staging-kg01.azurewebsites.net';
 let token=localStorage.getItem('kms_token');
+let tenantId=localStorage.getItem('kms_tenantId')||'1';
 let currentPage='dashboard';
 let currentLang=localStorage.getItem('kms_lang')||'ar';
 let signalrConnection=null;
@@ -875,7 +876,7 @@ async function doLogin(){
   try{
     const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json','Accept-Language':currentLang},body:JSON.stringify({email,password:pass})});
     const data=await res.json();
-    if(data.token){token=data.token;localStorage.setItem('kms_token',token);localStorage.setItem('kms_user',JSON.stringify(data));await initDashboard();}
+    if(data.token){token=data.token;tenantId=data.tenantId||'1';localStorage.setItem('kms_token',token);localStorage.setItem('kms_tenantId',tenantId);localStorage.setItem('kms_user',JSON.stringify(data));await initDashboard();}
     else{err.textContent=data.message||t('err.wrongPass');err.style.display='block';}
   }catch{err.textContent=t('err.noConn');err.style.display='block';}
   btn.disabled=false;btn.textContent=t('loginBtn');
