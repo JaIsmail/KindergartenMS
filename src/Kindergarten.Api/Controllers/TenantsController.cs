@@ -31,10 +31,15 @@ public class TenantsController : ControllerBase
 
     // SuperAdmin only
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetAll()
     {
-        var tenants = await _db.Tenants
+        var isSuperAdmin = User.IsInRole("SuperAdmin");
+        var tenantId = int.TryParse(User.FindFirstValue("TenantId"), out var tid) ? tid : 0;
+        var tenantsQuery = isSuperAdmin
+            ? _db.Tenants
+            : _db.Tenants.Where(t => t.Id == tenantId);
+        var tenants = await tenantsQuery.IgnoreQueryFilters()
             .Select(t => new {
                 t.Id, t.NameAr, t.NameEn, t.City, t.Phone,
                 t.Email, t.Plan, t.IsActive, t.CreatedAt,
@@ -230,7 +235,7 @@ public class TenantsController : ControllerBase
 
     // SuperAdmin impersonates a tenant - generates token with tenant context
     [HttpPost("{id}/impersonate")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "SuperAdmin")]
     public async Task<IActionResult> Impersonate(int id,
         [FromServices] IConfiguration config,
         [FromServices] Microsoft.AspNetCore.Identity.UserManager<Kindergarten.Core.Entities.ApplicationUser> userManager)
