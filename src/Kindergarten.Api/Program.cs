@@ -153,4 +153,38 @@ app.MapHub<TripHub>("/hubs/trip");
 
 // ── Admin Dashboard
 
+
+// Seed SuperAdmin
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Kindergarten.Core.Entities.ApplicationUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    // Ensure SuperAdmin role exists
+    if (!await roleManager.RoleExistsAsync("SuperAdmin"))
+        await roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
+
+    // Ensure TenantAdmin role exists
+    if (!await roleManager.RoleExistsAsync("TenantAdmin"))
+        await roleManager.CreateAsync(new IdentityRole("TenantAdmin"));
+
+    // Create SuperAdmin user if not exists
+    var superAdminEmail = "superadmin@kms-platform.com";
+    var superAdmin = await userManager.FindByEmailAsync(superAdminEmail);
+    if (superAdmin == null)
+    {
+        superAdmin = new Kindergarten.Core.Entities.ApplicationUser
+        {
+            UserName = superAdminEmail,
+            Email    = superAdminEmail,
+            FullName = "Super Admin",
+            RoleType = "SuperAdmin",
+            TenantId = 0, // SuperAdmin belongs to no tenant
+            EmailConfirmed = true
+        };
+        await userManager.CreateAsync(superAdmin, "SuperAdmin@123456");
+        await userManager.AddToRoleAsync(superAdmin, "SuperAdmin");
+    }
+}
+
 app.Run();

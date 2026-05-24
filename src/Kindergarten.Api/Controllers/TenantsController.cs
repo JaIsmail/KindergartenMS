@@ -1,3 +1,4 @@
+using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Entities;
 using Kindergarten.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -82,7 +83,7 @@ public class TenantsController : ControllerBase
     }
 
     [HttpPut("{id}/toggle")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Toggle(int id)
     {
         var tenant = await _db.Tenants.FindAsync(id);
@@ -165,6 +166,50 @@ public class TenantsController : ControllerBase
             })
         };
         return Ok(stats);
+    }
+
+
+    // Create TenantAdmin for a specific tenant - SuperAdmin only
+    [HttpPost("{id}/create-admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
+    public async Task<IActionResult> CreateTenantAdmin(int id,
+        [FromBody] CreateTenantAdminDto dto,
+        [FromServices] Microsoft.AspNetCore.Identity.UserManager<Kindergarten.Core.Entities.ApplicationUser> userManager,
+        [FromServices] Microsoft.AspNetCore.Identity.RoleManager<Microsoft.AspNetCore.Identity.IdentityRole> roleManager)
+    {
+        var tenant = await _db.Tenants.FindAsync(id);
+        if (tenant == null) return NotFound("Tenant not found");
+
+        // Check if email already exists
+        var existing = await userManager.FindByEmailAsync(dto.Email);
+        if (existing != null) return BadRequest("Email already exists");
+
+        var user = new Kindergarten.Core.Entities.ApplicationUser
+        {
+            UserName       = dto.Email,
+            Email          = dto.Email,
+            FullName       = dto.FullName,
+            RoleType       = "TenantAdmin",
+            TenantId       = id,
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors.Select(e => e.Description));
+
+        if (!await roleManager.RoleExistsAsync("TenantAdmin"))
+            await roleManager.CreateAsync(new Microsoft.AspNetCore.Identity.IdentityRole("TenantAdmin"));
+
+        await userManager.AddToRoleAsync(user, "TenantAdmin");
+
+        return Ok(new { 
+            message = "TenantAdmin created successfully",
+            userId  = user.Id,
+            email   = user.Email,
+            tenantId = id,
+            tenantName = tenant.NameAr
+        });
     }
 
 }
