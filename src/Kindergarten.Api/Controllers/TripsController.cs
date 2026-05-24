@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Api.Hubs;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
@@ -51,6 +52,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [RequirePermission("TrackTrips")]
     public async Task<IActionResult> GetById(int id)
     {
         var trip = await _tripService.GetByIdAsync(id);

@@ -1,3 +1,4 @@
+using Kindergarten.Api.Authorization;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,7 @@ public class PaymentsController : ControllerBase
         _paymentService = paymentService;
 
     [HttpGet("subscription/{subscriptionId}")]
+    [RequirePermission("ViewFinancials")]
     public async Task<IActionResult> GetBySubscription(int subscriptionId)
     {
         var payments = await _paymentService.GetBySubscriptionAsync(subscriptionId);
@@ -22,6 +24,7 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost]
+    [RequirePermission("ManagePayments")]
     public async Task<IActionResult> Create([FromBody] CreatePaymentDto dto)
     {
         var payment = await _paymentService.CreateAsync(dto);

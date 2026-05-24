@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,7 @@ public class SubscriptionsController : ControllerBase
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     [HttpGet]
+    [RequirePermission("ViewSubscriptions")]
     public async Task<IActionResult> GetAll()
     {
         var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
@@ -29,6 +31,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [RequirePermission("ViewSubscriptions")]
     public async Task<IActionResult> GetById(int id)
     {
         var sub = await _subscriptionService.GetByIdAsync(id);
@@ -37,6 +40,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpPost]
+    [RequirePermission("ManageSubscriptions")]
     public async Task<IActionResult> Create([FromBody] CreateSubscriptionDto dto)
     {
         var sub = await _subscriptionService.CreateAsync(dto, GetUserId());

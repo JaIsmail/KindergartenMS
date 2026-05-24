@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -18,6 +19,7 @@ public class ChildrenController : ControllerBase
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     [HttpGet]
+    [RequirePermission("ViewChildren")]
     public async Task<IActionResult> GetAll()
     {
         var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
@@ -28,6 +30,7 @@ public class ChildrenController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [RequirePermission("ViewChildren")]
     public async Task<IActionResult> GetById(int id)
     {
         var child = await _childService.GetByIdAsync(id, GetUserId());
@@ -36,6 +39,7 @@ public class ChildrenController : ControllerBase
     }
 
     [HttpPost]
+    [RequirePermission("ManageChildren")]
     public async Task<IActionResult> Create([FromBody] CreateChildDto dto)
     {
         // Admin can specify parentId, others use their own ID
@@ -48,6 +52,7 @@ public class ChildrenController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [RequirePermission("ManageChildren")]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _childService.DeleteAsync(id, GetUserId());

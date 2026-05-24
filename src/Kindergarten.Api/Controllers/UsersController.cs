@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -9,7 +10,7 @@ namespace Kindergarten.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -25,6 +26,7 @@ public class UsersController : ControllerBase
 
     // GET all users
     [HttpGet]
+    [RequirePermission("ViewUsers")]
     public async Task<IActionResult> GetAll()
     {
         var query = IsSuperAdmin()
@@ -43,6 +45,7 @@ public class UsersController : ControllerBase
 
     // GET single user
     [HttpGet("{id}")]
+    [RequirePermission("ViewUsers")]
     public async Task<IActionResult> GetById(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -57,6 +60,7 @@ public class UsersController : ControllerBase
 
     // PUT update user
     [HttpPut("{id}")]
+    [RequirePermission("ManageUsers")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateUserDto dto)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -90,6 +94,7 @@ public class UsersController : ControllerBase
 
     // DELETE user
     [HttpDelete("{id}")]
+    [RequirePermission("ManageUsers")]
     public async Task<IActionResult> Delete(string id)
     {
         var user = await _userManager.FindByIdAsync(id);

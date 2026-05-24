@@ -1,4 +1,5 @@
 using Kindergarten.Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);

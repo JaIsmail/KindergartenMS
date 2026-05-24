@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Entities;
 using Kindergarten.Infrastructure.Data;
@@ -21,6 +22,7 @@ public class PermissionsController : ControllerBase
 
     // Get all permissions
     [HttpGet]
+    [RequirePermission("ManagePermissions")]
     public async Task<IActionResult> GetAll()
     {
         var perms = await _db.Permissions.OrderBy(p => p.Category).ThenBy(p => p.Id).ToListAsync();
@@ -29,6 +31,7 @@ public class PermissionsController : ControllerBase
 
     // Get user permissions
     [HttpGet("user/{userId}")]
+    [RequirePermission("ManagePermissions")]
     public async Task<IActionResult> GetUserPermissions(string userId)
     {
         var allPerms = await _db.Permissions.ToListAsync();
@@ -53,6 +56,7 @@ public class PermissionsController : ControllerBase
     }
  // Update user permissions
     [HttpPut("user/{userId}")]
+    [RequirePermission("ManagePermissions")]
     public async Task<IActionResult> UpdateUserPermissions(string userId, [FromBody] UpdateUserPermissionsDto dto)
     {
         // Remove existing
@@ -77,7 +81,10 @@ public class PermissionsController : ControllerBase
     [HttpPost("seed")]
     public async Task<IActionResult> Seed()
     {
-        if (await _db.Permissions.AnyAsync()) return Ok(new { message = "Already seeded" });
+        // Delete existing and re-seed
+        var existing = await _db.Permissions.ToListAsync();
+        _db.Permissions.RemoveRange(existing);
+        await _db.SaveChangesAsync();
 
         var permissions = new List<Permission>
         {

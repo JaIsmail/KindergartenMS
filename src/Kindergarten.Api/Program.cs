@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Api.Hubs;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +63,30 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey         = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(jwtKey))
     };
+});
+
+// ── Authorization Policies
+builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    var permissions = new[]
+    {
+        "ManageUsers", "ViewUsers",
+        "ManageChildren", "ViewChildren",
+        "ManageTrips", "TrackTrips",
+        "ManageSubscriptions", "ViewSubscriptions",
+        "ManagePayments", "ViewFinancials",
+        "ManageAttendance", "ViewOwnAttendance",
+        "SubmitLeaveRequest", "ManageLeaveRequests",
+        "ManagePermissions", "ManageRoleGroups",
+        "ManageTenants", "UpdateTenant",
+        "SendNotifications", "ViewReports"
+    };
+    foreach (var perm in permissions)
+    {
+        options.AddPolicy(perm, policy =>
+            policy.Requirements.Add(new PermissionRequirement(perm)));
+    }
 });
 
 // ── Services

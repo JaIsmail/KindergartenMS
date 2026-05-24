@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
 using Kindergarten.Infrastructure.Data;
@@ -68,6 +69,7 @@ public class LeaveRequestsController : ControllerBase
     }
 // Admin approves/rejects
     [HttpPut("{id}/review")]
+    [RequirePermission("ManageLeaveRequests")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Review(int id, [FromBody] ReviewLeaveRequestDto dto)
     {

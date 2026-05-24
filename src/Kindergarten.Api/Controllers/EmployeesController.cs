@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -67,6 +68,7 @@ public class EmployeesController : ControllerBase
 
     // ── Employee endpoints (Biometric) ───────────────
     [HttpPost("checkin")]
+    [RequirePermission("ManageAttendance")]
     [Authorize(Roles = "Employee")]
     public async Task<IActionResult> CheckIn([FromBody] CheckInDto dto)
     {
@@ -93,6 +95,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost("checkout")]
+    [RequirePermission("ManageAttendance")]
     [Authorize(Roles = "Employee")]
     public async Task<IActionResult> CheckOut()
     {

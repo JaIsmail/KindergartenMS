@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kindergarten.Api.Authorization;
 using Kindergarten.Core.Entities;
 using Kindergarten.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -66,6 +67,7 @@ public async Task<IActionResult> GetById(int id)
 
 // Create group
     [HttpPost]
+    [RequirePermission("ManageRoleGroups")]
     public async Task<IActionResult> Create([FromBody] CreatePermissionGroupDto dto)
     {
         var group = new PermissionGroup
@@ -97,6 +99,7 @@ public async Task<IActionResult> GetById(int id)
 
 // Update group permissions
     [HttpPut("{id}")]
+    [RequirePermission("ManageRoleGroups")]
     public async Task<IActionResult> Update(int id, [FromBody] CreatePermissionGroupDto dto)
     {
         var group = await _db.PermissionGroups.FindAsync(id);
@@ -126,6 +129,7 @@ public async Task<IActionResult> GetById(int id)
     }
 // Delete group
     [HttpDelete("{id}")]
+    [RequirePermission("ManageRoleGroups")]
     public async Task<IActionResult> Delete(int id)
     {
         var group = await _db.PermissionGroups.FindAsync(id);
@@ -137,6 +141,7 @@ public async Task<IActionResult> GetById(int id)
 
     // Assign group to user
     [HttpPost("{id}/assign/{userId}")]
+    [RequirePermission("ManageRoleGroups")]
     public async Task<IActionResult> AssignToUser(int id, string userId)
     {
         // Check if already assigned
@@ -186,6 +191,7 @@ public async Task<IActionResult> GetById(int id)
 
     // Remove group from user
     [HttpDelete("{id}/unassign/{userId}")]
+    [RequirePermission("ManageRoleGroups")]
     public async Task<IActionResult> UnassignFromUser(int id, string userId)
     {
         var assignment = await _db.UserPermissionGroups
