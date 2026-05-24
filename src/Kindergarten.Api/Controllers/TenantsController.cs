@@ -24,6 +24,7 @@ public class TenantsController : ControllerBase
                 t.Email, t.Plan, t.IsActive, t.CreatedAt,
                 usersCount    = _db.Users.Count(u => u.TenantId == t.Id),
                 childrenCount = _db.Children.Count(c => c.TenantId == t.Id),
+                tripsCount    = _db.Trips.Count(tr => tr.TenantId == t.Id),
                 totalRevenue  = _db.Payments
                     .Where(p => _db.Subscriptions
                         .Where(s => s.TenantId == t.Id)
