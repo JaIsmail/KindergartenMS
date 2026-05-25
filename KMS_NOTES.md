@@ -221,3 +221,12 @@
   - Status (Active/Inactive toggle)
 - Update ApplicationUser entity with new fields
 - Migration required
+
+---
+
+## Note 20: Role Groups System ✅ DONE
+- RoleGroup entity + RoleGroupPermission + UserRoleGroup tables
+- RoleGroupsController with full CRUD
+- Role Groups management page in Admin Dashboard
+- JWT token includes role groups
+- Users can be assigned to multiple role groups
