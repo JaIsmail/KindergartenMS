@@ -67,10 +67,12 @@
 - Data isolation verified per tenant
 - SystemRole added to PermissionGroup
 - User role auto-assigned when group is assigned
-- Remaining: Unify Role dropdown with Permission Groups
-- Add new roles: accountant, supervisor, parent+employee
-- User can hold more than one role
-- Each role linked to a specific Tenant
+- ✅ RoleType field added to PermissionGroup
+- ✅ AuthService JWT role from PermissionGroup.RoleType
+- ✅ All Authorize(Roles) replaced with RequirePermission or TenantId==0
+- ✅ Default PermissionGroups seeded (Admin, Driver, Parent, Employee, Accountant, Supervisor)
+- ✅ SuperAdmin identified by TenantId==0
+- Remaining: Update Admin UI — replace Role dropdown with PermissionGroup selection
 - Add new roles: accountant, supervisor, parent+employee
 - User can hold more than one role
 - Each role linked to a specific Tenant
