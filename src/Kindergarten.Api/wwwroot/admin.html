@@ -1764,9 +1764,9 @@ async function openEditModal(id){
   const groups = await api('/api/permission-groups') || [];
   const userGroups = await api('/api/permission-groups/user/'+id) || [];
   const currentGroupId = userGroups.length ? userGroups[0].id : '';
-  const gsel = document.getElementById('editUserGroup');
-  gsel.innerHTML = '<option value="">-- بدون مجموعة --</option>' +
-    groups.map(g=>`<option value="${g.id}" ${g.id==currentGroupId?'selected':''}>${g.nameAr}</option>`).join('');
+  const gsel = document.getElementById('editUserGroupInModal');
+  if(gsel) gsel.innerHTML = '<option value="">-- اختر المجموعة --</option>' +
+    groups.map(g=>`<option value="${g.id}" data-role-type="${g.roleType}" ${g.id==currentGroupId?'selected':''}>${g.nameAr}</option>`).join('');
   openModal('editModal');
 }
 
