@@ -906,7 +906,7 @@ const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,sub
 function refreshCurrentPage(){showPage(currentPage);}
 
 function statusBadge(s){const m={Created:'badge-orange',InProgress:'badge-blue',Completed:'badge-green',Pending:'badge-orange',PickedUp:'badge-green',DroppedOff:'badge-green',Missed:'badge-red',Paid:'badge-green',Overdue:'badge-red'};return'<span class="badge '+(m[s]||'badge-gray')+'">'+(t('status.'+s)||s)+'</span>';}
-function roleBadge(r){const m={Admin:'badge-red',Parent:'badge-blue',Driver:'badge-green',Employee:'badge-purple',Supervisor:'badge-orange',Accountant:'badge-purple'};const label={Admin:'مدير',Parent:'ولي أمر',Driver:'سائق',Employee:'موظف',Supervisor:'مشرف',Accountant:'محاسب'};return'<span class="badge '+(m[r]||'badge-gray')+'">'+(currentLang==='ar'?(label[r]||r):r)+'</span>';}
+function roleBadge(r){if(!r)return'<span class="badge badge-gray">—</span>';const m={Admin:'badge-red',Parent:'badge-blue',Driver:'badge-green',Employee:'badge-purple',Supervisor:'badge-orange',Accountant:'badge-purple'};return'<span class="badge '+(m[r]||'badge-gray')+'">'+r+'</span>';}
 function formatPrice(p){return currentLang==='ar'?p.toFixed(2)+' ريال':'SAR '+p.toFixed(2);}
 function formatDate(d){return new Date(d).toLocaleDateString(currentLang==='ar'?'ar-SA':'en-US');}
 function formatDateTime(d){return new Date(d).toLocaleString(currentLang==='ar'?'ar-SA':'en-US');}
