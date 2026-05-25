@@ -719,13 +719,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     </div>
     <div class="modal-row">
       <div class="modal-field">
-        <label id="lbl-edit-role">الدور</label>
-        <select id="editRole">
-          <option value="Admin" id="edit-opt-admin">مدير</option>
-          <option value="Parent" id="edit-opt-parent">ولي أمر</option>
-          <option value="Driver" id="edit-opt-driver">سائق</option>
-          <option value="Employee" id="edit-opt-employee">موظف</option>
-        </select>
+        <label>مجموعة الصلاحيات</label>
+        <select id="editUserGroupInModal"><option value="">-- اختر المجموعة --</option></select>
       </div>
       <div class="modal-field"><label id="lbl-edit-address">العنوان</label><input type="text" id="editAddress"></div>
     </div>
@@ -1757,10 +1752,15 @@ async function openEditModal(id){
   document.getElementById('lbl-email-note').textContent=ar?'لا يمكن تغيير البريد الإلكتروني':'Email cannot be changed';
   document.getElementById('btnClose2').textContent=ar?'إلغاء':'Cancel';
   document.getElementById('btnSaveEdit').textContent=ar?'💾 حفظ التغييرات':'💾 Save Changes';
-  document.getElementById('edit-opt-admin').textContent=ar?'مدير':'Admin';
-  document.getElementById('edit-opt-parent').textContent=ar?'ولي أمر':'Parent';
-  document.getElementById('edit-opt-driver').textContent=ar?'سائق':'Driver';
-  document.getElementById('edit-opt-employee').textContent=ar?'موظف':'Employee';
+  // Load permission groups
+  const editGroups = await api('/api/permission-groups') || [];
+  const editUserGroups = await api('/api/permission-groups/user/'+id) || [];
+  const editCurrentGroupId = editUserGroups.length ? editUserGroups[0].id : '';
+  const editGsel = document.getElementById('editUserGroupInModal');
+  if(editGsel){
+    editGsel.innerHTML = '<option value="">-- اختر المجموعة --</option>' +
+      editGroups.map(g=>`<option value="${g.id}" data-role-type="${g.roleType}" ${g.id==editCurrentGroupId?'selected':''}>${ar?g.nameAr:g.nameEn}</option>`).join('');
+  }
   document.getElementById('editUserId').value=id;
   document.getElementById('editFullName').value=data.fullName||'';
   document.getElementById('editPhone').value=data.phoneNumber||'';
@@ -1782,10 +1782,23 @@ async function saveEditUser(){
   const fullName=document.getElementById('editFullName').value;
   const phoneNumber=document.getElementById('editPhone').value;
   const address=document.getElementById('editAddress').value;
-  const roleType=document.getElementById('editRole').value;
+  // Get roleType from selected group
+  const editGsel = document.getElementById('editUserGroupInModal');
+  const editSelectedOption = editGsel?.options[editGsel.selectedIndex];
+  const roleType = editSelectedOption?.dataset.roleType || 'Employee';
+  const newGroupId = editGsel?.value || '';
   const ar=currentLang==='ar';
   if(!fullName){showToast(ar?'الاسم مطلوب':'Name is required','error');return;}
   const result=await api('/api/users/'+id,'PUT',{fullName,phoneNumber,address,roleType});
+  // Assign new group if changed
+  if(newGroupId){
+    const currentGroups = await api('/api/permission-groups/user/'+id) || [];
+    const currentGroupId = currentGroups.length ? currentGroups[0].id : '';
+    if(newGroupId != currentGroupId){
+      if(currentGroupId) await api('/api/permission-groups/'+currentGroupId+'/unassign/'+id,'DELETE');
+      await api('/api/permission-groups/'+newGroupId+'/assign/'+id,'POST');
+    }
+  }
   if(result){
     // Handle group assignment
     const newGroupId = document.getElementById('editUserGroup').value;
