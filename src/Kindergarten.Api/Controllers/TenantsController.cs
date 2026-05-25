@@ -260,6 +260,7 @@ public class TenantsController : ControllerBase
         [FromServices] IConfiguration config,
         [FromServices] Microsoft.AspNetCore.Identity.UserManager<Kindergarten.Core.Entities.ApplicationUser> userManager)
     {
+        if (!IsSuperAdmin()) return Forbid();
         var tenant = await _db.Tenants.FindAsync(id);
         if (tenant == null) return NotFound("Tenant not found");
 
