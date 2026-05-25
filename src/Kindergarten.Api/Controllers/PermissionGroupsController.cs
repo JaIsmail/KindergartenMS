@@ -258,7 +258,6 @@ public async Task<IActionResult> GetById(int id)
             .ToListAsync();
         return Ok(groups);
     }
-}
 
 
     // Seed default permission groups
@@ -288,6 +287,7 @@ public async Task<IActionResult> GetById(int id)
 
         return Ok(new { message = "Seeded", count = groups.Count });
     }
+}
 
 public class CreatePermissionGroupDto
 {
