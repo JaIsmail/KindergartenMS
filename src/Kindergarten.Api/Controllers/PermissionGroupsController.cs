@@ -34,7 +34,11 @@ public class PermissionGroupsController : ControllerBase
     [HttpGet]
  public async Task<IActionResult> GetAll()
     {
-        var groups = await _db.PermissionGroups
+        var isSuperAdmin = User.IsInRole("SuperAdmin");
+        var query = isSuperAdmin
+            ? _db.PermissionGroups.IgnoreQueryFilters()
+            : _db.PermissionGroups;
+        var groups = await query
             .Include(g => g.GroupPermissions)
                 .ThenInclude(gp => gp.Permission)
             .OrderBy(g => g.NameAr)
@@ -56,10 +60,12 @@ public class PermissionGroupsController : ControllerBase
     [HttpGet("{id}")]
 public async Task<IActionResult> GetById(int id)
     {
+        var isSuperAdmin = User.IsInRole("SuperAdmin");
         var group = await _db.PermissionGroups
+            .IgnoreQueryFilters()
             .Include(g => g.GroupPermissions)
                 .ThenInclude(gp => gp.Permission)
-            .FirstOrDefaultAsync(g => g.Id == id);
+            .FirstOrDefaultAsync(g => g.Id == id && (isSuperAdmin || g.TenantId == GetTenantId()));
         if (group == null) return NotFound();
         return Ok(new {
             group.Id, group.NameAr, group.NameEn, group.Description, group.SystemRole, group.IsActive,
