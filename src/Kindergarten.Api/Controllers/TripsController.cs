@@ -36,7 +36,7 @@ public class TripsController : ControllerBase
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTripDto dto)
     {
         var trip = await _tripService.CreateAsync(dto);
@@ -44,7 +44,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         var trips = await _tripService.GetAllTripsAsync();
@@ -61,7 +61,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPost("fix-pending")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> FixPendingStatuses()
     {
         var trips = await _db.Trips
@@ -93,7 +93,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet("parent")]
-    [Authorize(Roles = "Parent")]
+    [Authorize]
     public async Task<IActionResult> GetByParent()
     {
         var trips = await _tripService.GetAllTripsAsync();
@@ -101,7 +101,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet("driver")]
-    [Authorize(Roles = "Driver")]
+    [Authorize]
     public async Task<IActionResult> GetMyTrips()
     {
         var trips = await _tripService.GetByDriverAsync(GetUserId());
@@ -109,7 +109,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPut("{id}/start")]
-    [Authorize(Roles = "Driver")]
+    [Authorize]
     public async Task<IActionResult> StartTrip(int id)
     {
         var trip = await _tripService.StartTripAsync(id);
@@ -133,7 +133,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPut("{id}/end")]
-    [Authorize(Roles = "Driver")]
+    [Authorize]
     public async Task<IActionResult> EndTrip(int id)
     {
         var trip = await _tripService.EndTripAsync(id);
@@ -157,7 +157,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPost("child-status")]
-    [Authorize(Roles = "Driver")]
+    [Authorize]
     public async Task<IActionResult> UpdateChildStatus([FromBody] UpdateChildStatusDto dto)
     {
         var result = await _tripService.UpdateChildStatusAsync(dto);
@@ -205,7 +205,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPost("location")]
-    [Authorize(Roles = "Driver")]
+    [Authorize]
     public async Task<IActionResult> UpdateLocation([FromBody] UpdateLocationDto dto)
     {
         var result = await _tripService.SaveLocationAsync(dto);

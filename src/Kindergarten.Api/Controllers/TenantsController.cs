@@ -29,9 +29,15 @@ public class TenantsController : ControllerBase
         _userManager = userManager;
     }
 
+    private bool IsSuperAdmin() =>
+        int.TryParse(User.FindFirstValue("TenantId"), out var tid) && tid == 0;
+
+    private IActionResult ForbidIfNotSuperAdmin() =>
+        IsSuperAdmin() ? null! : Forbid();
+
     // SuperAdmin only
     [HttpGet]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         var isSuperAdmin = User.IsInRole("SuperAdmin");
@@ -66,9 +72,10 @@ public class TenantsController : ControllerBase
         return Ok(tenant);
     }
     [HttpPost]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] Tenant dto)
     {
+        if (!IsSuperAdmin()) return Forbid();
         var tenant = new Tenant
         {
             NameAr    = dto.NameAr,
@@ -86,7 +93,7 @@ public class TenantsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> Update(int id, [FromBody] Tenant dto)
     {
         var tenant = await _db.Tenants.FindAsync(id);
@@ -103,7 +110,7 @@ public class TenantsController : ControllerBase
     }
 
     [HttpPut("{id}/toggle")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> Toggle(int id)
     {
         var tenant = await _db.Tenants.FindAsync(id);
@@ -113,9 +120,10 @@ public class TenantsController : ControllerBase
         return Ok(new { tenant.Id, tenant.IsActive });
     }
     [HttpDelete("{id}")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
+        if (!IsSuperAdmin()) return Forbid();
         var tenant = await _db.Tenants.FindAsync(id);
         if (tenant == null) return NotFound();
         _db.Tenants.Remove(tenant);
@@ -125,9 +133,10 @@ public class TenantsController : ControllerBase
 
  // Seed default tenant
     [HttpPost("seed")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> Seed()
     {
+        if (!IsSuperAdmin()) return Forbid();
         if (await _db.Tenants.AnyAsync())
             return Ok(new { message = "Already seeded" });
 
@@ -155,7 +164,7 @@ public class TenantsController : ControllerBase
 
     // Fix all data with TenantId = 0
     [HttpPost("fix-tenant-data")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> FixTenantData()
     {
         await _db.Database.ExecuteSqlRawAsync("UPDATE LeaveRequests SET TenantId = 1 WHERE TenantId = 0");
@@ -170,7 +179,7 @@ public class TenantsController : ControllerBase
 
     // Platform-wide stats for SuperAdmin
     [HttpGet("platform-stats")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> GetPlatformStats()
     {
         var tenants = await _db.Tenants.ToListAsync();
@@ -202,7 +211,7 @@ public class TenantsController : ControllerBase
 
     // Create TenantAdmin for a specific tenant - SuperAdmin only
     [HttpPost("{id}/create-admin")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> CreateTenantAdmin(int id,
         [FromBody] CreateTenantAdminDto dto,
         [FromServices] Microsoft.AspNetCore.Identity.UserManager<Kindergarten.Core.Entities.ApplicationUser> userManager,
@@ -246,7 +255,7 @@ public class TenantsController : ControllerBase
 
     // SuperAdmin impersonates a tenant - generates token with tenant context
     [HttpPost("{id}/impersonate")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> Impersonate(int id,
         [FromServices] IConfiguration config,
         [FromServices] Microsoft.AspNetCore.Identity.UserManager<Kindergarten.Core.Entities.ApplicationUser> userManager)

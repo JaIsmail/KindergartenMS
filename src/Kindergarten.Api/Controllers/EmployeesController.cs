@@ -27,7 +27,7 @@ public class EmployeesController : ControllerBase
 
     // ── Admin endpoints ──────────────────────────────
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         var employees = await _employeeService.GetAllAsync();
@@ -35,7 +35,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateEmployeeDto dto)
     {
         var employee = await _employeeService.CreateAsync(dto);
@@ -43,7 +43,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("attendance/all")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> GetAllAttendance()
     {
         var attendance = await _employeeService.GetAllAttendanceAsync(null);
@@ -51,7 +51,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("attendance/today")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> GetTodayAttendance()
     {
         var attendance = await _employeeService.GetAllAttendanceAsync(DateTime.UtcNow);
@@ -59,7 +59,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("attendance/date/{date}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> GetAttendanceByDate(DateTime date)
     {
         var attendance = await _employeeService.GetAllAttendanceAsync(date);
@@ -69,7 +69,7 @@ public class EmployeesController : ControllerBase
     // ── Employee endpoints (Biometric) ───────────────
     [HttpPost("checkin")]
     [RequirePermission("ManageAttendance")]
-    [Authorize(Roles = "Employee")]
+    [Authorize]
     public async Task<IActionResult> CheckIn([FromBody] CheckInDto dto)
     {
         if (!dto.BiometricVerified)
@@ -96,7 +96,7 @@ public class EmployeesController : ControllerBase
 
     [HttpPost("checkout")]
     [RequirePermission("ManageAttendance")]
-    [Authorize(Roles = "Employee")]
+    [Authorize]
     public async Task<IActionResult> CheckOut()
     {
         var result = await _employeeService.CheckOutAsync(GetUserId());
@@ -107,7 +107,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("my-attendance")]
-    [Authorize(Roles = "Employee")]
+    [Authorize]
     public async Task<IActionResult> GetMyAttendance(
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to)
@@ -117,7 +117,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost("ensure-driver/{userId}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> EnsureDriverEmployee(string userId,
         [FromServices] Kindergarten.Infrastructure.Data.ApplicationDbContext db)
     {
@@ -135,7 +135,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("profile")]
-    [Authorize(Roles = "Employee")]
+    [Authorize]
     public async Task<IActionResult> GetMyProfile()
     {
         var profile = await _employeeService.GetByUserIdAsync(GetUserId());

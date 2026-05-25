@@ -20,7 +20,7 @@ public class DevicesController : ControllerBase
 
     // Test notification - Admin only
     [HttpPost("test-notification")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> TestNotification(
         [FromServices] Kindergarten.Core.Interfaces.INotificationService notify)
     {
@@ -43,7 +43,7 @@ public class DevicesController : ControllerBase
     }
 // List registered devices - Admin only
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> GetDevices()
     {
         var devices = await _db.UserDevices

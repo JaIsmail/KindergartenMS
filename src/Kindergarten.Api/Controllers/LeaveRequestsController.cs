@@ -61,7 +61,7 @@ public class LeaveRequestsController : ControllerBase
 
     // Admin views all requests
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         var result = await _service.GetAllAsync();
@@ -70,7 +70,7 @@ public class LeaveRequestsController : ControllerBase
 // Admin approves/rejects
     [HttpPut("{id}/review")]
     [RequirePermission("ManageLeaveRequests")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> Review(int id, [FromBody] ReviewLeaveRequestDto dto)
     {
         var result = await _service.ReviewAsync(id, dto, GetUserId());
