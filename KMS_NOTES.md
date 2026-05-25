@@ -209,3 +209,15 @@
 - Frontend should translate to English when language is EN
 - City translation map added to tenant cards ✅
 - Need to apply same translation to any other place city is displayed
+
+---
+
+## Note 22: Add User Form — Additional Fields 🟡
+- Add the following fields to Add User and Edit User forms (PWA + Admin):
+  - First Name + Last Name (split FullName into two fields)
+  - Job Number
+  - Tenant (already done in Add User)
+  - Gender (Male/Female)
+  - Status (Active/Inactive toggle)
+- Update ApplicationUser entity with new fields
+- Migration required
