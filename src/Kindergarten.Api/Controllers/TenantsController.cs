@@ -21,14 +21,45 @@ public class TenantsController : ControllerBase
     private readonly ApplicationDbContext _db;
     private readonly IConfiguration _config;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly PermissionGroupsController _permGroupsController;
 
-    public TenantsController(ApplicationDbContext db, IConfiguration config, UserManager<ApplicationUser> userManager, PermissionGroupsController permGroupsController)
+    public TenantsController(ApplicationDbContext db, IConfiguration config, UserManager<ApplicationUser> userManager)
     {
         _db = db;
         _config = config;
         _userManager = userManager;
-        _permGroupsController = permGroupsController;
+    }
+
+    private async Task SeedDefaultGroupsForTenantAsync(int tenantId)
+    {
+        var allPerms = await _db.Permissions.ToListAsync();
+        var p = allPerms.ToDictionary(x => x.Name, x => x.Id);
+
+        var groups = new List<(Core.Entities.PermissionGroup Group, List<string> Perms)>
+        {
+            (new() { NameAr="مدير النظام", NameEn="Admin",      Description="مدير الروضة",   TenantId=tenantId },
+             allPerms.Select(x => x.Name).ToList()),
+            (new() { NameAr="سائق",        NameEn="Driver",     Description="سائق الحافلة",  TenantId=tenantId },
+             new List<string> { "ManageTrips","TrackTrips","ViewChildren","SubmitLeaveRequest","ViewOwnAttendance" }),
+            (new() { NameAr="ولي أمر",     NameEn="Parent",     Description="ولي أمر الطفل", TenantId=tenantId },
+             new List<string> { "ViewChildren","ViewSubscriptions","TrackTrips" }),
+            (new() { NameAr="معلم",        NameEn="Teacher",    Description="معلم الروضة",   TenantId=tenantId },
+             new List<string> { "ManageAttendance","ViewOwnAttendance","SubmitLeaveRequest","ViewChildren" }),
+            (new() { NameAr="محاسب",       NameEn="Accountant", Description="المحاسب",       TenantId=tenantId },
+             new List<string> { "ViewFinancials","ManagePayments","ViewSubscriptions","ManageSubscriptions","ViewReports" }),
+            (new() { NameAr="مشرف",        NameEn="Supervisor", Description="المشرف",        TenantId=tenantId },
+             new List<string> { "ViewUsers","ViewChildren","ManageAttendance","ViewOwnAttendance","ManageLeaveRequests","ViewReports" }),
+        };
+
+        foreach (var (group, permNames) in groups)
+        {
+            _db.PermissionGroups.Add(group);
+            await _db.SaveChangesAsync();
+            var permIds = permNames
+                .Where(n => p.ContainsKey(n))
+                .Select(n => new Core.Entities.PermissionGroupPermission { GroupId = group.Id, PermissionId = p[n] });
+            _db.PermissionGroupPermissions.AddRange(permIds);
+        }
+        await _db.SaveChangesAsync();
     }
 
     private bool IsSuperAdmin() =>
@@ -93,7 +124,7 @@ public class TenantsController : ControllerBase
         await _db.SaveChangesAsync();
 
         // Auto-seed default permission groups for new tenant
-        await _permGroupsController.SeedDefaultGroupsAsync(tenant.Id);
+        await SeedDefaultGroupsForTenantAsync(tenant.Id);
 
         return Ok(tenant);
     }
