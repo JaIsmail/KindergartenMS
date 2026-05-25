@@ -1673,7 +1673,7 @@ async function loadUsers(){
       '<td><strong>'+u.fullName+'</strong></td>'+
       '<td style="direction:ltr">'+u.email+'</td>'+
       '<td>'+(u.phoneNumber||'—')+'</td>'+
-      '<td>'+roleBadge(u.roleType)+'</td>'+
+      '<td>'+roleBadge(u.groupName||u.roleType)+'</td>'+
       '<td><div style="display:flex;gap:0.4rem">'+
         '<button data-id="'+u.id+'" data-action="view" class="user-action-btn icon-btn icon-btn-view" title="'+(currentLang==='ar'?'عرض':'View')+'">👁️</button>'+
         '<button data-id="'+u.id+'" data-action="edit" class="user-action-btn icon-btn icon-btn-edit" title="'+(currentLang==='ar'?'تعديل':'Edit')+'">✏️</button>'+
@@ -1741,7 +1741,7 @@ async function openEditModal(id){
   const editGsel = document.getElementById('editUserGroupInModal');
   if(editGsel){
     editGsel.innerHTML = '<option value="">-- اختر المجموعة --</option>' +
-      editGroups.map(g=>`<option value="${g.id}" data-role-type="${g.roleType}" ${g.id==editCurrentGroupId?'selected':''}>${ar?g.nameAr:g.nameEn}</option>`).join('');
+      editGroups.map(g=>`<option value="${g.id}" data-role-type="${g.nameEn}" ${g.id==editCurrentGroupId?'selected':''}>${ar?g.nameAr:g.nameEn}</option>`).join('');
   }
   document.getElementById('editUserId').value=id;
   document.getElementById('editFullName').value=data.fullName||'';
@@ -1754,7 +1754,7 @@ async function openEditModal(id){
   const currentGroupId = userGroups.length ? userGroups[0].id : '';
   const gsel = document.getElementById('editUserGroupInModal');
   if(gsel) gsel.innerHTML = '<option value="">-- اختر المجموعة --</option>' +
-    groups.map(g=>`<option value="${g.id}" data-role-type="${g.roleType}" ${g.id==currentGroupId?'selected':''}>${g.nameAr}</option>`).join('');
+    groups.map(g=>`<option value="${g.id}" data-role-type="${g.nameEn}" ${g.id==currentGroupId?'selected':''}>${g.nameAr}</option>`).join('');
   openModal('editModal');
 }
 

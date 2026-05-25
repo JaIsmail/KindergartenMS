@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Kindergarten.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Kindergarten.Api.Authorization;
 using Kindergarten.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +39,12 @@ public class UsersController : ControllerBase
             .OrderByDescending(u => u.Id)
             .Select(u => new {
                 u.Id, u.FullName, u.Email,
-                u.PhoneNumber, u.RoleType, u.Address, u.TenantId
+                u.PhoneNumber, u.RoleType, u.Address, u.TenantId,
+                GroupName = _db.UserPermissionGroups
+                    .IgnoreQueryFilters()
+                    .Where(g => g.UserId == u.Id)
+                    .Select(g => g.Group.NameEn)
+                    .FirstOrDefault()
             })
             .ToListAsync();
         return Ok(users);
