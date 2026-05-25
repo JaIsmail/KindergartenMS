@@ -351,11 +351,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div class="form-field"><label id="lbl-user-phone">رقم الهاتف</label><input type="text" id="newUserPhone"></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label id="lbl-user-role">الدور</label><select id="newUserRole"><option value="Parent" id="opt-parent">ولي أمر</option><option value="Driver" id="opt-driver">سائق</option><option value="Admin" id="opt-admin">مدير</option><option value="Employee" id="opt-employee">موظف</option></select></div>
         <div class="form-field"><label id="lbl-user-tenant">الروضة</label><select id="newUserTenant"><option value="">-- اختر الروضة --</option></select></div>
       </div>
       <div class="form-row full">
-        <div class="form-field"><label>مجموعة الصلاحيات (اختياري)</label><select id="newUserGroup"><option value="">-- بدون مجموعة --</option></select></div>
+        <div class="form-field"><label>مجموعة الصلاحيات <span style="color:red">*</span></label><select id="newUserGroup"><option value="">-- اختر المجموعة --</option></select></div>
       </div>
       <button class="btn btn-primary" id="btn-reg-user" onclick="registerUser()">تسجيل المستخدم</button>
     </div>
@@ -1859,16 +1858,21 @@ async function loadTenantsDropdown(){
   if(tenants&&sel){sel.innerHTML='<option value="">-- اختر الروضة --</option>'+tenants.map(t=>`<option value="${t.id}">${t.nameAr}</option>`).join('');}
   const groups=await api('/api/permission-groups');
   const gsel=document.getElementById('newUserGroup');
-  if(groups&&gsel){gsel.innerHTML='<option value="">-- بدون مجموعة --</option>'+groups.map(g=>`<option value="${g.id}">${g.nameAr}</option>`).join('');}
+  if(groups&&gsel){gsel.innerHTML='<option value="">-- اختر المجموعة --</option>'+groups.map(g=>`<option value="${g.id}" data-role-type="${g.roleType}">${g.nameAr}</option>`).join('');}
 }
 async function registerUser(){
   const fullName=document.getElementById('newUserName').value;const email=document.getElementById('newUserEmail').value;
-  const password=document.getElementById('newUserPass').value;const phoneNumber=document.getElementById('newUserPhone').value;const roleType=document.getElementById('newUserRole').value;
+  const password=document.getElementById('newUserPass').value;const phoneNumber=document.getElementById('newUserPhone').value;
+  const groupId=document.getElementById('newUserGroup').value;
+  if(!groupId){showToast(ar?'يرجى اختيار مجموعة الصلاحيات':'Please select a permission group','error');return;}
+  // Get roleType from selected group
+  const groupSel=document.getElementById('newUserGroup');
+  const selectedOption=groupSel.options[groupSel.selectedIndex];
+  const roleType=selectedOption.dataset.roleType||'Employee';
   if(!fullName||!email||!password){showToast(t('err.fill'),'error');return;}
   const tenantId=parseInt(document.getElementById('newUserTenant').value)||1;
   const result=await api('/api/auth/register','POST',{fullName,email,password,phoneNumber,roleType,tenantId});
   if(result?.token){
-    const groupId=document.getElementById('newUserGroup').value;
     if(groupId&&result.userId){await api('/api/permission-groups/'+groupId+'/assign/'+result.userId,'POST');}
     showToast('✅ '+t('succ.user'),'success');loadUsers();
   }
