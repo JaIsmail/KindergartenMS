@@ -72,7 +72,7 @@ public class AuthService : IAuthService
             .IgnoreQueryFilters()
             .Include(x => x.Group)
             .FirstOrDefaultAsync(x => x.UserId == user.Id);
-        var role = permGroup?.Group.RoleType ?? user.RoleType;
+        var role = permGroup?.Group.NameEn ?? user.RoleType;
 
         var claims = new List<Claim>
         {

@@ -1237,7 +1237,6 @@ async function openAddGroupModal(){
   document.getElementById('groupNameAr').value = '';
   document.getElementById('groupNameEn').value = '';
   document.getElementById('groupDescription').value = '';
-  document.getElementById('groupRoleType').value = '';
   document.getElementById('groupModalTitle').textContent = 'إنشاء مجموعة صلاحيات';
   await loadGroupPermsList([]);
   openModal('addGroupModal');
@@ -1250,7 +1249,6 @@ async function openEditGroup(id){
   document.getElementById('groupNameAr').value = group.nameAr;
   document.getElementById('groupNameEn').value = group.nameEn;
   document.getElementById('groupDescription').value = group.description||'';
-  document.getElementById('groupRoleType').value = group.roleType||'';
   document.getElementById('groupModalTitle').textContent = 'تعديل المجموعة';
   const selectedIds = group.permissions.map(p=>p.id);
   await loadGroupPermsList(selectedIds);
@@ -1283,8 +1281,7 @@ async function saveGroup(){
   if(!nameAr||!nameEn){showToast('يرجى إدخال اسم المجموعة','error');return;}
   const checkboxes = document.querySelectorAll('#groupPermsList input[type=checkbox]:checked');
   const permissionIds = [...checkboxes].map(cb=>parseInt(cb.value));
-  const roleType = document.getElementById('groupRoleType').value;
-  const body = {nameAr, nameEn, description, roleType, permissionIds};
+  const body = {nameAr, nameEn, description, permissionIds};
   const method = id ? 'PUT' : 'POST';
   const url = id ? '/api/permission-groups/'+id : '/api/permission-groups';
   const result = await api(url, method, body);
@@ -1866,7 +1863,7 @@ async function loadTenantsDropdown(){
   if(tenants&&sel){sel.innerHTML='<option value="">-- اختر الروضة --</option>'+tenants.map(t=>`<option value="${t.id}">${t.nameAr}</option>`).join('');}
   const groups=await api('/api/permission-groups');
   const gsel=document.getElementById('newUserGroup');
-  if(groups&&gsel){gsel.innerHTML='<option value="">-- اختر المجموعة --</option>'+groups.map(g=>`<option value="${g.id}" data-role-type="${g.roleType}">${g.nameAr}</option>`).join('');}
+  if(groups&&gsel){gsel.innerHTML='<option value="">-- اختر المجموعة --</option>'+groups.map(g=>`<option value="${g.id}" data-role-type="${g.nameEn}">${g.nameAr}</option>`).join('');}
 }
 async function registerUser(){
   const fullName=document.getElementById('newUserName').value;const email=document.getElementById('newUserEmail').value;
