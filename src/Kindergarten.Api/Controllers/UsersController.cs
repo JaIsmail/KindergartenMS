@@ -50,11 +50,10 @@ public class UsersController : ControllerBase
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return NotFound();
-        var roles = await _userManager.GetRolesAsync(user);
         return Ok(new {
             user.Id, user.FullName, user.Email,
             user.PhoneNumber, user.RoleType,
-            user.Address, Role = roles.FirstOrDefault()
+            user.Address, Role = user.RoleType
         });
     }
 
