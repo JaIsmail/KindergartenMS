@@ -63,7 +63,12 @@
 - SuperAdmin impersonation implemented
 - SuperAdmin can manage any tenant
 - Data isolation verified per tenant
+- SystemRole added to PermissionGroup
+- User role auto-assigned when group is assigned
 - Remaining: Unify Role dropdown with Permission Groups
+- Add new roles: accountant, supervisor, parent+employee
+- User can hold more than one role
+- Each role linked to a specific Tenant
 - Add new roles: accountant, supervisor, parent+employee
 - User can hold more than one role
 - Each role linked to a specific Tenant
