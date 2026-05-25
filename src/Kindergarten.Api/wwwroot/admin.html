@@ -354,7 +354,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div class="form-field"><label id="lbl-user-tenant">الروضة</label><select id="newUserTenant"><option value="">-- اختر الروضة --</option></select></div>
       </div>
       <div class="form-row full">
-        <div class="form-field"><label>مجموعة الصلاحيات <span style="color:red">*</span></label><select id="newUserGroup"><option value="">-- اختر المجموعة --</option></select></div>
+        <div class="form-field"><label>مجموعات الصلاحيات <span style="color:red">*</span></label><div id="newUserGroupsList" style="display:flex;flex-direction:column;gap:0.4rem;max-height:150px;overflow-y:auto;border:1.5px solid var(--border);border-radius:9px;padding:0.6rem"></div></div>
       </div>
       <button class="btn btn-primary" id="btn-reg-user" onclick="registerUser()">تسجيل المستخدم</button>
     </div>
@@ -710,8 +710,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     </div>
     <div class="modal-row">
       <div class="modal-field">
-        <label>مجموعة الصلاحيات</label>
-        <select id="editUserGroupInModal"><option value="">-- اختر المجموعة --</option></select>
+        <label>مجموعات الصلاحيات</label>
+        <div id="editUserGroupsList" style="display:flex;flex-direction:column;gap:0.4rem;max-height:150px;overflow-y:auto;border:1.5px solid var(--border);border-radius:9px;padding:0.6rem"></div>
       </div>
       <div class="modal-field"><label id="lbl-edit-address">العنوان</label><input type="text" id="editAddress"></div>
     </div>
@@ -1752,9 +1752,16 @@ async function openEditModal(id){
   const groups = await api('/api/permission-groups') || [];
   const userGroups = await api('/api/permission-groups/user/'+id) || [];
   const currentGroupId = userGroups.length ? userGroups[0].id : '';
-  const gsel = document.getElementById('editUserGroupInModal');
-  if(gsel) gsel.innerHTML = '<option value="">-- اختر المجموعة --</option>' +
-    groups.map(g=>`<option value="${g.id}" data-role-type="${g.nameEn}" ${g.id==currentGroupId?'selected':''}>${g.nameAr}</option>`).join('');
+  const glist2 = document.getElementById('editUserGroupsList');
+  const currentGroupIds = userGroups.map(g => String(g.id));
+  if(glist2){
+    glist2.innerHTML = groups.map(g=>
+      `<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem">
+        <input type="checkbox" value="${g.id}" data-role-type="${g.nameEn}" ${currentGroupIds.includes(String(g.id))?'checked':''} style="width:16px;height:16px">
+        <span>${ar?g.nameAr:g.nameEn}</span>
+      </label>`
+    ).join('');
+  }
   openModal('editModal');
 }
 
@@ -1763,24 +1770,28 @@ async function saveEditUser(){
   const fullName=document.getElementById('editFullName').value;
   const phoneNumber=document.getElementById('editPhone').value;
   const address=document.getElementById('editAddress').value;
-  // Get roleType from selected group
-  const editGsel = document.getElementById('editUserGroupInModal');
-  const editSelectedOption = editGsel?.options[editGsel.selectedIndex];
-  const roleType = editSelectedOption?.dataset.roleType || 'Employee';
-  const newGroupId = editGsel?.value || '';
+  // Get selected groups
+  const checkedEditGroups = [...document.querySelectorAll('#editUserGroupsList input[type=checkbox]:checked')];
+  const roleType = checkedEditGroups.length ? checkedEditGroups[0].dataset.roleType : 'Employee';
+  const newGroupIds = checkedEditGroups.map(cb => String(cb.value));
   const ar=currentLang==='ar';
   if(!fullName){showToast(ar?'الاسم مطلوب':'Name is required','error');return;}
   const result=await api('/api/users/'+id,'PUT',{fullName,phoneNumber,address,roleType});
   if(result){
-    // Handle group assignment
-    const userGroups = await api('/api/permission-groups/user/'+id) || [];
-    const currentGroupId = userGroups.length ? String(userGroups[0].id) : '';
-    const newGroupIdStr = String(newGroupId);
-    if(newGroupIdStr && newGroupIdStr !== currentGroupId){
-      if(currentGroupId) await api('/api/permission-groups/'+currentGroupId+'/unassign/'+id,'DELETE');
-      await api('/api/permission-groups/'+newGroupIdStr+'/assign/'+id,'POST');
-    } else if(!newGroupIdStr && currentGroupId){
-      await api('/api/permission-groups/'+currentGroupId+'/unassign/'+id,'DELETE');
+    // Handle multiple group assignments
+    const currentGroups = await api('/api/permission-groups/user/'+id) || [];
+    const currentGroupIds = currentGroups.map(g => String(g.id));
+    // Unassign removed groups
+    for(const cgId of currentGroupIds){
+      if(!newGroupIds.includes(cgId)){
+        await api('/api/permission-groups/'+cgId+'/unassign/'+id,'DELETE');
+      }
+    }
+    // Assign new groups
+    for(const ngId of newGroupIds){
+      if(!currentGroupIds.includes(ngId)){
+        await api('/api/permission-groups/'+ngId+'/assign/'+id,'POST');
+      }
     }
     showToast('✅ '+(ar?'تم تحديث المستخدم بنجاح':'User updated successfully'),'success');
     closeModal('editModal');
@@ -1844,22 +1855,29 @@ async function loadTenantsDropdown(){
   if(tenants&&sel){sel.innerHTML='<option value="">-- اختر الروضة --</option>'+tenants.map(t=>`<option value="${t.id}">${t.nameAr}</option>`).join('');}
   const groups=await api('/api/permission-groups');
   const gsel=document.getElementById('newUserGroup');
-  if(groups&&gsel){gsel.innerHTML='<option value="">-- اختر المجموعة --</option>'+groups.map(g=>`<option value="${g.id}" data-role-type="${g.nameEn}">${g.nameAr}</option>`).join('');}
+  const glist = document.getElementById('newUserGroupsList');
+  if(groups&&glist){
+    glist.innerHTML = groups.map(g=>
+      `<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem">
+        <input type="checkbox" value="${g.id}" data-role-type="${g.nameEn}" style="width:16px;height:16px">
+        <span>${g.nameAr} <small style="color:var(--text3)">(${g.nameEn})</small></span>
+      </label>`
+    ).join('');
+  }
 }
 async function registerUser(){
   const fullName=document.getElementById('newUserName').value;const email=document.getElementById('newUserEmail').value;
   const password=document.getElementById('newUserPass').value;const phoneNumber=document.getElementById('newUserPhone').value;
-  const groupId=document.getElementById('newUserGroup').value;
-  if(!groupId){showToast(ar?'يرجى اختيار مجموعة الصلاحيات':'Please select a permission group','error');return;}
-  // Get roleType from selected group
-  const groupSel=document.getElementById('newUserGroup');
-  const selectedOption=groupSel.options[groupSel.selectedIndex];
-  const roleType=selectedOption.dataset.roleType||'Employee';
+  const checkedGroups = [...document.querySelectorAll('#newUserGroupsList input[type=checkbox]:checked')];
+  if(!checkedGroups.length){showToast(ar?'يرجى اختيار مجموعة صلاحيات واحدة على الأقل':'Please select at least one permission group','error');return;}
+  const roleType = checkedGroups[0].dataset.roleType||'Employee';
   if(!fullName||!email||!password){showToast(t('err.fill'),'error');return;}
   const tenantId=parseInt(document.getElementById('newUserTenant').value)||1;
   const result=await api('/api/auth/register','POST',{fullName,email,password,phoneNumber,roleType,tenantId});
   if(result?.token){
-    if(groupId&&result.userId){await api('/api/permission-groups/'+groupId+'/assign/'+result.userId,'POST');}
+    for(const cb of checkedGroups){
+      await api('/api/permission-groups/'+cb.value+'/assign/'+result.userId,'POST');
+    }
     showToast('✅ '+t('succ.user'),'success');loadUsers();
   }
   else showToast(result?.message||t('err.failed'),'error');

@@ -67,12 +67,15 @@ public class AuthService : IAuthService
 
     private async Task<AuthResponseDto> GenerateTokenAsync(ApplicationUser user)
     {
-        // Get role from PermissionGroup first, fallback to user.RoleType
-        var permGroup = await _db.UserPermissionGroups
+        // Get all roles from PermissionGroups, comma-separated
+        var permGroups = await _db.UserPermissionGroups
             .IgnoreQueryFilters()
             .Include(x => x.Group)
-            .FirstOrDefaultAsync(x => x.UserId == user.Id);
-        var role = permGroup?.Group.NameEn ?? user.RoleType;
+            .Where(x => x.UserId == user.Id)
+            .ToListAsync();
+        var role = permGroups.Any()
+            ? string.Join(",", permGroups.Select(g => g.Group.NameEn))
+            : user.RoleType;
 
         var claims = new List<Claim>
         {
