@@ -16,10 +16,12 @@ namespace Kindergarten.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ApplicationDbContext _db;
 
-    public UsersController(UserManager<ApplicationUser> userManager)
+    public UsersController(UserManager<ApplicationUser> userManager, ApplicationDbContext db)
     {
         _userManager = userManager;
+        _db = db;
     }
 
     private int GetTenantId() =>
