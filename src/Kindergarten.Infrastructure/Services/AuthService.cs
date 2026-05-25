@@ -1,4 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
+using Kindergarten.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
 using Kindergarten.Core.DTOs;
@@ -15,15 +17,18 @@ public class AuthService : IAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole>   _roleManager;
     private readonly IConfiguration              _config;
+    private readonly ApplicationDbContext        _db;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole>    roleManager,
-        IConfiguration               config)
+        IConfiguration               config,
+        ApplicationDbContext         db)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _config      = config;
+        _db          = db;
     }
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
@@ -65,8 +70,12 @@ public class AuthService : IAuthService
 
     private async Task<AuthResponseDto> GenerateTokenAsync(ApplicationUser user)
     {
-        var roles = await _userManager.GetRolesAsync(user);
-        var role  = roles.FirstOrDefault() ?? user.RoleType;
+        // Get role from PermissionGroup first, fallback to user.RoleType
+        var permGroup = await _db.UserPermissionGroups
+            .IgnoreQueryFilters()
+            .Include(x => x.Group)
+            .FirstOrDefaultAsync(x => x.UserId == user.Id);
+        var role = permGroup?.Group.RoleType ?? user.RoleType;
 
         var claims = new List<Claim>
         {
