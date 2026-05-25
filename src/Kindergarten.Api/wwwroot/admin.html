@@ -529,7 +529,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
           </div>
           <div>
             <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.4rem">دور النظام (System Role)</label>
-            <select id="groupSystemRole" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+            <select id="groupRoleType" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
               <option value="">-- اختر الدور --</option>
               <option value="Admin">Admin — مدير</option>
               <option value="Parent">Parent — ولي أمر</option>
@@ -1246,7 +1246,7 @@ async function openAddGroupModal(){
   document.getElementById('groupNameAr').value = '';
   document.getElementById('groupNameEn').value = '';
   document.getElementById('groupDescription').value = '';
-  document.getElementById('groupSystemRole').value = '';
+  document.getElementById('groupRoleType').value = '';
   document.getElementById('groupModalTitle').textContent = 'إنشاء مجموعة صلاحيات';
   await loadGroupPermsList([]);
   openModal('addGroupModal');
@@ -1259,7 +1259,7 @@ async function openEditGroup(id){
   document.getElementById('groupNameAr').value = group.nameAr;
   document.getElementById('groupNameEn').value = group.nameEn;
   document.getElementById('groupDescription').value = group.description||'';
-  document.getElementById('groupSystemRole').value = group.systemRole||'';
+  document.getElementById('groupRoleType').value = group.roleType||'';
   document.getElementById('groupModalTitle').textContent = 'تعديل المجموعة';
   const selectedIds = group.permissions.map(p=>p.id);
   await loadGroupPermsList(selectedIds);
@@ -1292,8 +1292,8 @@ async function saveGroup(){
   if(!nameAr||!nameEn){showToast('يرجى إدخال اسم المجموعة','error');return;}
   const checkboxes = document.querySelectorAll('#groupPermsList input[type=checkbox]:checked');
   const permissionIds = [...checkboxes].map(cb=>parseInt(cb.value));
-  const systemRole = document.getElementById('groupSystemRole').value;
-  const body = {nameAr, nameEn, description, systemRole, permissionIds};
+  const roleType = document.getElementById('groupRoleType').value;
+  const body = {nameAr, nameEn, description, roleType, permissionIds};
   const method = id ? 'PUT' : 'POST';
   const url = id ? '/api/permission-groups/'+id : '/api/permission-groups';
   const result = await api(url, method, body);

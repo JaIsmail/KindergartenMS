@@ -43,7 +43,7 @@ public class PermissionGroupsController : ControllerBase
                 .ThenInclude(gp => gp.Permission)
             .OrderBy(g => g.NameAr)
             .Select(g => new {
-                g.Id, g.NameAr, g.NameEn, g.Description, g.SystemRole, g.IsActive, g.CreatedAt,
+                g.Id, g.NameAr, g.NameEn, g.Description, g.RoleType, g.IsActive, g.CreatedAt,
                 permissions = g.GroupPermissions.Select(gp => new {
                     gp.Permission.Id,
                     gp.Permission.Name,
@@ -68,7 +68,7 @@ public async Task<IActionResult> GetById(int id)
             .FirstOrDefaultAsync(g => g.Id == id && (isSuperAdmin || g.TenantId == GetTenantId()));
         if (group == null) return NotFound();
         return Ok(new {
-            group.Id, group.NameAr, group.NameEn, group.Description, group.SystemRole, group.IsActive,
+            group.Id, group.NameAr, group.NameEn, group.Description, group.RoleType, group.IsActive,
             permissions = group.GroupPermissions.Select(gp => new {
                 gp.Permission.Id,
                 gp.Permission.Name,
@@ -89,7 +89,7 @@ public async Task<IActionResult> GetById(int id)
             NameAr      = dto.NameAr,
             NameEn      = dto.NameEn,
             Description = dto.Description ?? string.Empty,
-            SystemRole  = dto.SystemRole ?? string.Empty,
+            RoleType  = dto.RoleType ?? string.Empty,
             TenantId    = GetTenantId(),
             IsActive    = true,
             CreatedAt   = DateTime.UtcNow
@@ -123,7 +123,7 @@ public async Task<IActionResult> GetById(int id)
         group.NameAr      = dto.NameAr;
         group.NameEn      = dto.NameEn;
         group.Description = dto.Description ?? string.Empty;
-        group.SystemRole  = dto.SystemRole ?? string.Empty;
+        group.RoleType  = dto.RoleType ?? string.Empty;
 
         // Replace permissions
         var existing = await _db.PermissionGroupPermissions
@@ -202,17 +202,17 @@ public async Task<IActionResult> GetById(int id)
             }
         }
 
-        // Set user's system role from group's SystemRole
-        if (!string.IsNullOrEmpty(group.SystemRole))
+        // Set user's system role from group's RoleType
+        if (!string.IsNullOrEmpty(group.RoleType))
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user != null)
             {
                 var currentRoles = await _userManager.GetRolesAsync(user);
                 await _userManager.RemoveFromRolesAsync(user, currentRoles);
-                if (!await _userManager.IsInRoleAsync(user, group.SystemRole))
-                    await _userManager.AddToRoleAsync(user, group.SystemRole);
-                user.RoleType = group.SystemRole;
+                if (!await _userManager.IsInRoleAsync(user, group.RoleType))
+                    await _userManager.AddToRoleAsync(user, group.RoleType);
+                user.RoleType = group.RoleType;
                 await _userManager.UpdateAsync(user);
             }
         }
@@ -261,11 +261,39 @@ public async Task<IActionResult> GetById(int id)
 }
 
 
+    // Seed default permission groups
+    [HttpPost("seed")]
+    public async Task<IActionResult> Seed()
+    {
+        var tenantId = GetTenantId();
+
+        // Delete existing groups for this tenant
+        var existing = await _db.PermissionGroups.IgnoreQueryFilters()
+            .Where(g => g.TenantId == tenantId).ToListAsync();
+        _db.PermissionGroups.RemoveRange(existing);
+        await _db.SaveChangesAsync();
+
+        var groups = new List<PermissionGroup>
+        {
+            new() { NameAr="مدير النظام",    NameEn="Admin",       RoleType="Admin",       Description="مدير الروضة",         TenantId=tenantId },
+            new() { NameAr="سائق",           NameEn="Driver",      RoleType="Driver",      Description="سائق الحافلة",        TenantId=tenantId },
+            new() { NameAr="ولي أمر",        NameEn="Parent",      RoleType="Parent",      Description="ولي أمر الطفل",       TenantId=tenantId },
+            new() { NameAr="موظف",           NameEn="Employee",    RoleType="Employee",    Description="موظف الروضة",         TenantId=tenantId },
+            new() { NameAr="محاسب",          NameEn="Accountant",  RoleType="Accountant",  Description="المحاسب",             TenantId=tenantId },
+            new() { NameAr="مشرف",           NameEn="Supervisor",  RoleType="Supervisor",  Description="المشرف",              TenantId=tenantId },
+        };
+
+        _db.PermissionGroups.AddRange(groups);
+        await _db.SaveChangesAsync();
+
+        return Ok(new { message = "Seeded", count = groups.Count });
+    }
+
 public class CreatePermissionGroupDto
 {
     public string       NameAr        { get; set; } = string.Empty;
     public string       NameEn        { get; set; } = string.Empty;
     public string?      Description   { get; set; }
-    public string?      SystemRole    { get; set; }
+    public string?      RoleType    { get; set; }
     public List<int>?   PermissionIds { get; set; }
 }
