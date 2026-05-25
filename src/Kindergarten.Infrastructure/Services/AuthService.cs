@@ -42,17 +42,14 @@ public class AuthService : IAuthService
             Email       = dto.Email,
             UserName    = dto.Email,
             PhoneNumber = dto.PhoneNumber,
-            RoleType    = dto.RoleType,
+            RoleType    = "Employee", // Will be updated when PermissionGroup is assigned
             TenantId    = dto.TenantId
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded) return null;
 
-        if (!await _roleManager.RoleExistsAsync(dto.RoleType))
-            await _roleManager.CreateAsync(new IdentityRole(dto.RoleType));
-
-        await _userManager.AddToRoleAsync(user, dto.RoleType);
+        // Role assigned via PermissionGroup after registration
 
         return await GenerateTokenAsync(user);
     }
