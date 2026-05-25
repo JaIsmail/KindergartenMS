@@ -65,8 +65,8 @@ public class TenantsController : ControllerBase
         if (tenant == null) return NotFound();
         return Ok(tenant);
     }
- [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    [Authorize(Roles = "SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] Tenant dto)
     {
         var tenant = new Tenant
