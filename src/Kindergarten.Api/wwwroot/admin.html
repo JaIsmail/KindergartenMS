@@ -730,12 +730,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <small style="color:var(--text3);font-size:0.72rem" id="lbl-email-note">لا يمكن تغيير البريد الإلكتروني</small>
     </div>
     <input type="hidden" id="editUserId">
-    <div class="modal-field">
-      <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted)">مجموعة الصلاحيات</label>
-      <select id="editUserGroup" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
-        <option value="">-- بدون مجموعة --</option>
-      </select>
-    </div>
+
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('editModal')" id="btnClose2">إلغاء</button>
       <button class="btn btn-primary" onclick="saveEditUser()" id="btnSaveEdit">💾 حفظ التغييرات</button>
@@ -1746,7 +1741,6 @@ async function openEditModal(id){
   document.getElementById('editModalTitle').textContent=ar?'تعديل المستخدم':'Edit User';
   document.getElementById('lbl-edit-name').textContent=ar?'الاسم الكامل':'Full Name';
   document.getElementById('lbl-edit-phone').textContent=ar?'رقم الهاتف':'Phone';
-  document.getElementById('lbl-edit-role').textContent=ar?'الدور':'Role';
   document.getElementById('lbl-edit-address').textContent=ar?'العنوان':'Address';
   document.getElementById('lbl-edit-email').textContent=ar?'البريد الإلكتروني':'Email';
   document.getElementById('lbl-email-note').textContent=ar?'لا يمكن تغيير البريد الإلكتروني':'Email cannot be changed';
@@ -1766,7 +1760,6 @@ async function openEditModal(id){
   document.getElementById('editPhone').value=data.phoneNumber||'';
   document.getElementById('editAddress').value=data.address||'';
   document.getElementById('editEmail').value=data.email||'';
-  document.getElementById('editRole').value=data.roleType||'Parent';
   // Load groups and current user group
   const groups = await api('/api/permission-groups') || [];
   const userGroups = await api('/api/permission-groups/user/'+id) || [];
