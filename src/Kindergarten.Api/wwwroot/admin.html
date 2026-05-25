@@ -523,9 +523,21 @@ html[lang="en"] #toast{left:auto;right:2rem;}
             <input type="text" id="groupNameEn" placeholder="e.g. Driver" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
           </div>
         </div>
-        <div style="margin-bottom:1rem">
-          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.4rem">الوصف</label>
-          <input type="text" id="groupDescription" placeholder="وصف مختصر للمجموعة" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.4rem">الوصف</label>
+            <input type="text" id="groupDescription" placeholder="وصف مختصر للمجموعة" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.4rem">دور النظام (System Role)</label>
+            <select id="groupSystemRole" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+              <option value="">-- اختر الدور --</option>
+              <option value="Admin">Admin — مدير</option>
+              <option value="Parent">Parent — ولي أمر</option>
+              <option value="Driver">Driver — سائق</option>
+              <option value="Employee">Employee — موظف</option>
+            </select>
+          </div>
         </div>
         <div>
           <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:0.8rem">الصلاحيات</label>
@@ -1361,6 +1373,7 @@ async function openAddGroupModal(){
   document.getElementById('groupNameAr').value = '';
   document.getElementById('groupNameEn').value = '';
   document.getElementById('groupDescription').value = '';
+  document.getElementById('groupSystemRole').value = '';
   document.getElementById('groupModalTitle').textContent = 'إنشاء مجموعة صلاحيات';
   await loadGroupPermsList([]);
   openModal('addGroupModal');
@@ -1373,6 +1386,7 @@ async function openEditGroup(id){
   document.getElementById('groupNameAr').value = group.nameAr;
   document.getElementById('groupNameEn').value = group.nameEn;
   document.getElementById('groupDescription').value = group.description||'';
+  document.getElementById('groupSystemRole').value = group.systemRole||'';
   document.getElementById('groupModalTitle').textContent = 'تعديل المجموعة';
   const selectedIds = group.permissions.map(p=>p.id);
   await loadGroupPermsList(selectedIds);
@@ -1405,7 +1419,8 @@ async function saveGroup(){
   if(!nameAr||!nameEn){showToast('يرجى إدخال اسم المجموعة','error');return;}
   const checkboxes = document.querySelectorAll('#groupPermsList input[type=checkbox]:checked');
   const permissionIds = [...checkboxes].map(cb=>parseInt(cb.value));
-  const body = {nameAr, nameEn, description, permissionIds};
+  const systemRole = document.getElementById('groupSystemRole').value;
+  const body = {nameAr, nameEn, description, systemRole, permissionIds};
   const method = id ? 'PUT' : 'POST';
   const url = id ? '/api/permission-groups/'+id : '/api/permission-groups';
   const result = await api(url, method, body);

@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Kindergarten.Core.Entities;
+using Microsoft.AspNetCore.Identity;
 using Kindergarten.Api.Authorization;
 using Kindergarten.Core.Entities;
 using Kindergarten.Infrastructure.Data;
@@ -14,7 +16,13 @@ namespace Kindergarten.Api.Controllers;
 public class PermissionGroupsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
-    public PermissionGroupsController(ApplicationDbContext db) => _db = db;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public PermissionGroupsController(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
+    {
+        _db = db;
+        _userManager = userManager;
+    }
 
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -31,7 +39,7 @@ public class PermissionGroupsController : ControllerBase
                 .ThenInclude(gp => gp.Permission)
             .OrderBy(g => g.NameAr)
             .Select(g => new {
-                g.Id, g.NameAr, g.NameEn, g.Description, g.IsActive, g.CreatedAt,
+                g.Id, g.NameAr, g.NameEn, g.Description, g.SystemRole, g.IsActive, g.CreatedAt,
                 permissions = g.GroupPermissions.Select(gp => new {
                     gp.Permission.Id,
                     gp.Permission.Name,
@@ -54,7 +62,7 @@ public async Task<IActionResult> GetById(int id)
             .FirstOrDefaultAsync(g => g.Id == id);
         if (group == null) return NotFound();
         return Ok(new {
-            group.Id, group.NameAr, group.NameEn, group.Description, group.IsActive,
+            group.Id, group.NameAr, group.NameEn, group.Description, group.SystemRole, group.IsActive,
             permissions = group.GroupPermissions.Select(gp => new {
                 gp.Permission.Id,
                 gp.Permission.Name,
@@ -75,6 +83,7 @@ public async Task<IActionResult> GetById(int id)
             NameAr      = dto.NameAr,
             NameEn      = dto.NameEn,
             Description = dto.Description ?? string.Empty,
+            SystemRole  = dto.SystemRole ?? string.Empty,
             TenantId    = GetTenantId(),
             IsActive    = true,
             CreatedAt   = DateTime.UtcNow
@@ -108,6 +117,7 @@ public async Task<IActionResult> GetById(int id)
         group.NameAr      = dto.NameAr;
         group.NameEn      = dto.NameEn;
         group.Description = dto.Description ?? string.Empty;
+        group.SystemRole  = dto.SystemRole ?? string.Empty;
 
         // Replace permissions
         var existing = await _db.PermissionGroupPermissions
@@ -185,6 +195,21 @@ public async Task<IActionResult> GetById(int id)
             }
         }
 
+        // Set user's system role from group's SystemRole
+        if (!string.IsNullOrEmpty(group.SystemRole))
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                if (!await _userManager.IsInRoleAsync(user, group.SystemRole))
+                    await _userManager.AddToRoleAsync(user, group.SystemRole);
+                user.RoleType = group.SystemRole;
+                await _userManager.UpdateAsync(user);
+            }
+        }
+
         await _db.SaveChangesAsync();
         return Ok(new { message = "Group assigned to user" });
     }
@@ -234,5 +259,6 @@ public class CreatePermissionGroupDto
     public string       NameAr        { get; set; } = string.Empty;
     public string       NameEn        { get; set; } = string.Empty;
     public string?      Description   { get; set; }
+    public string?      SystemRole    { get; set; }
     public List<int>?   PermissionIds { get; set; }
 }

@@ -8,6 +8,7 @@ public class PermissionGroup
     public string Description { get; set; } = string.Empty;
     public int    TenantId    { get; set; } = 1;
     public bool   IsActive    { get; set; } = true;
+    public string SystemRole  { get; set; } = string.Empty; // Admin, Parent, Driver, Employee
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<PermissionGroupPermission> GroupPermissions { get; set; } = new List<PermissionGroupPermission>();
