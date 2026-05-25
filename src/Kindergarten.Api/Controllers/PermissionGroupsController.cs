@@ -12,7 +12,7 @@ namespace Kindergarten.Api.Controllers;
 
 [ApiController]
 [Route("api/permission-groups")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class PermissionGroupsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
