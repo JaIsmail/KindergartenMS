@@ -1773,12 +1773,13 @@ async function saveEditUser(){
   const result=await api('/api/users/'+id,'PUT',{fullName,phoneNumber,address,roleType});
   if(result){
     // Handle group assignment
-    const newGroupId = document.getElementById('editUserGroupInModal')?.value || '';
     const userGroups = await api('/api/permission-groups/user/'+id) || [];
-    const currentGroupId = userGroups.length ? userGroups[0].id : '';
-    if(newGroupId && newGroupId != currentGroupId){
-      await api('/api/permission-groups/'+newGroupId+'/assign/'+id,'POST');
-    } else if(!newGroupId && currentGroupId){
+    const currentGroupId = userGroups.length ? String(userGroups[0].id) : '';
+    const newGroupIdStr = String(newGroupId);
+    if(newGroupIdStr && newGroupIdStr !== currentGroupId){
+      if(currentGroupId) await api('/api/permission-groups/'+currentGroupId+'/unassign/'+id,'DELETE');
+      await api('/api/permission-groups/'+newGroupIdStr+'/assign/'+id,'POST');
+    } else if(!newGroupIdStr && currentGroupId){
       await api('/api/permission-groups/'+currentGroupId+'/unassign/'+id,'DELETE');
     }
     showToast('✅ '+(ar?'تم تحديث المستخدم بنجاح':'User updated successfully'),'success');
