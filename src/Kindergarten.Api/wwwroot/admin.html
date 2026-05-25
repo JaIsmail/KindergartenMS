@@ -1771,15 +1771,6 @@ async function saveEditUser(){
   const ar=currentLang==='ar';
   if(!fullName){showToast(ar?'الاسم مطلوب':'Name is required','error');return;}
   const result=await api('/api/users/'+id,'PUT',{fullName,phoneNumber,address,roleType});
-  // Assign new group if changed
-  if(newGroupId){
-    const currentGroups = await api('/api/permission-groups/user/'+id) || [];
-    const currentGroupId = currentGroups.length ? currentGroups[0].id : '';
-    if(newGroupId != currentGroupId){
-      if(currentGroupId) await api('/api/permission-groups/'+currentGroupId+'/unassign/'+id,'DELETE');
-      await api('/api/permission-groups/'+newGroupId+'/assign/'+id,'POST');
-    }
-  }
   if(result){
     // Handle group assignment
     const newGroupId = document.getElementById('editUserGroupInModal')?.value || '';
