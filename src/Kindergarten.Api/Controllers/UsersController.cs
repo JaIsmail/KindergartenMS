@@ -69,14 +69,9 @@ public class UsersController : ControllerBase
         user.PhoneNumber = dto.PhoneNumber ?? user.PhoneNumber;
         user.Address     = dto.Address     ?? user.Address;
 
-        // Update role if changed
+        // Update roleType directly — no Identity role assignment
         if (!string.IsNullOrEmpty(dto.RoleType) && dto.RoleType != user.RoleType)
-        {
-            var currentRoles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, currentRoles);
-            await _userManager.AddToRoleAsync(user, dto.RoleType);
             user.RoleType = dto.RoleType;
-        }
 
         // Update password if provided
         if (!string.IsNullOrEmpty(dto.NewPassword))
