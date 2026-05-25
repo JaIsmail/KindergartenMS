@@ -21,12 +21,14 @@ public class TenantsController : ControllerBase
     private readonly ApplicationDbContext _db;
     private readonly IConfiguration _config;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly PermissionGroupsController _permGroupsController;
 
-    public TenantsController(ApplicationDbContext db, IConfiguration config, UserManager<ApplicationUser> userManager)
+    public TenantsController(ApplicationDbContext db, IConfiguration config, UserManager<ApplicationUser> userManager, PermissionGroupsController permGroupsController)
     {
         _db = db;
         _config = config;
         _userManager = userManager;
+        _permGroupsController = permGroupsController;
     }
 
     private bool IsSuperAdmin() =>
@@ -89,6 +91,10 @@ public class TenantsController : ControllerBase
         };
         _db.Tenants.Add(tenant);
         await _db.SaveChangesAsync();
+
+        // Auto-seed default permission groups for new tenant
+        await _permGroupsController.SeedDefaultGroupsAsync(tenant.Id);
+
         return Ok(tenant);
     }
 
