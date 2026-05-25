@@ -1794,7 +1794,7 @@ async function saveEditUser(){
   }
   if(result){
     // Handle group assignment
-    const newGroupId = document.getElementById('editUserGroup').value;
+    const newGroupId = document.getElementById('editUserGroupInModal')?.value || '';
     const userGroups = await api('/api/permission-groups/user/'+id) || [];
     const currentGroupId = userGroups.length ? userGroups[0].id : '';
     if(newGroupId && newGroupId != currentGroupId){
