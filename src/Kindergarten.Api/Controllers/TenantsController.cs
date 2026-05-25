@@ -112,6 +112,17 @@ public class TenantsController : ControllerBase
         await _db.SaveChangesAsync();
         return Ok(new { tenant.Id, tenant.IsActive });
     }
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var tenant = await _db.Tenants.FindAsync(id);
+        if (tenant == null) return NotFound();
+        _db.Tenants.Remove(tenant);
+        await _db.SaveChangesAsync();
+        return Ok(new { message = "Tenant deleted" });
+    }
+
  // Seed default tenant
     [HttpPost("seed")]
     [Authorize(Roles = "Admin")]
