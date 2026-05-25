@@ -1341,7 +1341,7 @@ async function loadPermissionsTable(){
         '<div style="width:34px;height:34px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:0.85rem">'+u.fullName[0]+'</div>'+
         '<div><div style="font-weight:700">'+u.fullName+'</div><div style="font-size:0.72rem;color:var(--text-muted)">'+u.email+'</div></div>'+
       '</div></td>'+
-      '<td><span class="badge '+(roleColors[u.roleType]||'badge-gray')+'">'+(roleLabels[ar?'ar':'en'][u.roleType]||u.roleType)+'</span></td>'+
+      '<td>'+roleBadge(u.groupName||u.roleType)+'</td>'+
       '<td><span id="pcount-'+u.id+'" style="font-weight:700;color:var(--primary)">—</span></td>'+
       '<td><button class="icon-btn icon-btn-edit" onclick="openUserPerms(this.dataset.uid,this.dataset.uname)" data-uid="'+u.id+'" data-uname="'+u.fullName+'" title="'+(ar?'إدارة الصلاحيات':'Manage Permissions')+'">🔐</button></td>'+
     '</tr>'
