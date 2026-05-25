@@ -60,6 +60,8 @@
 ---
 
 ## Note 7: Flexible Roles ✅ DONE (Partial)
+- Old RoleGroups system removed
+- PermissionGroups is now single source of truth
 - SuperAdmin impersonation implemented
 - SuperAdmin can manage any tenant
 - Data isolation verified per tenant
