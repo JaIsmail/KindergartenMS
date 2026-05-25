@@ -117,7 +117,7 @@ public async Task<IActionResult> GetById(int id)
     [RequirePermission("ManageRoleGroups")]
     public async Task<IActionResult> Update(int id, [FromBody] CreatePermissionGroupDto dto)
     {
-        var group = await _db.PermissionGroups.FindAsync(id);
+        var group = await _db.PermissionGroups.IgnoreQueryFilters().FirstOrDefaultAsync(g => g.Id == id);
         if (group == null) return NotFound();
 
         group.NameAr      = dto.NameAr;
@@ -148,7 +148,7 @@ public async Task<IActionResult> GetById(int id)
     [RequirePermission("ManageRoleGroups")]
     public async Task<IActionResult> Delete(int id)
     {
-        var group = await _db.PermissionGroups.FindAsync(id);
+        var group = await _db.PermissionGroups.IgnoreQueryFilters().FirstOrDefaultAsync(g => g.Id == id);
         if (group == null) return NotFound();
         _db.PermissionGroups.Remove(group);
         await _db.SaveChangesAsync();
@@ -178,6 +178,7 @@ public async Task<IActionResult> GetById(int id)
 
         // Also grant all group permissions to user
         var group = await _db.PermissionGroups
+            .IgnoreQueryFilters()
             .Include(g => g.GroupPermissions)
             .FirstOrDefaultAsync(g => g.Id == id);
 
