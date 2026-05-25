@@ -86,7 +86,7 @@ public class TenantsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Update(int id, [FromBody] Tenant dto)
     {
         var tenant = await _db.Tenants.FindAsync(id);
