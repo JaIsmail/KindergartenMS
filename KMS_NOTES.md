@@ -95,7 +95,14 @@
 
 ---
 
-## Note 9: Payment System 🟠 (Phase 1 in progress)
+## Note 9: Payment System 🟠
+- ✅ Phase 1 Complete:
+  - Manual payment recording
+  - Parent notification on payment confirmation
+  - Payments report
+  - Overdue subscriptions list
+  - Dynamic alert days per tenant
+- 🔜 Phase 2: Moyasar integration
 - **Phase 1 (Manual):**
   - Admin records payment manually
   - Set amount, date, method
