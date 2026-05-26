@@ -95,7 +95,7 @@
 
 ---
 
-## Note 9: Payment System 🟠
+## Note 9: Payment System 🟠 (Phase 1 in progress)
 - **Phase 1 (Manual):**
   - Admin records payment manually
   - Set amount, date, method
