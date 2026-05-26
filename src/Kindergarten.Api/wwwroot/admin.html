@@ -430,6 +430,11 @@ html[lang="en"] #toast{left:auto;right:2rem;}
             <option value="Enterprise">Enterprise — غير محدود</option>
           </select>
         </div>
+        <div style="margin-top:0.8rem">
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem;display:block">أيام التنبيه قبل انتهاء الاشتراك (مفصولة بفاصلة)</label>
+          <input type="text" id="editTenantAlertDays" placeholder="3,7" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          <small style="color:var(--text3);font-size:0.72rem">مثال: 3,7 يعني إرسال تنبيه قبل 3 و 7 أيام</small>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('editTenantModal')">إلغاء</button>
@@ -1833,17 +1838,25 @@ async function openEditTenantModal(id){
   document.getElementById('editTenantCity').value=tenant.city||'';
   document.getElementById('editTenantPhone').value=tenant.phone||'';
   document.getElementById('editTenantPlan').value=tenant.plan||'Basic';
+  // Load alert days from settings
+  try {
+    const settings = tenant.settings ? JSON.parse(tenant.settings) : {};
+    document.getElementById('editTenantAlertDays').value = (settings.alertDays||[3,7]).join(',');
+  } catch { document.getElementById('editTenantAlertDays').value = '3,7'; }
   openModal('editTenantModal');
 }
 async function updateTenant(){
   const id=document.getElementById('editTenantId').value;
+  const alertDaysStr = document.getElementById('editTenantAlertDays').value || '3,7';
+  const alertDays = alertDaysStr.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d));
   const body={
     nameAr:document.getElementById('editTenantNameAr').value,
     nameEn:document.getElementById('editTenantNameEn').value,
     city:document.getElementById('editTenantCity').value,
     phone:document.getElementById('editTenantPhone').value,
     plan:document.getElementById('editTenantPlan').value,
-    isActive:true
+    isActive:true,
+    settings: JSON.stringify({alertDays})
   };
   const result=await api('/api/tenants/'+id,'PUT',body);
   if(result?.id){showToast('✅ تم تحديث بيانات الروضة','success');closeModal('editTenantModal');loadTenants();}
