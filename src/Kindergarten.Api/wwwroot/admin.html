@@ -337,6 +337,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     </div>
     <div class="section-header"><div><h3 id="h-pay-history">سجل المدفوعات</h3></div></div>
     <div class="table-card"><div id="payments-table"><div class="loading"><div class="spinner"></div></div></div></div>
+    <div class="section-header" style="margin-top:1.5rem"><div><h3>⚠️ الاشتراكات المتأخرة</h3><p>اشتراكات انتهت ولم يتم الدفع</p></div></div>
+    <div class="table-card"><div id="overdue-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
   <div class="page" id="page-users">
@@ -1647,14 +1649,33 @@ async function createSubscription(){
 
 async function loadPayments(){
   const div=document.getElementById('payments-table');
+  const overdueDiv=document.getElementById('overdue-table');
   div.innerHTML='<div class="loading"><div class="spinner"></div></div>';
-  const subs=await api('/api/subscriptions');
-  if(!subs||subs.length===0){div.innerHTML='<div class="empty"><div class="emoji">💰</div><h4>'+t('noData')+'</h4></div>';return;}
-  let allPayments=[];
-  for(const sub of subs){const p=await api('/api/payments/subscription/'+sub.id);if(p&&p.length>0)allPayments=[...allPayments,...p];}
-  const data=allPayments;
-  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💰</div><h4>'+t('noData')+'</h4></div>';return;}
-  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.sub')+'</th><th>'+t('cols.amount')+'</th><th>'+t('cols.method')+'</th><th>'+t('cols.date')+'</th></tr></thead><tbody>'+data.map(p=>'<tr><td style="color:var(--text3)">#'+p.id+'</td><td>#'+p.subscriptionId+'</td><td style="font-weight:700;color:var(--green)">'+formatPrice(p.amount)+'</td><td><span class="badge badge-blue">'+(t('methods.'+p.method)||p.method)+'</span></td><td>'+formatDateTime(p.paymentDate)+'</td></tr>').join('')+'</tbody></table>';
+  overdueDiv.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const ar=currentLang==='ar';
+
+  // Load all payments
+  const data=await api('/api/payments')||[];
+  if(!data.length){div.innerHTML='<div class="empty"><div class="emoji">💰</div><h4>'+(ar?'لا توجد مدفوعات':'No payments found')+'</h4></div>';}
+  else{
+    div.innerHTML='<table><thead><tr><th>#</th><th>'+(ar?'الاشتراك':'Sub')+'</th><th>'+(ar?'المبلغ':'Amount')+'</th><th>'+(ar?'الطريقة':'Method')+'</th><th>'+(ar?'التاريخ':'Date')+'</th></tr></thead><tbody>'+
+    data.map(p=>'<tr><td style="color:var(--text3)">#'+p.id+'</td><td>#'+p.subscriptionId+'</td><td style="font-weight:700;color:var(--green)">'+formatPrice(p.amount)+'</td><td><span class="badge badge-blue">'+p.method+'</span></td><td>'+formatDateTime(p.paymentDate)+'</td></tr>').join('')+'</tbody></table>';
+  }
+
+  // Load overdue
+  const overdue=await api('/api/payments/overdue')||[];
+  if(!overdue.length){overdueDiv.innerHTML='<div class="empty"><div class="emoji">✅</div><h4>'+(ar?'لا توجد اشتراكات متأخرة':'No overdue subscriptions')+'</h4></div>';}
+  else{
+    overdueDiv.innerHTML='<table><thead><tr><th>'+(ar?'الطفل':'Child')+'</th><th>'+(ar?'ولي الأمر':'Parent')+'</th><th>'+(ar?'النوع':'Type')+'</th><th>'+(ar?'المبلغ':'Amount')+'</th><th>'+(ar?'تاريخ الانتهاء':'End Date')+'</th><th>'+(ar?'أيام التأخر':'Days Overdue')+'</th></tr></thead><tbody>'+
+    overdue.map(o=>'<tr>'+
+      '<td><strong>'+o.childName+'</strong></td>'+
+      '<td>'+o.parentName+'</td>'+
+      '<td>'+o.type+'</td>'+
+      '<td style="font-weight:700;color:var(--red)">'+formatPrice(o.price)+'</td>'+
+      '<td>'+formatDate(o.endDate)+'</td>'+
+      '<td><span class="badge badge-red">'+o.daysOverdue+' '+(ar?'يوم':'days')+'</span></td>'+
+    '</tr>').join('')+'</tbody></table>';
+  }
 }
 
 async function recordPayment(){
