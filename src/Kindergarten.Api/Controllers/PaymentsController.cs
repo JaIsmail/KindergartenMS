@@ -30,4 +30,20 @@ public class PaymentsController : ControllerBase
         var payment = await _paymentService.CreateAsync(dto);
         return Ok(payment);
     }
+
+    [HttpGet]
+    [RequirePermission("ViewFinancials")]
+    public async Task<IActionResult> GetAll()
+    {
+        var payments = await _paymentService.GetAllAsync();
+        return Ok(payments);
+    }
+
+    [HttpGet("overdue")]
+    [RequirePermission("ViewFinancials")]
+    public async Task<IActionResult> GetOverdue()
+    {
+        var overdue = await _paymentService.GetOverdueAsync();
+        return Ok(overdue);
+    }
 }

@@ -10,10 +10,13 @@ public class PaymentService : IPaymentService
 {
     private readonly ApplicationDbContext _db;
     private readonly ITenantService _tenantService;
-    public PaymentService(ApplicationDbContext db, ITenantService tenantService)
+    private readonly INotificationService _notify;
+
+    public PaymentService(ApplicationDbContext db, ITenantService tenantService, INotificationService notify)
     {
         _db = db;
         _tenantService = tenantService;
+        _notify = notify;
     }
 
     public async Task<IEnumerable<PaymentResponseDto>> GetBySubscriptionAsync(int subscriptionId)
@@ -51,6 +54,27 @@ public class PaymentService : IPaymentService
 
         await _db.SaveChangesAsync();
 
+        // Notify parent
+        if (subscription != null)
+        {
+            var parent = await _db.Users.FindAsync(subscription.ParentId);
+            var child  = await _db.Children.FindAsync(subscription.ChildId);
+            if (parent != null && child != null)
+            {
+                await _notify.SendToUserAsync(
+                    parent.Id,
+                    "تم تأكيد الدفع ✅", "Payment Confirmed ✅",
+                    $"تم استلام دفعة بمبلغ {dto.Amount} ريال لاشتراك {child.Name}",
+                    $"Payment of {dto.Amount} SAR received for {child.Name}'s subscription",
+                    new Dictionary<string, string>
+                    {
+                        ["type"]      = "payment_confirmed",
+                        ["paymentId"] = payment.Id.ToString()
+                    }
+                );
+            }
+        }
+
         return new PaymentResponseDto
         {
             Id             = payment.Id,
@@ -59,5 +83,43 @@ public class PaymentService : IPaymentService
             Method         = payment.Method,
             PaymentDate    = payment.PaymentDate
         };
+    }
+
+    public async Task<IEnumerable<PaymentResponseDto>> GetAllAsync()
+    {
+        return await _db.Payments
+            .OrderByDescending(p => p.PaymentDate)
+            .Select(p => new PaymentResponseDto
+            {
+                Id             = p.Id,
+                SubscriptionId = p.SubscriptionId,
+                Amount         = p.Amount,
+                Method         = p.Method,
+                PaymentDate    = p.PaymentDate
+            })
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<OverdueSubscriptionDto>> GetOverdueAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        return await _db.Subscriptions
+            .Include(s => s.Child)
+            .Include(s => s.Parent)
+            .Where(s => s.EndDate.Date < today && s.PaymentStatus != "Paid")
+            .OrderBy(s => s.EndDate)
+            .Select(s => new OverdueSubscriptionDto
+            {
+                Id            = s.Id,
+                ChildName     = s.Child.Name,
+                ParentName    = s.Parent.FullName,
+                ParentEmail   = s.Parent.Email ?? string.Empty,
+                Type          = s.Type,
+                Price         = s.Price,
+                EndDate       = s.EndDate,
+                DaysOverdue   = (int)(today - s.EndDate.Date).TotalDays,
+                PaymentStatus = s.PaymentStatus
+            })
+            .ToListAsync();
     }
 }
