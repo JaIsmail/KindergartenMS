@@ -22,6 +22,13 @@ html[lang="en"] .sidebar{right:auto;left:0;}
 .nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:0.83rem;font-weight:500;transition:all 0.15s;border:none;background:none;width:100%;text-align:right;margin-bottom:1px;font-family:inherit;}
 html[lang="en"] .nav-item{text-align:left;}
 .nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.9);}
+.nav-group-header{display:flex;align-items:center;justify-content:space-between;padding:0.5rem 1rem 0.3rem;cursor:pointer;color:rgba(255,255,255,0.35);font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;transition:color 0.15s;user-select:none;border:none;background:none;width:100%;font-family:inherit;}
+.nav-group-header:hover{color:rgba(255,255,255,0.6);}
+.group-arrow{font-size:0.6rem;transition:transform 0.25s;opacity:0.5;}
+.nav-group.collapsed .group-arrow{transform:rotate(90deg);}
+html[lang="en"] .nav-group.collapsed .group-arrow{transform:rotate(-90deg);}
+.nav-group-items{overflow:hidden;transition:max-height 0.3s ease;max-height:500px;}
+.nav-group.collapsed .nav-group-items{max-height:0 !important;}
 .nav-item.active{background:var(--primary);color:white;}
 .nav-item .icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
 .nav-badge{margin-right:auto;background:rgba(255,255,255,0.15);color:white;padding:0.1rem 0.45rem;border-radius:50px;font-size:0.65rem;font-weight:700;}
@@ -225,28 +232,60 @@ html[lang="en"] #toast{left:auto;right:2rem;}
 
 <aside class="sidebar">
   <div class="logo"><div class="logo-icon">🏫</div><div class="logo-text"><h1>KMS</h1><p data-ar="إدارة الروضة" data-en="Management">إدارة الروضة</p></div></div>
-  <div class="nav-section">
-    <div class="nav-label" data-ar="الرئيسية" data-en="Main">الرئيسية</div>
-    <button class="nav-item" onclick="showPage('tenants')"><span class="icon">🏫</span><span data-ar="الروضات" data-en="Tenants">الروضات</span></button>
-    <button class="nav-item" onclick="showPage('lists')"><span class="icon">📋</span><span data-ar="القوائم الديناميكية" data-en="Dynamic Lists">القوائم الديناميكية</span></button>
-    <button class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span data-ar="لوحة التحكم" data-en="Dashboard">لوحة التحكم</span></button>
-    <button class="nav-item" onclick="showPage('children')"><span class="icon">👶</span><span data-ar="الأطفال" data-en="Children">الأطفال</span><span class="nav-badge" id="childrenBadge">0</span></button>
-    <button class="nav-item" onclick="showPage('trips')"><span class="icon">🚌</span><span data-ar="الرحلات" data-en="Trips">الرحلات</span></button>
+
+  <!-- الرئيسية -->
+  <div class="nav-group" id="group-main">
+    <div class="nav-group-header" onclick="toggleNavGroup('group-main')">
+      <span data-ar="الرئيسية" data-en="Main">الرئيسية</span>
+      <span class="group-arrow">◀</span>
+    </div>
+    <div class="nav-group-items">
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span data-ar="لوحة التحكم" data-en="Dashboard">لوحة التحكم</span></button>
+      <button class="nav-item nav-superadmin-only" onclick="showPage('tenants')" style="display:none"><span class="icon">🏫</span><span data-ar="الروضات" data-en="Tenants">الروضات</span></button>
+    </div>
   </div>
-  <div class="nav-section">
-    <div class="nav-label" data-ar="المالية" data-en="Finance">المالية</div>
-    <button class="nav-item" onclick="showPage('subscriptions')"><span class="icon">💳</span><span data-ar="الاشتراكات" data-en="Subscriptions">الاشتراكات</span></button>
-    <button class="nav-item" onclick="showPage('payments')"><span class="icon">💰</span><span data-ar="المدفوعات" data-en="Payments">المدفوعات</span></button>
+
+  <!-- العمليات -->
+  <div class="nav-group" id="group-ops">
+    <div class="nav-group-header" onclick="toggleNavGroup('group-ops')">
+      <span data-ar="العمليات" data-en="Operations">العمليات</span>
+      <span class="group-arrow">◀</span>
+    </div>
+    <div class="nav-group-items">
+      <button class="nav-item" onclick="showPage('children')"><span class="icon">👶</span><span data-ar="الأطفال" data-en="Children">الأطفال</span><span class="nav-badge" id="childrenBadge">0</span></button>
+      <button class="nav-item" onclick="showPage('trips')"><span class="icon">🚌</span><span data-ar="الرحلات" data-en="Trips">الرحلات</span></button>
+      <button class="nav-item" onclick="showPage('attendance')"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
+      <button class="nav-item" onclick="showPage('leave')"><span class="icon">📋</span><span data-ar="طلبات الإذن" data-en="Leave Requests">طلبات الإذن</span></button>
+    </div>
   </div>
-  <div class="nav-section">
-    <div class="nav-label" data-ar="النظام" data-en="System">النظام</div>
-    <button class="nav-item" onclick="showPage('permissions')"><span class="icon">🔐</span><span data-ar="الصلاحيات" data-en="Permissions">الصلاحيات</span></button>
-    <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
-    <button class="nav-item" onclick="showPage('attendance')"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
-    <button class="nav-item" onclick="showPage('leave')"><span class="icon">📋</span><span data-ar="طلبات الإذن" data-en="Leave Requests">طلبات الإذن</span></button>
-    <button class="nav-item" onclick="showPage('notifications')"><span class="icon">🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></button>
-    <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
+
+  <!-- المالية -->
+  <div class="nav-group" id="group-finance">
+    <div class="nav-group-header" onclick="toggleNavGroup('group-finance')">
+      <span data-ar="المالية" data-en="Finance">المالية</span>
+      <span class="group-arrow">◀</span>
+    </div>
+    <div class="nav-group-items">
+      <button class="nav-item" onclick="showPage('subscriptions')"><span class="icon">💳</span><span data-ar="الاشتراكات" data-en="Subscriptions">الاشتراكات</span></button>
+      <button class="nav-item" onclick="showPage('payments')"><span class="icon">💰</span><span data-ar="المدفوعات" data-en="Payments">المدفوعات</span></button>
+    </div>
   </div>
+
+  <!-- النظام -->
+  <div class="nav-group" id="group-system">
+    <div class="nav-group-header" onclick="toggleNavGroup('group-system')">
+      <span data-ar="النظام" data-en="System">النظام</span>
+      <span class="group-arrow">◀</span>
+    </div>
+    <div class="nav-group-items">
+      <button class="nav-item" onclick="showPage('permissions')"><span class="icon">🔐</span><span data-ar="الصلاحيات" data-en="Permissions">الصلاحيات</span></button>
+      <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
+      <button class="nav-item" onclick="showPage('lists')"><span class="icon">📋</span><span data-ar="القوائم الديناميكية" data-en="Dynamic Lists">القوائم الديناميكية</span></button>
+      <button class="nav-item" onclick="showPage('notifications')"><span class="icon">🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></button>
+      <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
+    </div>
+  </div>
+
   <div class="sidebar-footer"><div class="api-status"><div class="api-dot" id="apiDot"></div><span id="apiStatusText">جاري الاتصال...</span></div></div>
 </aside>
 
@@ -949,6 +988,23 @@ function doLogout(){localStorage.removeItem('kms_token');localStorage.removeItem
 async function checkApiStatus(){
   try{const res=await fetch(API+'/health');const data=await res.json();document.getElementById('apiDot').className='api-dot';document.getElementById('apiStatusText').textContent=t('apiLive')+' · '+data.env;}
   catch{document.getElementById('apiDot').className='api-dot red';document.getElementById('apiStatusText').textContent=t('apiOffline');}
+}
+
+function toggleNavGroup(id){
+  const g = document.getElementById(id);
+  g.classList.toggle('collapsed');
+}
+
+function updateNavVisibility(){
+  try {
+    const token = localStorage.getItem('kms_token');
+    if(!token) return;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const isSA = payload.TenantId === '0' || payload.TenantId === 0;
+    document.querySelectorAll('.nav-superadmin-only').forEach(el => {
+      el.style.display = isSA ? 'flex' : 'none';
+    });
+  } catch(e) {}
 }
 
 function showPage(page){
