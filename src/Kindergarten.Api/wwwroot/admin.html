@@ -989,7 +989,9 @@ async function loadLists(){
   const url = currentListFilter === 'all' ? '/api/lists' : '/api/lists/'+currentListFilter;
   const items = await api(url) || [];
   if(!items.length){
-    div.innerHTML = '<div class="empty"><div class="emoji">📋</div><h4>'+(ar?'لا توجد عناصر':'No items found')+'</h4></div>';
+    const isSA = token && JSON.parse(atob(token.split('.')[1]))?.TenantId === '0';
+    const msg = isSA ? (ar?'يرجى إدارة روضة محددة أولاً عبر صفحة الروضات':'Please manage a specific tenant first via the Tenants page') : (ar?'لا توجد عناصر':'No items found');
+    div.innerHTML = '<div class="empty"><div class="emoji">📋</div><h4>'+msg+'</h4></div>';
     return;
   }
   const categoryLabels = {Classes:'أنواع الفصول', SubscriptionTypes:'أنواع الاشتراكات', TripStatuses:'حالات الرحلات'};
