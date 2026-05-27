@@ -1021,13 +1021,16 @@ function openAddListModal(){
   openModal('listModal');
 }
 
-function openEditListModal(id, category, nameAr, nameEn, value, order){
-  document.getElementById('listItemId').value=id;
-  document.getElementById('listCategory').value=category;
-  document.getElementById('listNameAr').value=nameAr;
-  document.getElementById('listNameEn').value=nameEn;
-  document.getElementById('listValue').value=value;
-  document.getElementById('listOrder').value=order;
+async function editListItem(id){
+  const items = await api('/api/lists') || [];
+  const item = items.find(i => i.id == id);
+  if(!item) return;
+  document.getElementById('listItemId').value=item.id;
+  document.getElementById('listCategory').value=item.category;
+  document.getElementById('listNameAr').value=item.nameAr;
+  document.getElementById('listNameEn').value=item.nameEn;
+  document.getElementById('listValue').value=item.value;
+  document.getElementById('listOrder').value=item.order;
   document.getElementById('listModalTitle').textContent='تعديل العنصر';
   openModal('listModal');
 }
