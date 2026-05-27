@@ -287,7 +287,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         </div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label id="lbl-child-class">الفصل</label><select id="childClass"><option value="KG1">KG 1</option><option value="KG2">KG 2</option><option value="KG3">KG 3</option></select></div>
+        <div class="form-field"><label id="lbl-child-class">الفصل</label><select id="childClass"><option value="">-- اختر الفصل --</option></select></div>
         <div class="form-field"><label id="lbl-child-health">ملاحظات صحية</label><input type="text" id="childHealth" placeholder="أي حساسية أو ملاحظات"></div>
       </div>
       <button class="btn btn-primary" id="btn-add-child" onclick="createChild()">إضافة طفل</button>
@@ -312,7 +312,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <h3 id="h-create-sub">➕ إنشاء اشتراك</h3>
       <div class="form-row">
         <div class="form-field"><label id="lbl-sub-child">الطفل</label><select id="subChild"></select></div>
-        <div class="form-field"><label id="lbl-sub-type">النوع</label><select id="subType"><option value="Daily" id="opt-daily">يومي</option><option value="Monthly" selected id="opt-monthly">شهري</option><option value="Yearly" id="opt-yearly">سنوي</option></select></div>
+        <div class="form-field"><label id="lbl-sub-type">النوع</label><select id="subType"><option value="">-- اختر النوع --</option></select></div>
       </div>
       <div class="form-row">
         <div class="form-field"><label id="lbl-sub-price">السعر (ريال)</label><input type="number" id="subPrice" value="500"></div>
@@ -918,6 +918,15 @@ function formatPrice(p){return currentLang==='ar'?p.toFixed(2)+' ريال':'SAR 
 function formatDate(d){return new Date(d).toLocaleDateString(currentLang==='ar'?'ar-SA':'en-US');}
 function formatDateTime(d){return new Date(d).toLocaleString(currentLang==='ar'?'ar-SA':'en-US');}
 
+async function loadDynamicList(category, selectId, selectedValue=''){
+  const items = await api('/api/lists/'+category) || [];
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  const ar = currentLang === 'ar';
+  sel.innerHTML = '<option value="">-- اختر --</option>' +
+    items.map(i => `<option value="${i.value}" ${i.value===selectedValue?'selected':''}>${ar?i.nameAr:i.nameEn}</option>`).join('');
+}
+
 async function loadDashboard(){
   const[children,subs]=await Promise.all([api('/api/children'),api('/api/subscriptions')]);
   const cCount=Array.isArray(children)?children.length:0;
@@ -936,6 +945,7 @@ async function loadDashboard(){
 }
 
 async function loadChildren(){
+  await loadDynamicList('Classes', 'childClass');
   // Load parents for dropdown
   const users=await api('/api/users');
   const parentSel=document.getElementById('childParent');
@@ -1628,6 +1638,7 @@ async function loadTrips(){
 }
 
 async function loadSubscriptions(){
+  await loadDynamicList('SubscriptionTypes', 'subType');
   const data=await api('/api/subscriptions');const count=Array.isArray(data)?data.length:0;
   document.getElementById('subs-count').textContent=count+t('subsCount');
   const children=await api('/api/children');
