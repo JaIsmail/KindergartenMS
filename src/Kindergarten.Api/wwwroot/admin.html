@@ -1000,7 +1000,7 @@ async function loadLists(){
       '<td style="direction:ltr">'+i.value+'</td>'+
       '<td>'+i.order+'</td>'+
       '<td style="display:flex;gap:0.4rem">'+
-        '<button class="icon-btn icon-btn-edit" onclick="openEditListModal('+i.id+',''+i.category+'',''+i.nameAr+'',''+i.nameEn+'',''+i.value+'','+i.order+')" title="تعديل">✏️</button>'+
+        '<button class="icon-btn icon-btn-edit" onclick="editListItem('+i.id+')" title="تعديل">✏️</button>'+
         '<button class="icon-btn icon-btn-delete" onclick="deleteListItem('+i.id+')" title="حذف">🗑️</button>'+
       '</td>'+
     '</tr>').join('')+'</tbody></table>';
