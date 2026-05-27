@@ -364,6 +364,58 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="table-card"><div id="users-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
 
+  <!-- Dynamic Lists Page -->
+  <div class="page" id="page-lists">
+    <div class="page-header">
+      <div><h3>القوائم الديناميكية</h3><p>إدارة أنواع الفصول والاشتراكات والرحلات</p></div>
+      <button class="btn btn-primary btn-sm" onclick="openAddListModal()">➕ إضافة عنصر</button>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('all')">الكل</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('Classes')">أنواع الفصول</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('SubscriptionTypes')">أنواع الاشتراكات</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('TripStatuses')">حالات الرحلات</button>
+    </div>
+    <div class="table-card"><div id="lists-table"><div class="loading"><div class="spinner"></div></div></div></div>
+  </div>
+
+  <!-- Add/Edit List Modal -->
+  <div class="modal-overlay" id="listModal">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-header">
+        <h3 id="listModalTitle">إضافة عنصر</h3>
+        <button class="modal-close" onclick="closeModal('listModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem">
+        <input type="hidden" id="listItemId">
+        <div style="margin-bottom:1rem">
+          <label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">التصنيف</label>
+          <select id="listCategory" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+            <option value="Classes">أنواع الفصول</option>
+            <option value="SubscriptionTypes">أنواع الاشتراكات</option>
+            <option value="TripStatuses">حالات الرحلات</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">الاسم (عربي)</label><input type="text" id="listNameAr" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
+          <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">Name (English)</label><input type="text" id="listNameEn" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">القيمة (Value)</label>
+          <input type="text" id="listValue" placeholder="e.g. KG1" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+        </div>
+        <div>
+          <label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">الترتيب</label>
+          <input type="number" id="listOrder" value="0" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('listModal')">إلغاء</button>
+        <button class="btn btn-primary" onclick="saveListItem()">💾 حفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Attendance Page -->
   <div class="page" id="page-attendance">
     <div class="page-header">
@@ -907,7 +959,7 @@ function showPage(page){
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
   async function loadUsersPage(){await loadUsers();await loadTenantsDropdown();}
-const loaders={dashboard:loadDashboard,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsersPage,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants};
+const loaders={dashboard:loadDashboard,lists:loadLists,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsersPage,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -925,6 +977,92 @@ async function loadDynamicList(category, selectId, selectedValue=''){
   const ar = currentLang === 'ar';
   sel.innerHTML = '<option value="">-- اختر --</option>' +
     items.map(i => `<option value="${i.value}" ${i.value===selectedValue?'selected':''}>${ar?i.nameAr:i.nameEn}</option>`).join('');
+}
+
+let currentListFilter = 'all';
+
+async function loadLists(){
+  const div = document.getElementById('lists-table');
+  div.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const ar = currentLang === 'ar';
+  const url = currentListFilter === 'all' ? '/api/lists' : '/api/lists/'+currentListFilter;
+  const items = await api(url) || [];
+  if(!items.length){
+    div.innerHTML = '<div class="empty"><div class="emoji">📋</div><h4>'+(ar?'لا توجد عناصر':'No items found')+'</h4></div>';
+    return;
+  }
+  const categoryLabels = {Classes:'أنواع الفصول', SubscriptionTypes:'أنواع الاشتراكات', TripStatuses:'حالات الرحلات'};
+  div.innerHTML = '<table><thead><tr><th>#</th><th>'+(ar?'التصنيف':'Category')+'</th><th>'+(ar?'الاسم':'Name')+'</th><th>Value</th><th>'+(ar?'الترتيب':'Order')+'</th><th>'+(ar?'إجراء':'Action')+'</th></tr></thead><tbody>'+
+    items.map(i=>'<tr>'+
+      '<td style="color:var(--text3)">'+i.id+'</td>'+
+      '<td><span class="badge badge-blue">'+(categoryLabels[i.category]||i.category)+'</span></td>'+
+      '<td><strong>'+(ar?i.nameAr:i.nameEn)+'</strong></td>'+
+      '<td style="direction:ltr">'+i.value+'</td>'+
+      '<td>'+i.order+'</td>'+
+      '<td style="display:flex;gap:0.4rem">'+
+        '<button class="icon-btn icon-btn-edit" onclick="openEditListModal('+i.id+',''+i.category+'',''+i.nameAr+'',''+i.nameEn+'',''+i.value+'','+i.order+')" title="تعديل">✏️</button>'+
+        '<button class="icon-btn icon-btn-delete" onclick="deleteListItem('+i.id+')" title="حذف">🗑️</button>'+
+      '</td>'+
+    '</tr>').join('')+'</tbody></table>';
+}
+
+function filterLists(category){
+  currentListFilter = category;
+  loadLists();
+}
+
+function openAddListModal(){
+  document.getElementById('listItemId').value='';
+  document.getElementById('listNameAr').value='';
+  document.getElementById('listNameEn').value='';
+  document.getElementById('listValue').value='';
+  document.getElementById('listOrder').value='0';
+  document.getElementById('listModalTitle').textContent='إضافة عنصر';
+  openModal('listModal');
+}
+
+function openEditListModal(id, category, nameAr, nameEn, value, order){
+  document.getElementById('listItemId').value=id;
+  document.getElementById('listCategory').value=category;
+  document.getElementById('listNameAr').value=nameAr;
+  document.getElementById('listNameEn').value=nameEn;
+  document.getElementById('listValue').value=value;
+  document.getElementById('listOrder').value=order;
+  document.getElementById('listModalTitle').textContent='تعديل العنصر';
+  openModal('listModal');
+}
+
+async function saveListItem(){
+  const id = document.getElementById('listItemId').value;
+  const body = {
+    category: document.getElementById('listCategory').value,
+    nameAr:   document.getElementById('listNameAr').value,
+    nameEn:   document.getElementById('listNameEn').value,
+    value:    document.getElementById('listValue').value,
+    order:    parseInt(document.getElementById('listOrder').value)||0,
+    isActive: true
+  };
+  if(!body.nameAr||!body.value){showToast('يرجى تعبئة الحقول المطلوبة','error');return;}
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? '/api/lists/'+id : '/api/lists';
+  const result = await api(url, method, body);
+  if(result?.id||result?.category){
+    showToast('✅ تم الحفظ','success');
+    closeModal('listModal');
+    loadLists();
+    // Reload dropdowns
+    loadDynamicList('Classes','childClass');
+    loadDynamicList('SubscriptionTypes','subType');
+  } else showToast('❌ فشل الحفظ','error');
+}
+
+async function deleteListItem(id){
+  if(!confirm('هل أنت متأكد من الحذف؟')) return;
+  const result = await api('/api/lists/'+id,'DELETE');
+  if(result?.message){
+    showToast('✅ تم الحذف','success');
+    loadLists();
+  }
 }
 
 async function loadDashboard(){
