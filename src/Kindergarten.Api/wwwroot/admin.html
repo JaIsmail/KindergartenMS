@@ -1142,6 +1142,41 @@ async function loadDynamicList(category, selectId, selectedValue=''){
 
 let currentListFilter = 'all';
 
+function addAlertTag(e){
+  if(e.key !== 'Enter') return;
+  e.preventDefault();
+  const val = parseInt(e.target.value.trim());
+  if(!val || val<1 || val>365) return;
+  const ar = currentLang==='ar';
+  const box = document.getElementById('alertTagBox');
+  const tag = document.createElement('span');
+  tag.style.cssText = 'background:rgba(249,115,22,0.12);color:var(--primary);padding:0.2rem 0.6rem;border-radius:50px;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:0.3rem';
+  tag.dataset.value = val;
+  tag.innerHTML = val+' '+(ar?'أيام':'days')+' <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:0.9rem;line-height:1;padding:0">×</button>';
+  box.appendChild(tag);
+  e.target.value='';
+}
+function getAlertDays(){
+  return [...document.querySelectorAll('#alertTagBox span')].map(t=>parseInt(t.dataset.value)).filter(Boolean);
+}
+function setAlertDays(days){
+  const box=document.getElementById('alertTagBox');
+  if(!box) return;
+  const ar=currentLang==='ar';
+  box.innerHTML='';
+  (days||[3,7]).forEach(val=>{
+    const tag=document.createElement('span');
+    tag.style.cssText='background:rgba(249,115,22,0.12);color:var(--primary);padding:0.2rem 0.6rem;border-radius:50px;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:0.3rem';
+    tag.dataset.value=val;
+    tag.innerHTML=val+' '+(ar?'أيام':'days')+' <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:0.9rem;line-height:1;padding:0">×</button>';
+    box.appendChild(tag);
+  });
+}
+function updateToggle(){
+  const cb=document.getElementById('settingsAllowOutside');
+  const sl=document.getElementById('toggleSlider');
+  if(sl) sl.style.background=cb?.checked?'var(--primary)':'var(--border)';
+}
 async function loadSettings(){
   const ar = currentLang === 'ar';
   // Get current tenant settings
