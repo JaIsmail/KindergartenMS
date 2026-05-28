@@ -453,7 +453,48 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         </div>
       </div>
 
+      <!-- Attendance Settings Card -->
+      <div class="table-card" style="padding:1.2rem">
+        <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border)">
+          <div style="width:36px;height:36px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">⏰</div>
+          <div><div style="font-weight:700;font-size:0.95rem" data-ar="إعدادات الحضور" data-en="Attendance Settings">إعدادات الحضور</div><div style="font-size:0.72rem;color:var(--text3)" data-ar="ضبط قواعد تسجيل الحضور" data-en="Configure attendance rules">ضبط قواعد تسجيل الحضور</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem">
+          <div><label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem" data-ar="وقت الدوام (من)" data-en="Work Start">وقت الدوام (من)</label><input type="time" id="settingsWorkStart" value="07:30" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;outline:none"></div>
+          <div><label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem" data-ar="وقت الدوام (إلى)" data-en="Work End">وقت الدوام (إلى)</label><input type="time" id="settingsWorkEnd" value="15:00" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;outline:none"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-top:1px solid var(--border)">
+          <span style="font-size:0.82rem;color:var(--text2)" data-ar="السماح بالحضور خارج النطاق" data-en="Allow check-in outside geo">السماح بالحضور خارج النطاق</span>
+          <label style="position:relative;width:44px;height:24px;flex-shrink:0;display:inline-block">
+            <input type="checkbox" id="settingsAllowOutside" style="opacity:0;width:0;height:0">
+            <span onclick="document.getElementById('settingsAllowOutside').click()" style="position:absolute;inset:0;background:var(--border);border-radius:50px;cursor:pointer;transition:0.2s" id="toggleSlider"></span>
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
+          <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 <span data-ar="حفظ الإعدادات" data-en="Save Settings">حفظ الإعدادات</span></button>
+        </div>
+      </div>
+
+      <!-- KG Info Card -->
+      <div class="table-card" style="padding:1.2rem">
+        <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border)">
+          <div style="width:36px;height:36px;background:#ede9fe;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">🏫</div>
+          <div><div style="font-weight:700;font-size:0.95rem" data-ar="معلومات الروضة" data-en="KG Info">معلومات الروضة</div><div style="font-size:0.72rem;color:var(--text3)" data-ar="البيانات الأساسية للروضة" data-en="Basic KG information">البيانات الأساسية للروضة</div></div>
+        </div>
+        <div id="settingsTenantInfo"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
     </div>
+
+    <!-- Map -->
+    <div class="table-card" style="padding:1.2rem;margin-top:1.5rem">
+      <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border)">
+        <div style="width:36px;height:36px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">🗺️</div>
+        <div><div style="font-weight:700;font-size:0.95rem" data-ar="تحديد الموقع على الخريطة" data-en="Pick Location on Map">تحديد الموقع على الخريطة</div><div style="font-size:0.72rem;color:var(--text3)" data-ar="انقر على الخريطة لتحديد موقع الروضة" data-en="Click on the map to set KG location">انقر على الخريطة لتحديد موقع الروضة</div></div>
+      </div>
+      <div id="settingsMap" style="height:300px;border-radius:10px;border:1.5px solid var(--border);overflow:hidden"></div>
+    </div>
+
   </div>
 
   <!-- Dynamic Lists Page -->
@@ -1112,7 +1153,28 @@ async function loadSettings(){
     document.getElementById('settingsLng').value = settings.location?.lng || '';
     document.getElementById('settingsRadius').value = settings.location?.radius || 200;
     document.getElementById('settingsAlertDays').value = (settings.alertDays||[3,7]).join(',');
+    document.getElementById('settingsWorkStart').value = settings.attendance?.workStart || '07:30';
+    document.getElementById('settingsWorkEnd').value = settings.attendance?.workEnd || '15:00';
+    document.getElementById('settingsAllowOutside').checked = settings.attendance?.allowOutside || false;
+    // Populate KG Info card
+    const infoDiv = document.getElementById('settingsTenantInfo');
+    if(infoDiv && tenant){
+      const ar = currentLang === 'ar';
+      infoDiv.innerHTML = [
+        {label: ar?'اسم الروضة (عربي)':'Name (AR)', value: tenant.nameAr},
+        {label: ar?'اسم الروضة (إنجليزي)':'Name (EN)', value: tenant.nameEn},
+        {label: ar?'المدينة':'City', value: tenant.city||'—'},
+        {label: ar?'الباقة':'Plan', value: tenant.plan||'Basic'},
+        {label: ar?'الحالة':'Status', value: tenant.isActive ? '<span style="color:var(--green);font-weight:700">● '+(ar?'نشطة':'Active')+'</span>' : '<span style="color:var(--red)">● '+(ar?'غير نشطة':'Inactive')+'</span>'},
+      ].map(r=>`<div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.82rem"><span style="color:var(--text2)">${r.label}</span><strong>${r.value}</strong></div>`).join('');
+    }
     updateRadiusBar();
+    // Init map
+    setTimeout(() => initSettingsMap(
+      settings.location?.lat || 24.7136,
+      settings.location?.lng || 46.6753,
+      settings.location?.radius || 200
+    ), 300);
   } catch(e) {}
 }
 
@@ -1129,6 +1191,9 @@ async function saveSettings(){
   const tenant = tenants.find(t => t.id === myTenantId) || tenants[0];
   if(!tenant) return;
 
+  const workStart = document.getElementById('settingsWorkStart')?.value || '07:30';
+  const workEnd = document.getElementById('settingsWorkEnd')?.value || '15:00';
+  const allowOutside = document.getElementById('settingsAllowOutside')?.checked || false;
   const body = {
     nameAr: tenant.nameAr,
     nameEn: tenant.nameEn,
@@ -1136,7 +1201,7 @@ async function saveSettings(){
     phone: tenant.phone,
     plan: tenant.plan,
     isActive: true,
-    settings: JSON.stringify({ alertDays, location: { lat, lng, radius } })
+    settings: JSON.stringify({ alertDays, location: { lat, lng, radius }, attendance: { workStart, workEnd, allowOutside } })
   };
 
   const result = await api('/api/tenants/'+myTenantId,'PUT', body);
@@ -1144,10 +1209,35 @@ async function saveSettings(){
   else showToast(ar?'فشل الحفظ':'Save failed','error');
 }
 
+let settingsMapInstance = null;
+let settingsMarker = null;
+let settingsCircle = null;
+
+function initSettingsMap(lat, lng, radius){
+  if(settingsMapInstance){ settingsMapInstance.remove(); settingsMapInstance = null; }
+  settingsMapInstance = L.map('settingsMap').setView([lat, lng], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(settingsMapInstance);
+  settingsMarker = L.marker([lat, lng], {draggable: true}).addTo(settingsMapInstance);
+  settingsCircle = L.circle([lat, lng], {radius: radius, color: '#f97316', fillOpacity: 0.15}).addTo(settingsMapInstance);
+  settingsMarker.on('dragend', function(){
+    const pos = settingsMarker.getLatLng();
+    document.getElementById('settingsLat').value = pos.lat.toFixed(6);
+    document.getElementById('settingsLng').value = pos.lng.toFixed(6);
+    settingsCircle.setLatLng(pos);
+  });
+  settingsMapInstance.on('click', function(e){
+    settingsMarker.setLatLng(e.latlng);
+    settingsCircle.setLatLng(e.latlng);
+    document.getElementById('settingsLat').value = e.latlng.lat.toFixed(6);
+    document.getElementById('settingsLng').value = e.latlng.lng.toFixed(6);
+  });
+}
+
 function updateRadiusBar(){
   const r = parseInt(document.getElementById('settingsRadius')?.value)||200;
   const bar = document.getElementById('radiusBar');
   if(bar) bar.style.width = Math.min((r/2000)*100,100)+'%';
+  if(settingsCircle) settingsCircle.setRadius(r);
 }
 
 async function loadLists(){
