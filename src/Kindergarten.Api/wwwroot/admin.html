@@ -451,6 +451,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
           <input type="number" id="alertTagInput" placeholder="أضف يوم..." min="1" max="30" onkeydown="addAlertTag(event)" style="width:100%;margin-top:0.4rem;padding:0.4rem 0.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none">
           <small style="font-size:0.7rem;color:var(--text3)" data-ar="اضغط Enter لإضافة يوم" data-en="Press Enter to add day">اضغط Enter لإضافة يوم</small>
         </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-top:1px solid var(--border);margin-top:0.5rem">
+          <span style="font-size:0.82rem;color:var(--text2)" data-ar="إرسال تنبيه عند انتهاء الاشتراك" data-en="Alert on expiry day">إرسال تنبيه عند انتهاء الاشتراك</span>
+          <input type="checkbox" id="settingsAlertOnExpiry" checked style="width:18px;height:18px;cursor:pointer;accent-color:var(--primary)">
+        </div>
         <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
           <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 <span data-ar="حفظ التنبيهات" data-en="Save Alerts">حفظ التنبيهات</span></button>
         </div>
@@ -469,7 +473,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-top:1px solid var(--border)">
           <span style="font-size:0.82rem;color:var(--text2)" data-ar="السماح بالحضور خارج النطاق" data-en="Allow check-in outside geo">السماح بالحضور خارج النطاق</span>
           <label style="position:relative;width:44px;height:24px;flex-shrink:0;display:inline-block">
-            <input type="checkbox" id="settingsAllowOutside" style="opacity:0;width:0;height:0">
+          <input type="checkbox" id="settingsAllowOutside" style="width:18px;height:18px;cursor:pointer;accent-color:var(--primary)">
             <span onclick="document.getElementById('settingsAllowOutside').click()" style="position:absolute;inset:0;background:var(--border);border-radius:50px;cursor:pointer;transition:0.2s" id="toggleSlider"></span>
           </label>
         </div>
@@ -1182,7 +1186,7 @@ async function loadSettings(){
   // Get current tenant settings
   const tenants = await api('/api/tenants') || [];
   const myTenantId = parseInt(localStorage.getItem('kms_tenantId')||'1');
-  const tenant = tenants.find(t => t.id === myTenantId) || tenants[0];
+  const tenant = tenants.find(t => String(t.id) === String(myTenantId)) || tenants[0];
   if(!tenant) return;
 
   try {
@@ -1225,12 +1229,13 @@ async function saveSettings(){
 
   const myTenantId = parseInt(localStorage.getItem('kms_tenantId')||'1');
   const tenants = await api('/api/tenants') || [];
-  const tenant = tenants.find(t => t.id === myTenantId) || tenants[0];
+  const tenant = tenants.find(t => String(t.id) === String(myTenantId)) || tenants[0];
   if(!tenant) return;
 
   const workStart = document.getElementById('settingsWorkStart')?.value || '07:30';
   const workEnd = document.getElementById('settingsWorkEnd')?.value || '15:00';
   const allowOutside = document.getElementById('settingsAllowOutside')?.checked || false;
+  const alertOnExpiry = document.getElementById('settingsAlertOnExpiry')?.checked !== false;
   const body = {
     nameAr: tenant.nameAr,
     nameEn: tenant.nameEn,
@@ -1238,7 +1243,7 @@ async function saveSettings(){
     phone: tenant.phone,
     plan: tenant.plan,
     isActive: true,
-    settings: JSON.stringify({ alertDays, location: { lat, lng, radius }, attendance: { workStart, workEnd, allowOutside } })
+    settings: JSON.stringify({ alertDays, alertOnExpiry, location: { lat, lng, radius }, attendance: { workStart, workEnd, allowOutside } })
   };
 
   console.log('Saving settings for tenant:', myTenantId, body);
