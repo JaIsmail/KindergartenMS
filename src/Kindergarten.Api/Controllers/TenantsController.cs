@@ -81,7 +81,7 @@ public class TenantsController : ControllerBase
         var tenants = await tenantsQuery.IgnoreQueryFilters()
             .Select(t => new {
                 t.Id, t.NameAr, t.NameEn, t.City, t.Phone,
-                t.Email, t.Plan, t.IsActive, t.CreatedAt,
+                t.Email, t.Plan, t.IsActive, t.CreatedAt, t.Settings,
                 usersCount    = _db.Users.Count(u => u.TenantId == t.Id),
                 childrenCount = _db.Children.Count(c => c.TenantId == t.Id),
                 tripsCount    = _db.Trips.Count(tr => tr.TenantId == t.Id),
