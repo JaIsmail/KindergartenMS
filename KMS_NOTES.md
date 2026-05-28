@@ -251,3 +251,20 @@
 - Affected controllers: TripsController, EmployeesController, DynamicListsController, PermissionGroupsController
 - SuperAdmin impersonation token already has all permissions → no impact
 - Regular users will only see what their group permissions allow
+
+---
+
+## Note 24: Settings Page Permissions 🟡
+- Add "ManageSettings" permission to permissions list
+- Settings page should only be visible to users with this permission
+- Add to default Admin group permissions
+- Hide settings nav item if user doesn't have ManageSettings permission
+
+---
+
+## Note 25: Settings Page Map Integration 🟡
+- Map is not yet integrated with tenant location settings
+- Required: Leaflet map should show pin at current tenant location
+- Dragging pin or clicking map updates Lat/Lng fields automatically
+- Circle on map shows the geo restriction radius
+- Map needs to be initialized when settings page loads
