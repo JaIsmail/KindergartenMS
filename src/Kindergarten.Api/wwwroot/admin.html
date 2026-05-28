@@ -286,6 +286,17 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     </div>
   </div>
 
+  <!-- الإعدادات -->
+  <div class="nav-group" id="group-settings">
+    <div class="nav-group-header" onclick="toggleNavGroup('group-settings')">
+      <span data-ar="الإعدادات" data-en="Settings">الإعدادات</span>
+      <span class="group-arrow">◀</span>
+    </div>
+    <div class="nav-group-items">
+      <button class="nav-item" onclick="showPage('settings')"><span class="icon">⚙️</span><span data-ar="إعدادات الروضة" data-en="KG Settings">إعدادات الروضة</span></button>
+    </div>
+  </div>
+
   <div class="sidebar-footer"><div class="api-status"><div class="api-dot" id="apiDot"></div><span id="apiStatusText">جاري الاتصال...</span></div></div>
 </aside>
 
@@ -402,6 +413,47 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     </div>
     <div class="section-header"><div><h3 id="h-all-users">المستخدمون</h3><p id="users-count">جاري التحميل...</p></div></div>
     <div class="table-card"><div id="users-table"><div class="loading"><div class="spinner"></div></div></div></div>
+  </div>
+
+  <!-- Settings Page -->
+  <div class="page" id="page-settings">
+    <div class="page-header"><div><h3 data-ar="إعدادات الروضة" data-en="KG Settings">إعدادات الروضة</h3><p data-ar="تخصيص إعدادات الروضة والحضور والتنبيهات" data-en="Customize KG settings, attendance and alerts">تخصيص إعدادات الروضة والحضور والتنبيهات</p></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" id="settings-grid">
+
+      <!-- Location Card -->
+      <div class="table-card" style="padding:1.2rem">
+        <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border)">
+          <div style="width:36px;height:36px;background:#dcfce7;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">📍</div>
+          <div><div style="font-weight:700;font-size:0.95rem" data-ar="موقع الروضة" data-en="KG Location">موقع الروضة</div><div style="font-size:0.72rem;color:var(--text3)" data-ar="تحديد موقع الروضة ونطاق الحضور" data-en="Set KG location and attendance radius">تحديد موقع الروضة ونطاق الحضور</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:0.8rem">
+          <div><label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem">Lat</label><input type="number" step="any" id="settingsLat" placeholder="24.7136" style="width:100%;padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none"></div>
+          <div><label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem">Lng</label><input type="number" step="any" id="settingsLng" placeholder="46.6753" style="width:100%;padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none"></div>
+          <div><label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem" data-ar="النطاق (م)" data-en="Radius (m)">النطاق (م)</label><input type="number" id="settingsRadius" placeholder="200" oninput="updateRadiusBar()" style="width:100%;padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none"></div>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:50px;margin-bottom:0.5rem;overflow:hidden"><div id="radiusBar" style="height:100%;background:var(--primary);border-radius:50px;width:10%;transition:width 0.3s"></div></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
+          <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 <span data-ar="حفظ الموقع" data-en="Save Location">حفظ الموقع</span></button>
+        </div>
+      </div>
+
+      <!-- Alert Days Card -->
+      <div class="table-card" style="padding:1.2rem">
+        <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border)">
+          <div style="width:36px;height:36px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">🔔</div>
+          <div><div style="font-weight:700;font-size:0.95rem" data-ar="تنبيهات الاشتراكات" data-en="Subscription Alerts">تنبيهات الاشتراكات</div><div style="font-size:0.72rem;color:var(--text3)" data-ar="أيام التنبيه قبل انتهاء الاشتراك" data-en="Alert days before subscription expires">أيام التنبيه قبل انتهاء الاشتراك</div></div>
+        </div>
+        <div style="margin-bottom:0.8rem">
+          <label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem" data-ar="أيام التنبيه (مفصولة بفاصلة)" data-en="Alert days (comma separated)">أيام التنبيه (مفصولة بفاصلة)</label>
+          <input type="text" id="settingsAlertDays" placeholder="3,7" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;outline:none">
+          <small style="font-size:0.7rem;color:var(--text3)" data-ar="مثال: 3,7,14" data-en="Example: 3,7,14">مثال: 3,7,14</small>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
+          <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 <span data-ar="حفظ التنبيهات" data-en="Save Alerts">حفظ التنبيهات</span></button>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <!-- Dynamic Lists Page -->
@@ -528,6 +580,14 @@ html[lang="en"] #toast{left:auto;right:2rem;}
           <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem;display:block">أيام التنبيه قبل انتهاء الاشتراك (مفصولة بفاصلة)</label>
           <input type="text" id="editTenantAlertDays" placeholder="3,7" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
           <small style="color:var(--text3);font-size:0.72rem">مثال: 3,7 يعني إرسال تنبيه قبل 3 و 7 أيام</small>
+        </div>
+        <div style="margin-top:0.8rem">
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem;display:block">📍 موقع الروضة (للحضور)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem">
+            <div><small style="color:var(--text3)">خط العرض (Lat)</small><input type="number" step="any" id="editTenantLat" placeholder="24.7136" style="width:100%;padding:0.5rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.82rem;outline:none"></div>
+            <div><small style="color:var(--text3)">خط الطول (Lng)</small><input type="number" step="any" id="editTenantLng" placeholder="46.6753" style="width:100%;padding:0.5rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.82rem;outline:none"></div>
+            <div><small style="color:var(--text3)">النطاق (متر)</small><input type="number" id="editTenantRadius" placeholder="200" style="width:100%;padding:0.5rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.82rem;outline:none"></div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -854,8 +914,8 @@ let signalrConnection=null;
 
 const T={
 ar:{
-  pages:{dashboard:'لوحة التحكم',children:'الأطفال',trips:'الرحلات',subscriptions:'الاشتراكات',payments:'المدفوعات',users:'المستخدمون',attendance:'الحضور',signalr:'الوقت الفعلي',lists:'القوائم الديناميكية',permissions:'الصلاحيات',tenants:'الروضات',leave:'طلبات الإذن',notifications:'الإشعارات'},
-  subs:{dashboard:'نظرة عامة على النظام',children:'إدارة الأطفال المسجلين',trips:'عرض وإدارة الرحلات',subscriptions:'إدارة اشتراكات النقل',payments:'تتبع سجلات الدفع',users:'إدارة مستخدمي النظام',attendance:'تقرير حضور الموظفين',signalr:'اتصال SignalR المباشر',lists:'إدارة أنواع الفصول والاشتراكات والرحلات',permissions:'إدارة صلاحيات المستخدمين',tenants:'إدارة الروضات المسجلة',leave:'إدارة طلبات الإذن',notifications:'إدارة إشعارات FCM'},
+  pages:{dashboard:'لوحة التحكم',children:'الأطفال',trips:'الرحلات',subscriptions:'الاشتراكات',payments:'المدفوعات',users:'المستخدمون',attendance:'الحضور',signalr:'الوقت الفعلي',lists:'القوائم الديناميكية',settings:'إعدادات الروضة',permissions:'الصلاحيات',tenants:'الروضات',leave:'طلبات الإذن',notifications:'الإشعارات'},
+  subs:{dashboard:'نظرة عامة على النظام',children:'إدارة الأطفال المسجلين',trips:'عرض وإدارة الرحلات',subscriptions:'إدارة اشتراكات النقل',payments:'تتبع سجلات الدفع',users:'إدارة مستخدمي النظام',attendance:'تقرير حضور الموظفين',signalr:'اتصال SignalR المباشر',lists:'إدارة أنواع الفصول والاشتراكات والرحلات',settings:'تخصيص إعدادات الروضة والحضور والتنبيهات',permissions:'إدارة صلاحيات المستخدمين',tenants:'إدارة الروضات المسجلة',leave:'إدارة طلبات الإذن',notifications:'إدارة إشعارات FCM'},
   apiLive:'متصل',apiOffline:'غير متصل',loading:'جاري التحميل...',noData:'لا توجد بيانات',
   refresh:'🔄 تحديث',addChild:'+ إضافة طفل',logout:'تسجيل الخروج',
   loginTitle:'مرحباً بعودتك',loginSub:'سجّل دخولك إلى لوحة الإدارة',
@@ -880,8 +940,8 @@ ar:{
     statChildren:'إجمالي الأطفال',statTrips:'إجمالي الرحلات',statSubs:'الاشتراكات',statUsers:'المستخدمون'}
 },
 en:{
-  pages:{dashboard:'Dashboard',children:'Children',trips:'Trips',subscriptions:'Subscriptions',payments:'Payments',users:'Users',attendance:'Attendance',signalr:'Real-Time',lists:'Dynamic Lists',permissions:'Permissions',tenants:'Kindergartens',leave:'Leave Requests',notifications:'Notifications'},
-  subs:{dashboard:'System overview',children:'Manage registered children',trips:'View and manage trips',subscriptions:'Manage subscriptions',payments:'Track payment records',users:'Manage system users',attendance:'Employee attendance report',signalr:'Live SignalR connection',lists:'Manage class types, subscriptions and trip statuses',permissions:'Manage user permissions',tenants:'Manage registered kindergartens',leave:'Manage leave requests',notifications:'Manage FCM notifications'},
+  pages:{dashboard:'Dashboard',children:'Children',trips:'Trips',subscriptions:'Subscriptions',payments:'Payments',users:'Users',attendance:'Attendance',signalr:'Real-Time',lists:'Dynamic Lists',settings:'KG Settings',permissions:'Permissions',tenants:'Kindergartens',leave:'Leave Requests',notifications:'Notifications'},
+  subs:{dashboard:'System overview',children:'Manage registered children',trips:'View and manage trips',subscriptions:'Manage subscriptions',payments:'Track payment records',users:'Manage system users',attendance:'Employee attendance report',signalr:'Live SignalR connection',lists:'Manage class types, subscriptions and trip statuses',settings:'Customize KG settings, attendance and alerts',permissions:'Manage user permissions',tenants:'Manage registered kindergartens',leave:'Manage leave requests',notifications:'Manage FCM notifications'},
   apiLive:'Live',apiOffline:'Offline',loading:'Loading...',noData:'No data found',
   refresh:'🔄 Refresh',addChild:'+ Add Child',logout:'Logout',
   loginTitle:'Welcome back',loginSub:'Sign in to your admin dashboard',
@@ -1016,7 +1076,7 @@ function showPage(page){
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
   async function loadUsersPage(){await loadUsers();await loadTenantsDropdown();}
-const loaders={dashboard:loadDashboard,lists:loadLists,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsersPage,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants};
+const loaders={dashboard:loadDashboard,lists:loadLists,settings:loadSettings,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsersPage,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -1037,6 +1097,58 @@ async function loadDynamicList(category, selectId, selectedValue=''){
 }
 
 let currentListFilter = 'all';
+
+async function loadSettings(){
+  const ar = currentLang === 'ar';
+  // Get current tenant settings
+  const tenants = await api('/api/tenants') || [];
+  const myTenantId = parseInt(localStorage.getItem('kms_tenantId')||'1');
+  const tenant = tenants.find(t => t.id === myTenantId) || tenants[0];
+  if(!tenant) return;
+
+  try {
+    const settings = tenant.settings ? JSON.parse(tenant.settings) : {};
+    document.getElementById('settingsLat').value = settings.location?.lat || '';
+    document.getElementById('settingsLng').value = settings.location?.lng || '';
+    document.getElementById('settingsRadius').value = settings.location?.radius || 200;
+    document.getElementById('settingsAlertDays').value = (settings.alertDays||[3,7]).join(',');
+    updateRadiusBar();
+  } catch(e) {}
+}
+
+async function saveSettings(){
+  const ar = currentLang === 'ar';
+  const lat = parseFloat(document.getElementById('settingsLat').value)||0;
+  const lng = parseFloat(document.getElementById('settingsLng').value)||0;
+  const radius = parseInt(document.getElementById('settingsRadius').value)||200;
+  const alertDaysStr = document.getElementById('settingsAlertDays').value||'3,7';
+  const alertDays = alertDaysStr.split(',').map(d=>parseInt(d.trim())).filter(d=>!isNaN(d));
+
+  const myTenantId = parseInt(localStorage.getItem('kms_tenantId')||'1');
+  const tenants = await api('/api/tenants') || [];
+  const tenant = tenants.find(t => t.id === myTenantId) || tenants[0];
+  if(!tenant) return;
+
+  const body = {
+    nameAr: tenant.nameAr,
+    nameEn: tenant.nameEn,
+    city: tenant.city,
+    phone: tenant.phone,
+    plan: tenant.plan,
+    isActive: true,
+    settings: JSON.stringify({ alertDays, location: { lat, lng, radius } })
+  };
+
+  const result = await api('/api/tenants/'+myTenantId,'PUT', body);
+  if(result) showToast('✅ '+(ar?'تم حفظ الإعدادات':'Settings saved'),'success');
+  else showToast(ar?'فشل الحفظ':'Save failed','error');
+}
+
+function updateRadiusBar(){
+  const r = parseInt(document.getElementById('settingsRadius')?.value)||200;
+  const bar = document.getElementById('radiusBar');
+  if(bar) bar.style.width = Math.min((r/2000)*100,100)+'%';
+}
 
 async function loadLists(){
   const div = document.getElementById('lists-table');
@@ -2075,7 +2187,12 @@ async function openEditTenantModal(id){
   try {
     const settings = tenant.settings ? JSON.parse(tenant.settings) : {};
     document.getElementById('editTenantAlertDays').value = (settings.alertDays||[3,7]).join(',');
-  } catch { document.getElementById('editTenantAlertDays').value = '3,7'; }
+    document.getElementById('editTenantLat').value = settings.location?.lat || '';
+    document.getElementById('editTenantLng').value = settings.location?.lng || '';
+    document.getElementById('editTenantRadius').value = settings.location?.radius || 200;
+  } catch {
+    document.getElementById('editTenantAlertDays').value = '3,7';
+  }
   openModal('editTenantModal');
 }
 async function updateTenant(){
@@ -2089,7 +2206,14 @@ async function updateTenant(){
     phone:document.getElementById('editTenantPhone').value,
     plan:document.getElementById('editTenantPlan').value,
     isActive:true,
-    settings: JSON.stringify({alertDays})
+    settings: JSON.stringify({
+      alertDays,
+      location: {
+        lat: parseFloat(document.getElementById('editTenantLat').value)||0,
+        lng: parseFloat(document.getElementById('editTenantLng').value)||0,
+        radius: parseInt(document.getElementById('editTenantRadius').value)||200
+      }
+    })
   };
   const result=await api('/api/tenants/'+id,'PUT',body);
   if(result?.id){showToast('✅ تم تحديث بيانات الروضة','success');closeModal('editTenantModal');loadTenants();}
