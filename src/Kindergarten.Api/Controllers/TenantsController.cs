@@ -142,6 +142,7 @@ public class TenantsController : ControllerBase
         tenant.Email    = dto.Email;
         tenant.Plan     = dto.Plan;
         tenant.IsActive = dto.IsActive;
+        tenant.Settings = dto.Settings;
         await _db.SaveChangesAsync();
         return Ok(tenant);
     }
