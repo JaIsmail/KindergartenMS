@@ -434,9 +434,6 @@ html[lang="en"] #toast{left:auto;right:2rem;}
           <div><label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem" data-ar="النطاق (م)" data-en="Radius (m)">النطاق (م)</label><input type="number" id="settingsRadius" placeholder="200" oninput="updateRadiusBar()" style="width:100%;padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none"></div>
         </div>
         <div style="height:6px;background:var(--border);border-radius:50px;margin-bottom:0.5rem;overflow:hidden"><div id="radiusBar" style="height:100%;background:var(--primary);border-radius:50px;width:10%;transition:width 0.3s"></div></div>
-        <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
-          <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 <span data-ar="حفظ الموقع" data-en="Save Location">حفظ الموقع</span></button>
-        </div>
       </div>
 
       <!-- Alert Days Card -->
@@ -454,9 +451,6 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-top:1px solid var(--border);margin-top:0.5rem">
           <span style="font-size:0.82rem;color:var(--text2)" data-ar="إرسال تنبيه عند انتهاء الاشتراك" data-en="Alert on expiry day">إرسال تنبيه عند انتهاء الاشتراك</span>
           <input type="checkbox" id="settingsAlertOnExpiry" checked style="width:18px;height:18px;cursor:pointer;accent-color:var(--primary)">
-        </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
-          <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 <span data-ar="حفظ التنبيهات" data-en="Save Alerts">حفظ التنبيهات</span></button>
         </div>
       </div>
 
@@ -477,9 +471,6 @@ html[lang="en"] #toast{left:auto;right:2rem;}
             <span onclick="document.getElementById('settingsAllowOutside').click()" style="position:absolute;inset:0;background:var(--border);border-radius:50px;cursor:pointer;transition:0.2s" id="toggleSlider"></span>
           </label>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
-          <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 <span data-ar="حفظ الإعدادات" data-en="Save Settings">حفظ الإعدادات</span></button>
-        </div>
       </div>
 
       <!-- KG Info Card -->
@@ -491,6 +482,11 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div id="settingsTenantInfo"><div class="loading"><div class="spinner"></div></div></div>
       </div>
 
+    </div>
+
+    <!-- Save Button -->
+    <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-primary" onclick="saveSettings()" style="padding:0.7rem 2rem;font-size:0.95rem">💾 <span data-ar="حفظ جميع الإعدادات" data-en="Save All Settings">حفظ جميع الإعدادات</span></button>
     </div>
 
     <!-- Map -->
