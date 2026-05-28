@@ -1281,8 +1281,9 @@ async function manageTenant(id, name){
   document.getElementById('impersonation-tenant-name').textContent = name;
   document.getElementById('impersonation-label').textContent = ar ? 'أنت تدير هذه الروضة الآن' : 'You are now managing this KG';
   document.getElementById('impersonation-banner').style.display = 'flex';
-  // Reload current page data
+  // Reload all data with new tenant context
   showToast('✅ '+(ar?'تم التبديل إلى ':'Switched to ')+name,'success');
+  await initDashboard();
   showPage('dashboard');
 }
 
