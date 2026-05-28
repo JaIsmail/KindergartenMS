@@ -306,18 +306,24 @@ public class TenantsController : ControllerBase
         if (currentUser == null) return Unauthorized();
 
         // Generate impersonation token with tenant context
+        // Get all permissions to include in impersonation token
+        var allPerms = await _db.Permissions.Select(p => p.Name).ToListAsync();
+
         var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
         {
             new(System.Security.Claims.ClaimTypes.NameIdentifier, currentUser.Id),
             new(System.Security.Claims.ClaimTypes.Email, currentUser.Email!),
             new(System.Security.Claims.ClaimTypes.Name, currentUser.FullName),
-            new(System.Security.Claims.ClaimTypes.Role, "Admin"), // Act as Admin in this tenant
+            new(System.Security.Claims.ClaimTypes.Role, "Admin"),
             new("TenantId", id.ToString()),
             new("ImpersonatingTenant", id.ToString()),
             new("ImpersonatingTenantName", tenant.NameAr),
             new("OriginalRole", currentUser.RoleType),
             new("jti", Guid.NewGuid().ToString())
         };
+
+        // Add all permissions as claims for full tenant access
+        claims.AddRange(allPerms.Select(p => new System.Security.Claims.Claim("Permission", p)));
 
         var key    = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
             System.Text.Encoding.UTF8.GetBytes((config["Jwt__Key"] ?? config["Jwt:Key"])!));
