@@ -1418,7 +1418,7 @@ async function createChild(){
   const cls=document.getElementById('childClass').value;const health=document.getElementById('childHealth').value;
   if(!name||!dob){showToast(t('err.fill'),'error');return;}
   const result=await api('/api/children','POST',{name,birthDate:dob,class:cls,healthNotes:health});
-  if(result){  // success if any response returnedshowToast('✅ '+t('succ.child'),'success');document.getElementById('childName').value='';document.getElementById('childDob').value='';loadChildren();}
+  if(result){showToast('✅ '+t('succ.child'),'success');document.getElementById('childName').value='';document.getElementById('childDob').value='';loadChildren();}
   else showToast(t('err.failed'),'error');
 }
 
@@ -2106,7 +2106,7 @@ async function createSubscription(){
   const price=parseFloat(document.getElementById('subPrice').value);const startDate=document.getElementById('subStart').value;const endDate=document.getElementById('subEnd').value;
   if(!childId||!price||!startDate||!endDate){showToast(t('err.fill'),'error');return;}
   const result=await api('/api/subscriptions','POST',{childId:parseInt(childId),type,price,startDate,endDate});
-  if(result){  // success if any response returnedshowToast('✅ '+t('succ.sub'),'success');loadSubscriptions();}
+  if(result){showToast('✅ '+t('succ.sub'),'success');loadSubscriptions();}
   else showToast(t('err.failed'),'error');
 }
 
@@ -2145,7 +2145,7 @@ async function recordPayment(){
   const subId=parseInt(document.getElementById('paySubId').value);const amount=parseFloat(document.getElementById('payAmount').value);const method=document.getElementById('payMethod').value;
   if(!subId||!amount){showToast(t('err.fill'),'error');return;}
   const result=await api('/api/payments','POST',{subscriptionId:subId,amount,method});
-  if(result){  // success if any response returnedshowToast('✅ '+t('succ.pay'),'success');loadPayments();}
+  if(result){showToast('✅ '+t('succ.pay'),'success');loadPayments();}
   else showToast(t('err.failed'),'error');
 }
 
@@ -2355,7 +2355,7 @@ async function updateTenant(){
     })
   };
   const result=await api('/api/tenants/'+id,'PUT',body);
-  if(result){  // success if any response returnedshowToast('✅ تم تحديث بيانات الروضة','success');closeModal('editTenantModal');loadTenants();}
+  if(result){showToast('✅ تم تحديث بيانات الروضة','success');closeModal('editTenantModal');loadTenants();}
   else showToast('❌ فشل التحديث','error');
 }
 async function loadTenantsDropdown(){
