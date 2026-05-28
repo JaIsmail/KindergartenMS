@@ -24,7 +24,12 @@
 
 ---
 
-## Note 3: Dynamic Lists in Admin 🟠
+## Note 3: Dynamic Lists in Admin ✅ DONE
+- Dynamic lists entity + migration + controller
+- Admin can add/edit/delete class types, subscription types, trip statuses
+- Dropdowns in Children and Subscriptions forms load dynamically
+- Foldable grouped sidebar with SuperAdmin-only Tenants tab
+- SuperAdmin impersonation now loads all tenant data correctly
 - Admin can add/edit/delete:
   - Class types (KG1, KG2, etc.)
   - Subscription types
