@@ -242,3 +242,12 @@
 - Role Groups management page in Admin Dashboard
 - JWT token includes role groups
 - Users can be assigned to multiple role groups
+
+---
+
+## Note 23: Standardize Permission Checks 🟡
+- Some endpoints use only [Authorize] instead of [RequirePermission]
+- Required: Add [RequirePermission] to ALL endpoints for consistency
+- Affected controllers: TripsController, EmployeesController, DynamicListsController, PermissionGroupsController
+- SuperAdmin impersonation token already has all permissions → no impact
+- Regular users will only see what their group permissions allow
