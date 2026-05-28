@@ -446,9 +446,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
           <div><div style="font-weight:700;font-size:0.95rem" data-ar="تنبيهات الاشتراكات" data-en="Subscription Alerts">تنبيهات الاشتراكات</div><div style="font-size:0.72rem;color:var(--text3)" data-ar="أيام التنبيه قبل انتهاء الاشتراك" data-en="Alert days before subscription expires">أيام التنبيه قبل انتهاء الاشتراك</div></div>
         </div>
         <div style="margin-bottom:0.8rem">
-          <label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem" data-ar="أيام التنبيه (مفصولة بفاصلة)" data-en="Alert days (comma separated)">أيام التنبيه (مفصولة بفاصلة)</label>
-          <input type="text" id="settingsAlertDays" placeholder="3,7" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;outline:none">
-          <small style="font-size:0.7rem;color:var(--text3)" data-ar="مثال: 3,7,14" data-en="Example: 3,7,14">مثال: 3,7,14</small>
+          <label style="font-size:0.72rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.3rem" data-ar="أيام التنبيه" data-en="Alert Days">أيام التنبيه</label>
+          <div id="alertTagBox" onclick="document.getElementById('alertTagInput').focus()" style="display:flex;flex-wrap:wrap;gap:0.4rem;padding:0.5rem;border:1.5px solid var(--border);border-radius:9px;cursor:text;min-height:42px;align-items:center;background:white"></div>
+          <input type="number" id="alertTagInput" placeholder="أضف يوم..." min="1" max="30" onkeydown="addAlertTag(event)" style="width:100%;margin-top:0.4rem;padding:0.4rem 0.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.82rem;outline:none">
+          <small style="font-size:0.7rem;color:var(--text3)" data-ar="اضغط Enter لإضافة يوم" data-en="Press Enter to add day">اضغط Enter لإضافة يوم</small>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
           <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 <span data-ar="حفظ التنبيهات" data-en="Save Alerts">حفظ التنبيهات</span></button>
@@ -1154,7 +1155,7 @@ async function loadSettings(){
     document.getElementById('settingsLat').value = settings.location?.lat || '';
     document.getElementById('settingsLng').value = settings.location?.lng || '';
     document.getElementById('settingsRadius').value = settings.location?.radius || 200;
-    document.getElementById('settingsAlertDays').value = (settings.alertDays||[3,7]).join(',');
+    setAlertDays(settings.alertDays||[3,7]);
     document.getElementById('settingsWorkStart').value = settings.attendance?.workStart || '07:30';
     document.getElementById('settingsWorkEnd').value = settings.attendance?.workEnd || '15:00';
     document.getElementById('settingsAllowOutside').checked = settings.attendance?.allowOutside || false;
@@ -1185,8 +1186,7 @@ async function saveSettings(){
   const lat = parseFloat(document.getElementById('settingsLat').value)||0;
   const lng = parseFloat(document.getElementById('settingsLng').value)||0;
   const radius = parseInt(document.getElementById('settingsRadius').value)||200;
-  const alertDaysStr = document.getElementById('settingsAlertDays').value||'3,7';
-  const alertDays = alertDaysStr.split(',').map(d=>parseInt(d.trim())).filter(d=>!isNaN(d));
+  const alertDays = getAlertDays().length ? getAlertDays() : [3,7];
 
   const myTenantId = parseInt(localStorage.getItem('kms_tenantId')||'1');
   const tenants = await api('/api/tenants') || [];
@@ -1206,8 +1206,10 @@ async function saveSettings(){
     settings: JSON.stringify({ alertDays, location: { lat, lng, radius }, attendance: { workStart, workEnd, allowOutside } })
   };
 
+  console.log('Saving settings for tenant:', myTenantId, body);
   const result = await api('/api/tenants/'+myTenantId,'PUT', body);
-  if(result) showToast('✅ '+(ar?'تم حفظ الإعدادات':'Settings saved'),'success');
+  console.log('Save result:', result);
+  if(result?.id) showToast('✅ '+(ar?'تم حفظ الإعدادات':'Settings saved'),'success');
   else showToast(ar?'فشل الحفظ':'Save failed','error');
 }
 
