@@ -1247,7 +1247,6 @@ async function saveSettings(){
   const result = await api('/api/tenants/'+myTenantId,'PUT', body);
   console.log('Save result:', result);
   if(result){  // success if any response returned
-    alert('✅ Saved! id='+result.id);
     showToast('✅ '+(ar?'تم حفظ الإعدادات':'Settings saved'),'success');
   } else {
     console.error('Save failed - result:', result);
