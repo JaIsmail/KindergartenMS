@@ -268,3 +268,22 @@
 - Dragging pin or clicking map updates Lat/Lng fields automatically
 - Circle on map shows the geo restriction radius
 - Map needs to be initialized when settings page loads
+
+---
+
+## Note 26: Granular Permissions (CRUD Level) 🟠
+- Current permissions are too broad (e.g. "ManageChildren" covers add+edit+delete)
+- Required: Split permissions into CRUD actions per entity:
+  - Children: ViewChildren, AddChild, EditChild, DeleteChild
+  - Users: ViewUsers, AddUser, EditUser, DeleteUser
+  - Trips: ViewTrips, AddTrip, EditTrip, DeleteTrip, TrackTrips
+  - Subscriptions: ViewSubscriptions, AddSubscription, EditSubscription, DeleteSubscription
+  - Payments: ViewFinancials, AddPayment, EditPayment, DeletePayment
+  - Attendance: ViewAttendance, ManageAttendance, ViewOwnAttendance
+  - Leave: ViewLeaveRequests, ManageLeaveRequests, SubmitLeaveRequest
+  - Permissions: ManagePermissions, ManageRoleGroups
+  - Settings: ViewSettings, ManageSettings
+  - Notifications: SendNotifications
+- Update all controllers to use granular permissions
+- Update default PermissionGroup seeds with correct granular permissions
+- This is a breaking change — requires migration and re-seeding
