@@ -1217,6 +1217,7 @@ async function loadSettings(){
 }
 
 async function saveSettings(){
+  alert('saveSettings called');
   const ar = currentLang === 'ar';
   const lat = parseFloat(document.getElementById('settingsLat').value)||0;
   const lng = parseFloat(document.getElementById('settingsLng').value)||0;
