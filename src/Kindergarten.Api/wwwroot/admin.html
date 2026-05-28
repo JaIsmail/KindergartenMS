@@ -1217,8 +1217,8 @@ async function loadSettings(){
 }
 
 async function saveSettings(){
-  alert('saveSettings called');
   const ar = currentLang === 'ar';
+  try {
   const lat = parseFloat(document.getElementById('settingsLat').value)||0;
   const lng = parseFloat(document.getElementById('settingsLng').value)||0;
   const radius = parseInt(document.getElementById('settingsRadius').value)||200;
@@ -1246,8 +1246,16 @@ async function saveSettings(){
   console.log('Saving settings for tenant:', myTenantId, body);
   const result = await api('/api/tenants/'+myTenantId,'PUT', body);
   console.log('Save result:', result);
-  if(result?.id) showToast('✅ '+(ar?'تم حفظ الإعدادات':'Settings saved'),'success');
-  else showToast(ar?'فشل الحفظ':'Save failed','error');
+  if(result?.id){
+    showToast('✅ '+(ar?'تم حفظ الإعدادات':'Settings saved'),'success');
+  } else {
+    console.error('Save failed - result:', result);
+    showToast(ar?'فشل الحفظ':'Save failed','error');
+  }
+  } catch(err) {
+    console.error('saveSettings error:', err);
+    showToast(ar?'خطأ في الحفظ':'Save error: '+err.message,'error');
+  }
 }
 
 let settingsMapInstance = null;
