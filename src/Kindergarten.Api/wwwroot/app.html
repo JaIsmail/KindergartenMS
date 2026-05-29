@@ -682,9 +682,14 @@ async function doCheckIn() {
   let lat=null,lng=null;
   try{const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000}));lat=pos.coords.latitude;lng=pos.coords.longitude;}catch(e){}
   var r = await apiCall('/api/employees/checkin','POST',{biometricVerified:true,latitude:lat,longitude:lng});
-  if(r && r.checkInTime) {
-    document.getElementById('ciTime').textContent = fTime(r.checkInTime);
-    document.getElementById('attStatus').textContent = ts(r.status);
+  if(r && r.message === 'outside_range'){
+    toast('خارج النطاق: '+Math.round(r.distance)+'م','err');
+  } else if(r && r.message === 'Already checked in'){
+    toast(t('alreadyIn'),'');
+  } else if(r && r.periods && r.periods.some(function(p){return !p.checkOut;})){
+    toast(t('checkedIn'),'ok');
+    loadAtt();
+  } else if(r && r.checkInTime) {
     toast(t('checkedIn'),'ok');
     loadAtt();
   } else {
