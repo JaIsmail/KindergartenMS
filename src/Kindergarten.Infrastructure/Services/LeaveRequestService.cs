@@ -20,14 +20,16 @@ public class LeaveRequestService : ILeaveRequestService
         _tenantService = tenantService;
     }
 
-    public async Task<double> GetMonthlyHoursAsync(int employeeId)
+    public async Task<double> GetMonthlyHoursAsync(string userId)
     {
         var now   = DateTime.UtcNow;
         var start = new DateTime(now.Year, now.Month, 1);
         var end   = start.AddMonths(1);
+        var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == userId);
+        if (emp == null) return 0;
 
         return await _db.LeaveRequests
-            .Where(r => r.EmployeeId == employeeId
+            .Where(r => r.EmployeeId == (emp == null ? 0 : emp.Id)
                      && r.Status     == "Approved"
                      && r.StartTime  >= start
                      && r.StartTime  <  end)
@@ -37,7 +39,8 @@ public class LeaveRequestService : ILeaveRequestService
  public async Task<LeaveRequestResponseDto> CreateAsync(CreateLeaveRequestDto dto, int employeeId)
     {
         var hours = (dto.EndTime - dto.StartTime).TotalHours;
-        var monthlyUsed = await GetMonthlyHoursAsync(employeeId);
+        var empUser = await _db.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
+        var monthlyUsed = await GetMonthlyHoursAsync(empUser?.UserId ?? "");
         var isPaid = (monthlyUsed + hours) <= MonthlyFreeHours;
 
         var request = new LeaveRequest
@@ -140,7 +143,8 @@ public class LeaveRequestService : ILeaveRequestService
 
     private async Task<LeaveRequestResponseDto> MapAsync(LeaveRequest r)
     {
-        var monthlyHours = await GetMonthlyHoursAsync(r.EmployeeId);
+        var empU = await _db.Employees.FirstOrDefaultAsync(e => e.Id == r.EmployeeId);
+        var monthlyHours = await GetMonthlyHoursAsync(empU?.UserId ?? "");
         return new LeaveRequestResponseDto
         {
             Id               = r.Id,

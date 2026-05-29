@@ -8,5 +8,5 @@ public interface ILeaveRequestService
     Task<IEnumerable<LeaveRequestResponseDto>> GetByEmployeeAsync(int employeeId);
     Task<IEnumerable<LeaveRequestResponseDto>> GetAllAsync();
     Task<LeaveRequestResponseDto?>             ReviewAsync(int id, ReviewLeaveRequestDto dto, string adminId);
-    Task<double>                               GetMonthlyHoursAsync(int employeeId);
+    Task<double>                               GetMonthlyHoursAsync(string userId);
 }

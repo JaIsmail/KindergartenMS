@@ -53,9 +53,8 @@ public class LeaveRequestsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetMyHours()
     {
-        var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == GetUserId());
-        if (emp == null) return NotFound();
-        var hours = await _service.GetMonthlyHoursAsync(emp.Id);
+        var userId = GetUserId();
+        var hours = await _service.GetMonthlyHoursAsync(userId);
         return Ok(new { usedHours = hours, freeHours = 4.0, remainingFree = Math.Max(0, 4.0 - hours) });
     }
 
