@@ -29,6 +29,19 @@ namespace Kindergarten.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: "");
 
+            // Data migration: populate UserId from Employees table
+            migrationBuilder.Sql(@"
+                UPDATE a SET a.UserId = e.UserId
+                FROM Attendance a
+                INNER JOIN Employees e ON a.EmployeeId = e.Id
+                WHERE a.EmployeeId IS NOT NULL
+            ");
+            migrationBuilder.Sql(@"
+                UPDATE Attendance
+                SET UserId = (SELECT TOP 1 Id FROM AspNetUsers)
+                WHERE UserId = ''
+            ");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Attendance_UserId",
                 table: "Attendance",
