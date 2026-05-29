@@ -21,7 +21,8 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             context.Succeed(requirement);
             return;
         }
- // Check permission claims in JWT (impersonation token)
+
+        // Check permission claims in JWT (impersonation token)
         var permClaims = context.User.FindAll("Permission").ToList();
         foreach (var claim in permClaims)
         {
@@ -45,7 +46,7 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             }
         }
 
- // Admin role bypasses all permission checks within their tenant
+        // Admin role bypasses all permission checks within their tenant
         if (context.User.IsInRole("Admin"))
         {
             context.Succeed(requirement);
@@ -69,23 +70,27 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             context.Succeed(requirement);
             return;
         }
- // Check permissions via PermissionGroups
-        var hasGroupPermission = await _db.UserPermissionGroups
+
+        // Check permissions via PermissionGroups - simplified query
+        var userGroupIds = await _db.UserPermissionGroups
             .IgnoreQueryFilters()
             .Where(upg => upg.UserId == userId)
-            .Join(_db.PermissionGroupPermissions,
-                upg => upg.GroupId,
-                pgp => pgp.GroupId,
-                (upg, pgp) => pgp.PermissionId)
-            .Join(_db.Permissions,
-                pid => pid,
-                p => p.Id,
-                (pid, p) => p.Name)
-            .AnyAsync(name => name == requirement.Permission);
+            .Select(upg => upg.GroupId)
+            .ToListAsync();
 
-        if (hasGroupPermission)
-            context.Succeed(requirement);
-        else
-            context.Fail();
+        if (userGroupIds.Any())
+        {
+            var hasGroupPermission = await _db.PermissionGroupPermissions
+                .Include(pgp => pgp.Permission)
+                .AnyAsync(pgp => userGroupIds.Contains(pgp.GroupId) &&
+                                 pgp.Permission.Name == requirement.Permission);
+            if (hasGroupPermission)
+            {
+                context.Succeed(requirement);
+                return;
+            }
+        }
+
+        context.Fail();
     }
 }
