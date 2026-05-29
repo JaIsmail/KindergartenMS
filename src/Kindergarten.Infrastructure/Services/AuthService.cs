@@ -42,14 +42,12 @@ public class AuthService : IAuthService
             Email       = dto.Email,
             UserName    = dto.Email,
             PhoneNumber = dto.PhoneNumber,
-            RoleType    = "Employee", // Will be updated when PermissionGroup is assigned
+            RoleType    = "Employee",
             TenantId    = dto.TenantId
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded) return null;
-
-        // Role assigned via PermissionGroup after registration
 
         return await GenerateTokenAsync(user);
     }
@@ -67,15 +65,26 @@ public class AuthService : IAuthService
 
     private async Task<AuthResponseDto> GenerateTokenAsync(ApplicationUser user)
     {
-        // Get all roles from PermissionGroups, comma-separated
+        // Get user's permission groups with their permissions
         var permGroups = await _db.UserPermissionGroups
             .IgnoreQueryFilters()
             .Include(x => x.Group)
+                .ThenInclude(g => g.GroupPermissions)
+                    .ThenInclude(gp => gp.Permission)
             .Where(x => x.UserId == user.Id)
             .ToListAsync();
+
+        // Role = group names comma-separated
         var role = permGroups.Any()
             ? string.Join(",", permGroups.Select(g => g.Group.NameEn))
             : user.RoleType;
+
+        // Collect all unique permissions from all groups
+        var permissions = permGroups
+            .SelectMany(g => g.Group.GroupPermissions)
+            .Select(gp => gp.Permission.Name)
+            .Distinct()
+            .ToList();
 
         var claims = new List<Claim>
         {
@@ -86,6 +95,9 @@ public class AuthService : IAuthService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("TenantId", user.TenantId.ToString())
         };
+
+        // Add each permission as a separate claim in JWT
+        claims.AddRange(permissions.Select(p => new Claim("Permission", p)));
 
         var key    = new SymmetricSecurityKey(Encoding.UTF8.GetBytes((_config["Jwt__Key"] ?? _config["Jwt:Key"])!));
         var creds  = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
