@@ -667,6 +667,10 @@ async function loadAtt() {
     document.getElementById('ciTime').textContent = today.checkInTime ? fTime(today.checkInTime) : '--:--';
     document.getElementById('coTime').textContent = today.checkOutTime ? fTime(today.checkOutTime) : '--:--';
     document.getElementById('attStatus').textContent = ts(today.status);
+    // Check if there's an open period (checked in but not out)
+    var hasOpenPeriod = today.periods && today.periods.some(function(p) { return !p.checkOut; });
+    document.getElementById('btnCI').disabled = hasOpenPeriod;
+    document.getElementById('btnCO').disabled = !hasOpenPeriod;
   }
   div.innerHTML = '<div class="lcard">'+records.slice(0,10).map(function(r) {
     return '<div class="litem"><span class="lic">📅</span><div class="linf"><div class="t">'+fDate(r.date)+'</div><div class="s">'+(r.workingHours ? t('wHours')+': '+r.workingHours : '—')+'</div></div>'+sbadge(r.status)+'</div>';
