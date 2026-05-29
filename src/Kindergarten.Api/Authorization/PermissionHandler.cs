@@ -21,18 +21,15 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             context.Succeed(requirement);
             return;
         }
-
-// Check permission claims in JWT (impersonation token or direct grants)
+ // Check permission claims in JWT (impersonation token)
         var permClaims = context.User.FindAll("Permission").ToList();
         foreach (var claim in permClaims)
         {
-            // Single value claim
             if (claim.Value == requirement.Permission)
             {
                 context.Succeed(requirement);
                 return;
             }
-            // Array value claim (JSON array)
             if (claim.Value.StartsWith("["))
             {
                 try
@@ -48,14 +45,13 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             }
         }
 
-        // Admin role bypasses all permission checks within their tenant
+ // Admin role bypasses all permission checks within their tenant
         if (context.User.IsInRole("Admin"))
         {
             context.Succeed(requirement);
             return;
         }
 
-      // Check UserPermissions table
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId))
         {
@@ -63,12 +59,31 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             return;
         }
 
+        // Check direct UserPermissions table
         var hasPermission = await _db.UserPermissions
             .Include(up => up.Permission)
             .AnyAsync(up => up.UserId == userId &&
                            up.Permission.Name == requirement.Permission);
-
         if (hasPermission)
+        {
+            context.Succeed(requirement);
+            return;
+        }
+ // Check permissions via PermissionGroups
+        var hasGroupPermission = await _db.UserPermissionGroups
+            .IgnoreQueryFilters()
+            .Where(upg => upg.UserId == userId)
+            .Join(_db.PermissionGroupPermissions,
+                upg => upg.GroupId,
+                pgp => pgp.GroupId,
+                (upg, pgp) => pgp.PermissionId)
+            .Join(_db.Permissions,
+                pid => pid,
+                p => p.Id,
+                (pid, p) => p.Name)
+            .AnyAsync(name => name == requirement.Permission);
+
+        if (hasGroupPermission)
             context.Succeed(requirement);
         else
             context.Fail();
