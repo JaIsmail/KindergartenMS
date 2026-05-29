@@ -45,6 +45,7 @@ public class EmployeeService : IEmployeeService
         var today = DateTime.UtcNow.Date;
         var att = await _db.Attendance
             .Include(a => a.Periods)
+            .Include(a => a.Employee).ThenInclude(e => e.User)
             .FirstOrDefaultAsync(a => a.EmployeeId == emp.Id && a.Date == today);
 
         if (att == null)
@@ -131,6 +132,7 @@ public class EmployeeService : IEmployeeService
         var today = DateTime.UtcNow.Date;
         var attendance = await _db.Attendance
             .Include(a => a.Periods)
+            .Include(a => a.Employee).ThenInclude(e => e.User)
             .FirstOrDefaultAsync(a => a.EmployeeId == emp.Id && a.Date == today);
 
         if (attendance == null) return null;
@@ -152,7 +154,7 @@ public class EmployeeService : IEmployeeService
     public async Task<IEnumerable<AttendanceResponseDto>> GetAllAttendanceAsync(DateTime? date)
     {
         var query = _db.Attendance
-            .Include(a => a.Employee)
+            .Include(a => a.Employee).ThenInclude(e => e.User)
             .Include(a => a.Periods)
             .AsQueryable();
 
@@ -168,13 +170,13 @@ public class EmployeeService : IEmployeeService
     {
         var totalHours = a.Periods.Where(p => p.CheckOut.HasValue)
                           .Sum(p => p.Hours);
-        var totalMinutes = (int)(totalHours * 60);
+        var totalMinutes = (int)Math.Round(totalHours * 60);
 
         return new AttendanceResponseDto
         {
             Id           = a.Id,
             EmployeeId   = a.EmployeeId,
-            EmployeeName = a.Employee?.UserId ?? "",
+            EmployeeName = a.Employee?.User?.FullName ?? a.Employee?.UserId ?? "",
             Date         = a.Date,
             CheckInTime  = a.CheckInTime,
             CheckOutTime = a.CheckOutTime,
@@ -197,7 +199,7 @@ public class EmployeeService : IEmployeeService
         if (emp == null) return [];
 
         var list = await _db.Attendance
-            .Include(a => a.Employee)
+            .Include(a => a.Employee).ThenInclude(e => e.User)
             .Include(a => a.Periods)
             .Where(a => a.EmployeeId == emp.Id)
             .OrderByDescending(a => a.Date)
