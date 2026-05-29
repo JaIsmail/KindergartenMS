@@ -68,7 +68,7 @@ public class EmployeesController : ControllerBase
 
     // ── Employee endpoints (Biometric) ───────────────
     [HttpPost("checkin")]
-    [RequirePermission("ManageAttendance")]
+    [RequirePermission("ViewOwnAttendance")]
     [Authorize]
     public async Task<IActionResult> CheckIn([FromBody] CheckInDto dto)
     {
@@ -95,7 +95,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost("checkout")]
-    [RequirePermission("ManageAttendance")]
+    [RequirePermission("ViewOwnAttendance")]
     [Authorize]
     public async Task<IActionResult> CheckOut()
     {
