@@ -502,8 +502,8 @@ function initApp() {
   document.getElementById('pRole').innerHTML = '<span class="badge bb">'+tr(role)+'</span>';
   setLang(lang);
   buildDrawer();
-  if(role === 'Driver') showPage('dtrips');
-  else if(role === 'Employee') showPage('att');
+  if(role === 'Driver' || role.includes('Driver')) showPage('dtrips');
+  else if(role === 'Employee' || role.includes('Employee') || role.includes('Teacher') || role.includes('Supervisor') || role.includes('Accountant')) showPage('att');
   else showPage('home');
 }
 
@@ -521,7 +521,7 @@ function buildNav() {
   var tabs = [];
   if(role === 'Driver') {
     tabs = [{id:'dtrips',i:'🚌',l:t('trips')},{id:'profile',i:'👤',l:t('profile')}];
-  } else if(role === 'Employee') {
+  } else if(role === 'Employee' || (!['Parent','Driver','Admin','SuperAdmin'].some(r => role.includes(r)))) {
     tabs = [{id:'att',i:'⏰',l:t('att')},{id:'profile',i:'👤',l:t('profile')}];
   } else {
     tabs = [{id:'home',i:'🏠',l:t('home')},{id:'ptrips',i:'🚌',l:t('trips')},{id:'subs',i:'💳',l:t('subs')},{id:'profile',i:'👤',l:t('profile')}];
@@ -826,7 +826,7 @@ function loadNotifs(){
       {ic:'📍', bg:'#dcfce7', t:ar?'تتبع GPS':'GPS Tracking',          b:ar?'يتم إرسال موقعك تلقائياً أثناء الرحلة':'Your location is sent automatically during trips'},
       {ic:'👶', bg:'#fff7ed', t:ar?'حالة الأطفال':'Child Status',       b:ar?'تأكيد استلام وتوصيل كل طفل':'Confirm pickup and dropoff of each child'},
     ];
-  } else if(role === 'Employee') {
+  } else if(role === 'Employee' || (!['Parent','Driver','Admin','SuperAdmin'].some(r => role.includes(r)))) {
     items = [
       {ic:'✅', bg:'#dcfce7', t:ar?'الحضور والانصراف':'Attendance',      b:ar?'تأكيد تسجيل الحضور والانصراف':'Confirmation of check-in and check-out'},
       {ic:'📋', bg:'#dbeafe', t:ar?'طلبات الإذن':'Leave Requests',       b:ar?'إشعار عند الموافقة أو رفض طلب إذنك':'Alert when your leave request is approved or rejected'},
@@ -949,8 +949,8 @@ function buildDrawer(){
     {id:'subs',   i:'💳', l:t('subs'),       roles:['Parent','Admin']},
     {id:'dtrips', i:'🚌', l:t('myTrips'),    roles:['Driver']},
     {id:'leave',  i:'📋', l:lang==='ar'?'الإذن':'Leave', roles:['Driver']},
-    {id:'att',    i:'⏰', l:t('att'),        roles:['Employee']},
-    {id:'leave',  i:'📋', l:lang==='ar'?'الإذن':'Leave', roles:['Employee']},
+    {id:'att',    i:'⏰', l:t('att'),        roles:['Employee','Teacher','Teacher_1','Teacher_2','Supervisor','Accountant','HR']},
+    {id:'leave',  i:'📋', l:lang==='ar'?'الإذن':'Leave', roles:['Employee','Teacher','Teacher_1','Teacher_2','Supervisor','Accountant','HR']},
     {id:'notifs', i:'🔔', l:lang==='ar'?'الإشعارات':'Notifications', roles:['Parent','Driver','Employee','Admin']},
     {id:'profile',i:'👤', l:t('profile'),    roles:['Parent','Driver','Employee','Admin']},
   ];
