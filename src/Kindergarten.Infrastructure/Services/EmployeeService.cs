@@ -165,6 +165,7 @@ public class EmployeeService : IEmployeeService
     public async Task<IEnumerable<AttendanceResponseDto>> GetAllAttendanceAsync(DateTime? date)
     {
         var query = _db.Attendance
+            .IgnoreQueryFilters()
             .Include(a => a.Employee).ThenInclude(e => e.User)
             .Include(a => a.Periods)
             .AsQueryable();
