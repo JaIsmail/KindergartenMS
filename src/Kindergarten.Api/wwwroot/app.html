@@ -675,13 +675,21 @@ async function loadAtt() {
   div.innerHTML = '<div class="lcard">'+records.slice(0,10).map(function(r) {
     var periodsHtml = '';
     if(r.periods && r.periods.length) {
-      periodsHtml = '<div style="margin-top:0.5rem;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:8px">'+
+      periodsHtml = '<div style="margin-top:0.5rem;border-radius:8px;overflow:hidden;border:1px solid rgba(0,0,0,0.07)">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:0.3rem 0.6rem;font-size:0.68rem;font-weight:700;color:#94a3b8;background:#f8fafc;border-bottom:1px solid rgba(0,0,0,0.07)">'+
+          '<span>🟢 '+(lang==='ar'?'دخول':'In')+'</span>'+
+          '<span>🔴 '+(lang==='ar'?'خروج':'Out')+'</span>'+
+          '<span style="text-align:center">'+(lang==='ar'?'المدة':'Hours')+'</span>'+
+        '</div>'+
         r.periods.map(function(p,i) {
-          return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:0.2rem 0;border-bottom:1px solid rgba(0,0,0,0.05)">'+
-            '<span>'+lang==='ar'?'دخول':'In'+': '+fTime(p.checkIn)+'</span>'+
-            '<span>'+(p.checkOut ? (lang==='ar'?'خروج':'Out')+': '+fTime(p.checkOut) : '<span style="color:#f97316">'+(lang==='ar'?'مفتوح':'Open')+'</span>')+'</span>'+
-            '<span style="font-weight:700">'+(p.hours ? p.hours.toFixed(2)+'h' : '')+'</span>'+
+          var open = !p.checkOut;
+          return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:0.35rem 0.6rem;font-size:0.72rem;background:'+(i%2===0?'rgba(0,0,0,0.02)':'white')+';border-bottom:1px solid rgba(0,0,0,0.04)">'+
+            '<span>'+fTime(p.checkIn)+'</span>'+
+            '<span>'+(open?'<span style="color:#f97316;font-weight:700">'+(lang==='ar'?'مفتوح':'Open')+'</span>':fTime(p.checkOut))+'</span>'+
+            '<span style="color:'+(open?'#f97316':'#22c55e')+';font-weight:700;text-align:center">'+(p.hours?p.hours.toFixed(2)+'h':open?'...':'')+'</span>'+
           '</div>';
+        }).join('')+
+      '</div>';
         }).join('')+
       '</div>';
     }
