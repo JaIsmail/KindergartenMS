@@ -675,7 +675,9 @@ async function loadAtt() {
 
 async function doCheckIn() {
   document.getElementById('btnCI').disabled = true;
-  var r = await apiCall('/api/employees/checkin','POST',{biometricVerified:true});
+  let lat=null,lng=null;
+  try{const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000}));lat=pos.coords.latitude;lng=pos.coords.longitude;}catch(e){}
+  var r = await apiCall('/api/employees/checkin','POST',{biometricVerified:true,latitude:lat,longitude:lng});
   if(r && r.checkInTime) {
     document.getElementById('ciTime').textContent = fTime(r.checkInTime);
     document.getElementById('attStatus').textContent = ts(r.status);
