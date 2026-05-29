@@ -101,6 +101,8 @@ public class EmployeesController : ControllerBase
             return BadRequest(new { message = "Already checked in" });
         }
     }
+    [HttpPost("checkout")]
+    [RequirePermission("ViewOwnAttendance")]
     public async Task<IActionResult> CheckOut()
     {
         var result = await _employeeService.CheckOutAsync(GetUserId());
