@@ -321,3 +321,13 @@
   - SuperAdmin can view all tenants' logs
   - Filter by user, date, entity type
   - Cannot be deleted
+
+---
+
+## Note 30: Timezone — KSA (UTC+3) 🟡
+- All times stored in UTC in the DB
+- Frontend should display times in KSA timezone (UTC+3)
+- Backend should accept and return times in UTC
+- Apply to: attendance check-in/out times, trip times, leave request times, payment dates
+- Fix in PWA and Admin dashboard date/time display functions (fTime, fDate, formatDateTime)
+- Consider adding timezone setting per tenant in Settings page
