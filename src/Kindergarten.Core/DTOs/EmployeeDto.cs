@@ -27,9 +27,20 @@ public class AttendanceResponseDto
     public DateTime? CheckOutTime  { get; set; }
     public string    Status        { get; set; } = string.Empty;
     public string?   WorkingHours  { get; set; }
+    public List<AttendancePeriodDto> Periods { get; set; } = new();
 }
 
 public class CheckInDto
 {
+    public double? Latitude  { get; set; }
+    public double? Longitude { get; set; }
     public bool BiometricVerified { get; set; } = true;
+}
+
+public class AttendancePeriodDto
+{
+    public int       Id       { get; set; }
+    public DateTime  CheckIn  { get; set; }
+    public DateTime? CheckOut { get; set; }
+    public double    Hours    { get; set; }
 }

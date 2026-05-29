@@ -40,7 +40,8 @@ public DbSet<Child>        Children      { get; set; }
     public DbSet<Employee>     Employees     { get; set; }
     public DbSet<Attendance>   Attendance    { get; set; }
     public DbSet<UserDevice>   UserDevices   { get; set; }
-    public DbSet<DynamicList>   DynamicLists  { get; set; }
+    public DbSet<DynamicList>        DynamicLists       { get; set; }
+    public DbSet<AttendancePeriod>   AttendancePeriods  { get; set; }
     public DbSet<PermissionGroup>           PermissionGroups           { get; set; }
     public DbSet<PermissionGroupPermission> PermissionGroupPermissions { get; set; }
     public DbSet<UserPermissionGroup>       UserPermissionGroups       { get; set; }

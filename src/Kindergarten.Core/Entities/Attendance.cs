@@ -10,4 +10,5 @@ public class Attendance
     public int TenantId { get; set; } = 1;
     public string Status { get; set; } = "Present";
     public Employee Employee { get; set; } = null!;
+    public ICollection<AttendancePeriod> Periods { get; set; } = new List<AttendancePeriod>();
 }
