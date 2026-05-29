@@ -673,7 +673,19 @@ async function loadAtt() {
     document.getElementById('btnCO').disabled = !hasOpenPeriod;
   }
   div.innerHTML = '<div class="lcard">'+records.slice(0,10).map(function(r) {
-    return '<div class="litem"><span class="lic">📅</span><div class="linf"><div class="t">'+fDate(r.date)+'</div><div class="s">'+(r.workingHours ? t('wHours')+': '+r.workingHours : '—')+'</div></div>'+sbadge(r.status)+'</div>';
+    var periodsHtml = '';
+    if(r.periods && r.periods.length) {
+      periodsHtml = '<div style="margin-top:0.5rem;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:8px">'+
+        r.periods.map(function(p,i) {
+          return '<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:0.2rem 0;border-bottom:1px solid rgba(0,0,0,0.05)">'+
+            '<span>'+lang==='ar'?'دخول':'In'+': '+fTime(p.checkIn)+'</span>'+
+            '<span>'+(p.checkOut ? (lang==='ar'?'خروج':'Out')+': '+fTime(p.checkOut) : '<span style="color:#f97316">'+(lang==='ar'?'مفتوح':'Open')+'</span>')+'</span>'+
+            '<span style="font-weight:700">'+(p.hours ? p.hours.toFixed(2)+'h' : '')+'</span>'+
+          '</div>';
+        }).join('')+
+      '</div>';
+    }
+    return '<div class="litem" style="flex-direction:column;align-items:stretch"><div style="display:flex;align-items:center"><span class="lic">📅</span><div class="linf"><div class="t">'+fDate(r.date)+'</div><div class="s">'+(r.workingHours ? t('wHours')+': '+r.workingHours : '—')+'</div></div>'+sbadge(r.status)+'</div>'+periodsHtml+'</div>';
   }).join('')+'</div>';
 }
 
