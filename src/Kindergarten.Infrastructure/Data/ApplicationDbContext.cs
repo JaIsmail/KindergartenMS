@@ -71,6 +71,11 @@ public DbSet<Child>        Children      { get; set; }
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
         builder.Entity<UserDevice>()
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
+        builder.Entity<Attendance>()
+            .HasMany(a => a.Periods)
+            .WithOne(p => p.Attendance)
+            .HasForeignKey(p => p.AttendanceId)
+            .OnDelete(DeleteBehavior.Cascade);
         builder.Entity<DynamicList>()
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
         builder.Entity<PermissionGroup>()
