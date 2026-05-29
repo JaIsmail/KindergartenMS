@@ -303,3 +303,21 @@
 - Remove: UserRoleGroups from JWT claims
 - Migration to drop old tables
 - This cleanup will simplify the codebase
+
+---
+
+## Note 29: Delete Functions & Audit Log 🟡
+- **Soft Delete & Hard Delete:**
+  - Add soft delete (IsDeleted flag) to all main entities
+  - Hard delete only for SuperAdmin
+  - Soft delete visible only to Admin and SuperAdmin
+  - Deleted records hidden from regular users
+  - Add "Restore" option for soft-deleted records
+
+- **Audit Log:**
+  - Create AuditLog entity (userId, tenantId, action, entity, entityId, oldValue, newValue, timestamp)
+  - Log all Create/Update/Delete actions
+  - Admin can view audit log for their tenant
+  - SuperAdmin can view all tenants' logs
+  - Filter by user, date, entity type
+  - Cannot be deleted
