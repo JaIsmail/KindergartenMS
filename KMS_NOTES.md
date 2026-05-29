@@ -293,3 +293,13 @@
 - Update all controllers to use granular permissions
 - Update default PermissionGroup seeds with correct granular permissions
 - This is a breaking change — requires migration and re-seeding
+
+---
+
+## Note 28: Remove Old RoleGroups System 🟡
+- RoleGroups, RoleGroupPermissions, UserRoleGroups tables are duplicates
+- PermissionGroups system is the correct one being used
+- Remove: RoleGroupsController, RoleGroup entity, RoleGroupPermission entity, UserRoleGroup entity
+- Remove: UserRoleGroups from JWT claims
+- Migration to drop old tables
+- This cleanup will simplify the codebase
