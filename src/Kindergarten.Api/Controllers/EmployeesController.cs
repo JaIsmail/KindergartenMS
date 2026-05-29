@@ -72,31 +72,35 @@ public class EmployeesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CheckIn([FromBody] CheckInDto dto)
     {
-        if (!dto.BiometricVerified)
-            return BadRequest(new { message = "Biometric verification failed" });
-
-        var result = await _employeeService.CheckInAsync(GetUserId());
-        if (result == null)
-            return BadRequest(new { message = "Employee not found or already checked in" });
-
-        // 🔔 Notify admin
-        await _notify.SendToAllParentsAsync(
-            titleAr: "تسجيل حضور",
-            titleEn: "Check-in Recorded",
-            bodyAr:  "تم تسجيل حضور موظف",
-            bodyEn:  "Employee check-in recorded",
-            data: new Dictionary<string, string> {
-                { "type", "employee_checkin" },
-                { "employeeId", result.EmployeeId.ToString() }
-            }
-        );
-
-        return Ok(result);
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+        try
+        {
+            var result = await _employeeService.CheckInAsync(userId, dto.Latitude, dto.Longitude);
+            if (result == null)
+                return BadRequest(new { message = "Employee not found" });
+            await _notify.SendToAllParentsAsync(
+                titleAr: "تسجيل حضور",
+                titleEn: "Check-in Recorded",
+                bodyAr:  "تم تسجيل حضور موظف",
+                bodyEn:  "Employee check-in recorded",
+                data: new Dictionary<string, string> {
+                    { "type", "employee_checkin" },
+                    { "employeeId", result.EmployeeId.ToString() }
+                }
+            );
+            return Ok(result);
+        }
+        catch (Exception ex) when (ex.Message.StartsWith("outside_range"))
+        {
+            var parts = ex.Message.Split(':');
+            return BadRequest(new { message = "outside_range", distance = parts[1], radius = parts[2] });
+        }
+        catch (Exception ex) when (ex.Message == "already_checked_in")
+        {
+            return BadRequest(new { message = "Already checked in" });
+        }
     }
-
-    [HttpPost("checkout")]
-    [RequirePermission("ViewOwnAttendance")]
-    [Authorize]
     public async Task<IActionResult> CheckOut()
     {
         var result = await _employeeService.CheckOutAsync(GetUserId());
