@@ -86,7 +86,7 @@ public class EmployeesController : ControllerBase
                 bodyEn:  "Employee check-in recorded",
                 data: new Dictionary<string, string> {
                     { "type", "employee_checkin" },
-                    { "employeeId", result.EmployeeId.ToString() }
+                    { "employeeId", result.UserId }
                 }
             );
             return Ok(result);

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text.Json;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Entities;
@@ -24,38 +23,36 @@ public class EmployeeService : IEmployeeService
         _tenantService = tenantService;
         _userManager   = userManager;
     }
-// ── Geo distance (Haversine) ──────────────────────────────────────
+
+    // Haversine distance
     private static double DistanceMeters(double lat1, double lon1, double lat2, double lon2)
     {
         const double R = 6371000;
         var dLat = (lat2 - lat1) * Math.PI / 180;
         var dLon = (lon2 - lon1) * Math.PI / 180;
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
-              + Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180)
-              * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-        return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        var a = Math.Sin(dLat/2)*Math.Sin(dLat/2)
+              + Math.Cos(lat1*Math.PI/180)*Math.Cos(lat2*Math.PI/180)
+              * Math.Sin(dLon/2)*Math.Sin(dLon/2);
+        return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1-a));
     }
 
-    // ── Get or create today's Attendance record ───────────────────────
-    private async Task<Attendance> GetOrCreateAttendanceAsync(string userId, int tenantId)
+    // Get or create today attendance record for user
+    private async Task<Attendance> GetOrCreateTodayAsync(string userId, int tenantId)
     {
-        var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == userId);
-        if (emp == null) throw new Exception("Employee not found");
-
         var today = DateTime.UtcNow.Date;
         var att = await _db.Attendance
             .Include(a => a.Periods)
-            .Include(a => a.Employee).ThenInclude(e => e.User)
-            .FirstOrDefaultAsync(a => a.EmployeeId == emp.Id && a.Date == today);
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a => a.UserId == userId && a.Date == today);
 
         if (att == null)
         {
             att = new Attendance
             {
-                EmployeeId = emp.Id,
-                Date       = today,
-                TenantId   = tenantId,
-                Status     = "Present"
+                UserId   = userId,
+                Date     = today,
+                TenantId = tenantId,
+                Status   = "Present"
             };
             _db.Attendance.Add(att);
             await _db.SaveChangesAsync();
@@ -63,12 +60,18 @@ public class EmployeeService : IEmployeeService
         return att;
     }
 
-    // ── Check In ──────────────────────────────────────────────────────
+    // Reload attendance with all includes
+    private async Task<Attendance> ReloadAsync(int id) =>
+        await _db.Attendance
+            .Include(a => a.User)
+            .Include(a => a.Periods)
+            .FirstAsync(a => a.Id == id);
+
     public async Task<AttendanceResponseDto?> CheckInAsync(string userId, double? lat = null, double? lng = null)
     {
         var tenantId = _tenantService.GetTenantId();
 
-        // Geo restriction check
+        // Geo restriction
         var tenant = await _db.Tenants.FindAsync(tenantId);
         if (tenant?.Settings != null)
         {
@@ -77,9 +80,9 @@ public class EmployeeService : IEmployeeService
                 var settings = JsonSerializer.Deserialize<JsonElement>(tenant.Settings);
                 if (settings.TryGetProperty("location", out var loc))
                 {
-                    var tLat    = loc.GetProperty("lat").GetDouble();
-                    var tLng    = loc.GetProperty("lng").GetDouble();
-                    var radius  = loc.GetProperty("radius").GetDouble();
+                    var tLat   = loc.GetProperty("lat").GetDouble();
+                    var tLng   = loc.GetProperty("lng").GetDouble();
+                    var radius = loc.GetProperty("radius").GetDouble();
                     var allowOutside = false;
                     if (settings.TryGetProperty("attendance", out var att) &&
                         att.TryGetProperty("allowOutside", out var ao))
@@ -93,52 +96,32 @@ public class EmployeeService : IEmployeeService
                     }
                 }
             }
-            catch (Exception ex) when (ex.Message.StartsWith("outside_range"))
-            {
-                throw;
-            }
+            catch (Exception ex) when (ex.Message.StartsWith("outside_range")) { throw; }
             catch { }
         }
 
-        var attendance = await GetOrCreateAttendanceAsync(userId, tenantId);
+        var attendance = await GetOrCreateTodayAsync(userId, tenantId);
 
-// Check if there's an open period (checked in but not out)
+        // Check if open period exists
         var openPeriod = attendance.Periods.FirstOrDefault(p => !p.CheckOut.HasValue);
-        if (openPeriod != null)
-            throw new Exception("already_checked_in");
+        if (openPeriod != null) throw new Exception("already_checked_in");
 
-        // Add new period
-        var period = new AttendancePeriod
-        {
-            AttendanceId = attendance.Id,
-            CheckIn      = DateTime.UtcNow
-        };
+        // Create new period
+        var period = new AttendancePeriod { AttendanceId = attendance.Id, CheckIn = DateTime.UtcNow };
         _db.AttendancePeriods.Add(period);
-
-        // Update legacy fields
         attendance.CheckInTime ??= period.CheckIn;
         await _db.SaveChangesAsync();
 
-        // Reload with periods
-        var updated = await _db.Attendance
-            .Include(a => a.Employee).ThenInclude(e => e.User)
-            .Include(a => a.Periods)
-            .FirstAsync(a => a.Id == attendance.Id);
-        return MapToDto(updated);
+        return MapToDto(await ReloadAsync(attendance.Id));
     }
 
- // ── Check Out ─────────────────────────────────────────────────────
     public async Task<AttendanceResponseDto?> CheckOutAsync(string userId)
     {
-        var tenantId = _tenantService.GetTenantId();
-        var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == userId);
-        if (emp == null) return null;
-
         var today = DateTime.UtcNow.Date;
         var attendance = await _db.Attendance
             .Include(a => a.Periods)
-            .Include(a => a.Employee).ThenInclude(e => e.User)
-            .FirstOrDefaultAsync(a => a.EmployeeId == emp.Id && a.Date == today);
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a => a.UserId == userId && a.Date == today);
 
         if (attendance == null) return null;
 
@@ -147,52 +130,50 @@ public class EmployeeService : IEmployeeService
 
         openPeriod.CheckOut = DateTime.UtcNow;
         openPeriod.Hours    = (openPeriod.CheckOut.Value - openPeriod.CheckIn).TotalHours;
-
-        // Update legacy fields
         attendance.CheckOutTime = openPeriod.CheckOut;
-
         await _db.SaveChangesAsync();
 
-        // Reload with all periods
-        var updated = await _db.Attendance
-            .Include(a => a.Employee).ThenInclude(e => e.User)
-            .Include(a => a.Periods)
-            .FirstAsync(a => a.Id == attendance.Id);
-        return MapToDto(updated);
+        return MapToDto(await ReloadAsync(attendance.Id));
     }
 
-// ── Get All Attendance ────────────────────────────────────────────
     public async Task<IEnumerable<AttendanceResponseDto>> GetAllAttendanceAsync(DateTime? date)
     {
         var query = _db.Attendance
             .IgnoreQueryFilters()
-            .Include(a => a.Employee).ThenInclude(e => e.User)
+            .Include(a => a.User)
             .Include(a => a.Periods)
             .AsQueryable();
 
         if (date.HasValue)
             query = query.Where(a => a.Date == date.Value.Date);
 
-        var list = await query.OrderByDescending(a => a.Date).ToListAsync();
+        return (await query.OrderByDescending(a => a.Date).ToListAsync()).Select(MapToDto);
+    }
+
+    public async Task<IEnumerable<AttendanceResponseDto>> GetMyAttendanceAsync(string userId)
+    {
+        var list = await _db.Attendance
+            .Include(a => a.User)
+            .Include(a => a.Periods)
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.Date)
+            .ToListAsync();
         return list.Select(MapToDto);
     }
 
- // ── Map to DTO ────────────────────────────────────────────────────
     private static AttendanceResponseDto MapToDto(Attendance a)
     {
-        var totalHours = a.Periods.Where(p => p.CheckOut.HasValue)
-                          .Sum(p => p.Hours);
+        var totalHours   = a.Periods.Where(p => p.CheckOut.HasValue).Sum(p => p.Hours);
         var totalMinutes = (int)Math.Round(totalHours * 60);
-
         return new AttendanceResponseDto
         {
             Id           = a.Id,
-            EmployeeId   = a.EmployeeId,
-            EmployeeName = a.Employee?.User?.FullName ?? a.Employee?.UserId ?? "",
+            UserId       = a.UserId,
+            UserName     = a.User?.FullName ?? a.UserId,
             Date         = a.Date,
             CheckInTime  = a.CheckInTime,
             CheckOutTime = a.CheckOutTime,
-            WorkingHours = $"{totalMinutes / 60:D2}:{totalMinutes % 60:D2}",
+            WorkingHours = $"{totalMinutes/60:D2}:{totalMinutes%60:D2}",
             Status       = a.Status,
             Periods      = a.Periods.Select(p => new AttendancePeriodDto
             {
@@ -204,20 +185,43 @@ public class EmployeeService : IEmployeeService
         };
     }
 
- // ── Other methods ─────────────────────────────────────────────────
-    public async Task<IEnumerable<AttendanceResponseDto>> GetMyAttendanceAsync(string userId)
+    // Legacy employee methods
+    public async Task<IEnumerable<EmployeeResponseDto>> GetAllAsync()
     {
-        var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == userId);
-        if (emp == null) return [];
+        var emps = await _db.Employees.Include(e => e.User).ToListAsync();
+        return emps.Select(MapEmployee);
+    }
 
-        var list = await _db.Attendance
-            .Include(a => a.Employee).ThenInclude(e => e.User)
+    public async Task<EmployeeResponseDto?> GetByIdAsync(int id)
+    {
+        var e = await _db.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.Id == id);
+        return e == null ? null : MapEmployee(e);
+    }
+
+    public async Task<EmployeeResponseDto?> GetByUserIdAsync(string userId)
+    {
+        var e = await _db.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.UserId == userId);
+        return e == null ? null : MapEmployee(e);
+    }
+
+    public async Task<EmployeeResponseDto> CreateAsync(CreateEmployeeDto dto)
+    {
+        var emp = new Employee { UserId = dto.UserId, Position = dto.Position, Phone = dto.Phone, TenantId = _tenantService.GetTenantId() };
+        _db.Employees.Add(emp);
+        await _db.SaveChangesAsync();
+        return MapEmployee(emp);
+    }
+
+    public async Task<IEnumerable<AttendanceResponseDto>> GetAttendanceAsync(string userId, DateTime? from = null, DateTime? to = null)
+    {
+        var query = _db.Attendance
+            .Include(a => a.User)
             .Include(a => a.Periods)
-            .Where(a => a.EmployeeId == emp.Id)
-            .OrderByDescending(a => a.Date)
-            .ToListAsync();
-
-        return list.Select(MapToDto);
+            .Where(a => a.UserId == userId)
+            .AsQueryable();
+        if (from.HasValue) query = query.Where(a => a.Date >= from.Value.Date);
+        if (to.HasValue)   query = query.Where(a => a.Date <= to.Value.Date);
+        return (await query.OrderByDescending(a => a.Date).ToListAsync()).Select(MapToDto);
     }
 
     public async Task EnsureDriverExistsAsync(string userId)
@@ -225,72 +229,18 @@ public class EmployeeService : IEmployeeService
         var exists = await _db.Employees.AnyAsync(e => e.UserId == userId);
         if (!exists)
         {
-            _db.Employees.Add(new Employee
-            {
-                UserId   = userId,
-                Position = "",
-                TenantId = _tenantService.GetTenantId()
-            });
+            _db.Employees.Add(new Employee { UserId = userId, Position = "", TenantId = _tenantService.GetTenantId() });
             await _db.SaveChangesAsync();
         }
     }
 
-
-    // ── Legacy Employee Methods ──────────────────────────────────────
-public async Task<IEnumerable<EmployeeResponseDto>> GetAllAsync()
+    private static EmployeeResponseDto MapEmployee(Employee e) => new()
     {
-        return await _db.Employees
-            .Include(e => e.User)
-            .Select(e => new EmployeeResponseDto
-            {
-                Id       = e.Id,
-                UserId   = e.UserId,
-                FullName = e.User.FullName,
-                Email    = e.User.Email ?? string.Empty,
-                Position = e.Position,
-                Phone    = e.Phone
-            })
-            .ToListAsync();
-    }
-
-    public async Task<EmployeeResponseDto?> GetByIdAsync(int id)
-    {
-        var e = await _db.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.Id == id);
-        if (e == null) return null;
-        return new EmployeeResponseDto { Id=e.Id, UserId=e.UserId, FullName=e.User.FullName, Email=e.User.Email??string.Empty, Position=e.Position, Phone=e.Phone };
-    }
-
-    public async Task<EmployeeResponseDto?> GetByUserIdAsync(string userId)
-    {
-        var e = await _db.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.UserId == userId);
-        if (e == null) return null;
-        return new EmployeeResponseDto { Id=e.Id, UserId=e.UserId, FullName=e.User.FullName, Email=e.User.Email??string.Empty, Position=e.Position, Phone=e.Phone };
-    }
-
-    public async Task<EmployeeResponseDto> CreateAsync(CreateEmployeeDto dto)
-    {
-        var employee = new Employee
-        {
-            UserId   = dto.UserId,
-            Position = dto.Position,
-            Phone    = dto.Phone,
-            TenantId = _tenantService.GetTenantId()
-        };
-        _db.Employees.Add(employee);
-        await _db.SaveChangesAsync();
-        return await GetByIdAsync(employee.Id) ?? new EmployeeResponseDto();
-    }
-
-    public async Task<IEnumerable<AttendanceResponseDto>> GetAttendanceAsync(string userId, DateTime? from = null, DateTime? to = null)
-    {
-        var employee = await _db.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.UserId == userId);
-        if (employee == null) return Enumerable.Empty<AttendanceResponseDto>();
-
-        var query = _db.Attendance.Where(a => a.EmployeeId == employee.Id);
-        if (from.HasValue) query = query.Where(a => a.Date >= from.Value.Date);
-        if (to.HasValue)   query = query.Where(a => a.Date <= to.Value.Date);
-
-        var records = await query.OrderByDescending(a => a.Date).ToListAsync();
-        return records.Select(a => MapToDto(a));
-    }
+        Id       = e.Id,
+        UserId   = e.UserId,
+        FullName = e.User?.FullName ?? "",
+        Email    = e.User?.Email ?? "",
+        Position = e.Position,
+        Phone    = e.Phone
+    };
 }
