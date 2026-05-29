@@ -119,7 +119,12 @@ public class EmployeeService : IEmployeeService
         attendance.CheckInTime ??= period.CheckIn;
         await _db.SaveChangesAsync();
 
-        return MapToDto(attendance);
+        // Reload with periods
+        var updated = await _db.Attendance
+            .Include(a => a.Employee).ThenInclude(e => e.User)
+            .Include(a => a.Periods)
+            .FirstAsync(a => a.Id == attendance.Id);
+        return MapToDto(updated);
     }
 
  // ── Check Out ─────────────────────────────────────────────────────
@@ -147,7 +152,13 @@ public class EmployeeService : IEmployeeService
         attendance.CheckOutTime = openPeriod.CheckOut;
 
         await _db.SaveChangesAsync();
-        return MapToDto(attendance);
+
+        // Reload with all periods
+        var updated = await _db.Attendance
+            .Include(a => a.Employee).ThenInclude(e => e.User)
+            .Include(a => a.Periods)
+            .FirstAsync(a => a.Id == attendance.Id);
+        return MapToDto(updated);
     }
 
 // ── Get All Attendance ────────────────────────────────────────────
