@@ -9,9 +9,14 @@ namespace Kindergarten.Infrastructure.Services;
 public class LeaveRequestService : ILeaveRequestService
 {
     private readonly ApplicationDbContext _db;
+    private readonly INotificationService _notify;
     private const double MonthlyFreeHours = 4.0;
 
-    public LeaveRequestService(ApplicationDbContext db) => _db = db;
+    public LeaveRequestService(ApplicationDbContext db, INotificationService notify)
+    {
+        _db = db;
+        _notify = notify;
+    }
 
     public async Task<double> GetMonthlyHoursAsync(string userId)
     {
@@ -44,6 +49,17 @@ public class LeaveRequestService : ILeaveRequestService
         };
         _db.LeaveRequests.Add(request);
         await _db.SaveChangesAsync();
+
+        // Notify admin
+        var user = await _db.Users.FindAsync(userId);
+        await _notify.SendToAllParentsAsync(
+            titleAr: "طلب إذن جديد",
+            titleEn: "New Leave Request",
+            bodyAr:  $"{user?.FullName ?? "موظف"} طلب إذناً لمدة {request.Hours:F1} ساعة",
+            bodyEn:  $"{user?.FullName ?? "Employee"} requested {request.Hours:F1}h leave",
+            data: new Dictionary<string, string> { { "type", "leave_request" }, { "id", request.Id.ToString() } }
+        );
+
         return await MapAsync(request.Id);
     }
 
