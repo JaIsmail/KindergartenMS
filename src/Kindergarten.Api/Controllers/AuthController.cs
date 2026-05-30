@@ -40,4 +40,12 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("debug-claims")]
+    [Authorize]
+    public IActionResult DebugClaims()
+    {
+        var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+        return Ok(claims);
+    }
 }
