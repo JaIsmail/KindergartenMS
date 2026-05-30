@@ -66,7 +66,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 // ── Authorization Policies
-builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+builder.Services.AddTransient<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddAuthorization(options =>
 {
     var permissions = new[]
