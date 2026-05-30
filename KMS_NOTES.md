@@ -334,7 +334,7 @@
 
 ---
 
-## Note 31: Leave Request System 🟡 (In Progress)
+## Note 31: Leave Request System ✅ DONE
 - Basic system exists: submit, view, approve/reject
 - **Fixes needed:**
   - Create endpoint still requires Employee record (use UserId directly)
