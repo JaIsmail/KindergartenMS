@@ -29,6 +29,19 @@ namespace Kindergarten.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: "");
 
+            // Data migration: populate UserId from Employees table
+            migrationBuilder.Sql(@"
+                UPDATE lr SET lr.UserId = e.UserId
+                FROM LeaveRequests lr
+                INNER JOIN Employees e ON lr.EmployeeId = e.Id
+                WHERE lr.EmployeeId IS NOT NULL
+            ");
+            migrationBuilder.Sql(@"
+                UPDATE LeaveRequests
+                SET UserId = (SELECT TOP 1 Id FROM AspNetUsers)
+                WHERE UserId = ''
+            ");
+
             migrationBuilder.CreateIndex(
                 name: "IX_LeaveRequests_UserId",
                 table: "LeaveRequests",
