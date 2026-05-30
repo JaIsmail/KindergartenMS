@@ -1914,7 +1914,7 @@ function filterLeaveRequests(){
   const date   = document.getElementById('filterDate').value;
   const status = document.getElementById('filterStatus').value;
   let filtered = allLeaveRequests;
-  if(name)   filtered = filtered.filter(r=>r.userName||r.employeeName||''.toLowerCase().includes(name));
+  if(name)   filtered = filtered.filter(r=>(r.userName||r.employeeName||'').toLowerCase().includes(name));
   if(date)   filtered = filtered.filter(r=>r.startTime.startsWith(date));
   if(status) filtered = filtered.filter(r=>r.status===status);
   renderLeaveTable(filtered);
@@ -1955,7 +1955,7 @@ function renderLeaveTable(data){
     const shortReason = r.reason.length > 30 ? r.reason.substring(0,30)+'...' : r.reason;
     const startDate = new Date(r.startTime).toLocaleDateString(ar?'ar-SA':'en-US');
     return '<tr>'+
-      '<td><strong>'+r.userName||r.employeeName||''+'</strong></td>'+
+      '<td><strong>'+(r.userName||r.employeeName||'—')+'</strong></td>'+
       '<td><span style="font-weight:700;color:'+(r.monthlyUsedHours>=4?'#dc2626':'#16a34a')+'">'+
         (r.monthlyUsedHours||0).toFixed(1)+'/4h</span></td>'+
       '<td title="'+r.reason+'">'+shortReason+'</td>'+
@@ -1992,7 +1992,7 @@ function viewLeaveDetails(id){
 
   document.getElementById('ldmContent').innerHTML =
     '<div class="emp-modal-card">'+
-      '<div class="emp-modal-av">'+(r.userName||r.userName||r.employeeName||''||'?')[0]+'</div>'+
+      '<div class="emp-modal-av">'+((r.userName||r.employeeName||'?').charAt(0))+'</div>'+
       '<div><div style="font-weight:800;font-size:0.95rem">'+(r.userName||r.userName||r.employeeName||''||'')+'</div>'+
       '<div style="margin-top:0.3rem"><span class="badge" style="'+sc[r.status]+'">'+(sl[ar?'ar':'en'][r.status]||r.status)+'</span></div></div>'+
     '</div>'+
