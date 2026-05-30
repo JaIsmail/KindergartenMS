@@ -331,3 +331,15 @@
 - Apply to: attendance check-in/out times, trip times, leave request times, payment dates
 - Fix in PWA and Admin dashboard date/time display functions (fTime, fDate, formatDateTime)
 - Consider adding timezone setting per tenant in Settings page
+
+---
+
+## Note 31: Leave Request System 🟡 (In Progress)
+- Basic system exists: submit, view, approve/reject
+- **Fixes needed:**
+  - Create endpoint still requires Employee record (use UserId directly)
+  - GetMy endpoint still requires Employee record (use UserId directly)
+  - Add notification to admin when leave submitted
+  - Add notification to employee when approved/rejected
+  - Show leave balance in admin dashboard
+  - Admin can view all pending requests with approve/reject buttons

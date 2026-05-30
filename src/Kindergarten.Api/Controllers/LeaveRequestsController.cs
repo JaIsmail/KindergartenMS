@@ -34,7 +34,7 @@ public class LeaveRequestsController : ControllerBase
         var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == GetUserId());
         if (emp == null) return Forbid(); // Must have Employee record
 
-        var result = await _service.CreateAsync(dto, emp.Id);
+        var result = await _service.CreateAsync(dto, emp.UserId);
         return Ok(result);
     }
 // Employee views own requests
@@ -44,7 +44,7 @@ public class LeaveRequestsController : ControllerBase
     {
         var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == GetUserId());
         if (emp == null) return NotFound();
-        var result = await _service.GetByEmployeeAsync(emp.Id);
+        var result = await _service.GetByUserAsync(emp.UserId);
         return Ok(result);
     }
 

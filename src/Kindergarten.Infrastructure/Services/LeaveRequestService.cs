@@ -8,158 +8,99 @@ namespace Kindergarten.Infrastructure.Services;
 
 public class LeaveRequestService : ILeaveRequestService
 {
-    private readonly ApplicationDbContext  _db;
-    private readonly INotificationService  _notify;
+    private readonly ApplicationDbContext _db;
     private const double MonthlyFreeHours = 4.0;
 
-    private readonly ITenantService _tenantService;
-    public LeaveRequestService(ApplicationDbContext db, INotificationService notify, ITenantService tenantService)
-    {
-        _db            = db;
-        _notify        = notify;
-        _tenantService = tenantService;
-    }
+    public LeaveRequestService(ApplicationDbContext db) => _db = db;
 
     public async Task<double> GetMonthlyHoursAsync(string userId)
     {
         var now   = DateTime.UtcNow;
         var start = new DateTime(now.Year, now.Month, 1);
         var end   = start.AddMonths(1);
-        var emp = await _db.Employees.FirstOrDefaultAsync(e => e.UserId == userId);
-        if (emp == null) return 0;
-
         return await _db.LeaveRequests
-            .Where(r => r.EmployeeId == (emp == null ? 0 : emp.Id)
-                     && r.Status     == "Approved"
-                     && r.StartTime  >= start
-                     && r.StartTime  <  end)
+            .Where(r => r.UserId == userId
+                     && r.Status == "Approved"
+                     && r.StartTime >= start
+                     && r.StartTime < end)
             .SumAsync(r => r.Hours);
     }
 
- public async Task<LeaveRequestResponseDto> CreateAsync(CreateLeaveRequestDto dto, int employeeId)
+    public async Task<LeaveRequestResponseDto> CreateAsync(CreateLeaveRequestDto dto, string userId)
     {
-        var hours = (dto.EndTime - dto.StartTime).TotalHours;
-        var empUser = await _db.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
-        var monthlyUsed = await GetMonthlyHoursAsync(empUser?.UserId ?? "");
-        var isPaid = (monthlyUsed + hours) <= MonthlyFreeHours;
+        var hours       = (dto.EndTime - dto.StartTime).TotalHours;
+        var monthlyUsed = await GetMonthlyHoursAsync(userId);
+        var isPaid      = (monthlyUsed + hours) <= MonthlyFreeHours;
 
         var request = new LeaveRequest
         {
-            EmployeeId = employeeId,
-            Reason     = dto.Reason,
-            StartTime  = dto.StartTime,
-            EndTime    = dto.EndTime,
-            Hours      = hours,
-            IsPaid     = isPaid,
-            Status     = "Pending",
-            CreatedAt  = DateTime.UtcNow,
-            TenantId   = _tenantService.GetTenantId()
+            UserId    = userId,
+            Reason    = dto.Reason,
+            StartTime = dto.StartTime,
+            EndTime   = dto.EndTime,
+            Hours     = hours,
+            IsPaid    = isPaid,
+            Status    = "Pending"
         };
-
         _db.LeaveRequests.Add(request);
         await _db.SaveChangesAsync();
-// Notify admin
-        await _notify.SendToAllParentsAsync(
-            "طلب إذن جديد 📋", "New Leave Request 📋",
-            $"موظف طلب إذن لمدة {hours:F1} ساعة", $"Employee requested {hours:F1} hours leave",
-            new() { ["type"] = "leave_request", ["id"] = request.Id.ToString() }
-        );
-
-        // Warn employee if exceeding free hours
-        if (!isPaid)
-        {
-            var emp = await _db.Employees.Include(e => e.User)
-                .FirstOrDefaultAsync(e => e.Id == employeeId);
-            if (emp != null)
-            {
-                await _notify.SendToUserAsync(
-                    emp.UserId,
-                    "تنبيه: خصم من الراتب ⚠️", "Warning: Salary Deduction ⚠️",
-                    $"لقد تجاوزت حد {MonthlyFreeHours} ساعات شهرياً. هذا الإذن سيُخصم من راتبك.",
-                    $"You exceeded {MonthlyFreeHours} free hours/month. This leave will be deducted from salary.",
-                    new() { ["type"] = "salary_deduction" }
-                );
-            }
-        }
-
-        return await MapAsync(request);
+        return await MapAsync(request.Id);
     }
-  public async Task<IEnumerable<LeaveRequestResponseDto>> GetByEmployeeAsync(int employeeId)
+
+    public async Task<IEnumerable<LeaveRequestResponseDto>> GetByUserAsync(string userId)
     {
-        var requests = await _db.LeaveRequests
-            .Include(r => r.Employee).ThenInclude(e => e.User)
-            .Where(r => r.EmployeeId == employeeId)
+        var list = await _db.LeaveRequests
+            .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
-
-        var results = new List<LeaveRequestResponseDto>();
-        foreach(var r in requests) results.Add(await MapAsync(r));
-        return results;
+        var result = new List<LeaveRequestResponseDto>();
+        foreach (var r in list) result.Add(await MapAsync(r.Id));
+        return result;
     }
 
     public async Task<IEnumerable<LeaveRequestResponseDto>> GetAllAsync()
     {
-        var requests = await _db.LeaveRequests
-            .Include(r => r.Employee).ThenInclude(e => e.User)
+        var list = await _db.LeaveRequests
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
-
-        var results = new List<LeaveRequestResponseDto>();
-        foreach(var r in requests) results.Add(await MapAsync(r));
-        return results;
+        var result = new List<LeaveRequestResponseDto>();
+        foreach (var r in list) result.Add(await MapAsync(r.Id));
+        return result;
     }
 
-    public async Task<LeaveRequestResponseDto?> ReviewAsync(int id, ReviewLeaveRequestDto dto, string adminId)
+    public async Task<LeaveRequestResponseDto?> ReviewAsync(int id, ReviewLeaveRequestDto dto, string reviewerId)
     {
-        var request = await _db.LeaveRequests
-            .Include(r => r.Employee).ThenInclude(e => e.User)
-            .FirstOrDefaultAsync(r => r.Id == id);
-
+        var request = await _db.LeaveRequests.FindAsync(id);
         if (request == null) return null;
 
         request.Status     = dto.Status;
         request.AdminNote  = dto.AdminNote;
         request.ReviewedAt = DateTime.UtcNow;
-        request.ReviewedBy = adminId;
-
+        request.ReviewedBy = reviewerId;
         await _db.SaveChangesAsync();
-
-        // Notify employee
-        var approved = dto.Status == "Approved";
-        await _notify.SendToUserAsync(
-            request.Employee.UserId,
-            approved ? "تمت الموافقة على طلبك ✅" : "تم رفض طلبك ❌",
-            approved ? "Leave Request Approved ✅" : "Leave Request Rejected ❌",
-            approved ? $"تمت الموافقة على إذنك. {(request.IsPaid ? "" : "سيتم خصمه من راتبك.")}"
-                     : $"تم رفض طلب إذنك. {dto.AdminNote ?? ""}",
-            approved ? $"Your leave was approved. {(request.IsPaid ? "" : "It will be deducted from salary.")}"
-                     : $"Your leave request was rejected. {dto.AdminNote ?? ""}",
-            new() { ["type"] = "leave_reviewed", ["status"] = dto.Status }
-        );
-
-        return await MapAsync(request);
+        return await MapAsync(id);
     }
 
-
-    private async Task<LeaveRequestResponseDto> MapAsync(LeaveRequest r)
+    private async Task<LeaveRequestResponseDto> MapAsync(int id)
     {
-        var empU = await _db.Employees.FirstOrDefaultAsync(e => e.Id == r.EmployeeId);
-        var monthlyHours = await GetMonthlyHoursAsync(empU?.UserId ?? "");
+        var r = await _db.LeaveRequests
+            .Include(x => x.User)
+            .FirstAsync(x => x.Id == id);
         return new LeaveRequestResponseDto
         {
-            Id               = r.Id,
-            EmployeeId       = r.EmployeeId,
-            EmployeeName     = r.Employee?.User?.FullName ?? "",
-            Reason           = r.Reason,
-            StartTime        = r.StartTime,
-            EndTime          = r.EndTime,
-            Hours            = r.Hours,
-            Status           = r.Status,
-            AdminNote        = r.AdminNote,
-            IsPaid           = r.IsPaid,
-            CreatedAt        = r.CreatedAt,
-            ReviewedBy       = r.ReviewedBy,
-            MonthlyUsedHours = monthlyHours
+            Id         = r.Id,
+            UserId     = r.UserId,
+            UserName   = r.User?.FullName ?? r.UserId,
+            Reason     = r.Reason,
+            StartTime  = r.StartTime,
+            EndTime    = r.EndTime,
+            Hours      = r.Hours,
+            Status     = r.Status,
+            AdminNote  = r.AdminNote,
+            IsPaid     = r.IsPaid,
+            CreatedAt  = r.CreatedAt,
+            ReviewedAt = r.ReviewedAt,
+            ReviewedBy = r.ReviewedBy
         };
     }
 }
