@@ -25,7 +25,7 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
         // Check permission claims in JWT (impersonation token)
         var permClaims = context.User.FindAll("Permission").ToList();
         // Direct claim check
-        if (permClaims.Any(c => c.Value == requirement.Permission))
+        if (permClaims.Any(pc => pc.Value == requirement.Permission))
         {
             context.Succeed(requirement);
             return;
