@@ -23,7 +23,8 @@ public class SubscriptionsController : ControllerBase
     [RequirePermission("ViewSubscriptions")]
     public async Task<IActionResult> GetAll()
     {
-        var subs = role == "Admin"
+        var canViewAll = User.HasClaim("Permission", "ViewAllSubscriptions");
+        var subs = canViewAll
             ? await _subscriptionService.GetAllAsync(null)
             : await _subscriptionService.GetAllAsync(GetUserId());
         return Ok(subs);

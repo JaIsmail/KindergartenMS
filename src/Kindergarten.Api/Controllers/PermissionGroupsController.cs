@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Kindergarten.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using Kindergarten.Api.Authorization;
-using Kindergarten.Core.Entities;
 using Kindergarten.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

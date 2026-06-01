@@ -22,8 +22,8 @@ public class ChildrenController : ControllerBase
     [RequirePermission("ViewChildren")]
     public async Task<IActionResult> GetAll()
     {
-        var isAdminOrSuper = role == "Admin" || role == "SuperAdmin";
-        var parentId = isAdminOrSuper ? null : GetUserId();
+        var canViewAll = User.HasClaim("Permission", "ViewAllChildren");
+        var parentId = canViewAll ? null : GetUserId();
         var children = await _childService.GetAllAsync(parentId);
         return Ok(children);
     }
@@ -41,10 +41,10 @@ public class ChildrenController : ControllerBase
     [RequirePermission("ManageChildren")]
     public async Task<IActionResult> Create([FromBody] CreateChildDto dto)
     {
-        // Admin can specify parentId, others use their own ID
-        var parentId = (role == "Admin" && !string.IsNullOrEmpty(dto.ParentId))
-                       ? dto.ParentId
-                       : GetUserId();
+        var canAssign = User.HasClaim("Permission", "AssignChildToParent");
+        var parentId  = (canAssign && !string.IsNullOrEmpty(dto.ParentId))
+                        ? dto.ParentId
+                        : GetUserId();
         var child = await _childService.CreateAsync(dto, parentId);
         return CreatedAtAction(nameof(GetById), new { id = child.Id }, child);
     }
