@@ -1041,8 +1041,8 @@ function applyTranslations(){
     ['h-reg-user',f.regUser],['lbl-user-name',f.userName],['lbl-user-email',f.userEmail],['lbl-user-pass',f.userPass],['lbl-user-phone',f.userPhone],['lbl-user-role',f.userRole],['btn-reg-user',f.regUserBtn],['h-all-users',f.allUsers],
     ['opt-parent',f.parent],['opt-driver',f.driver],['opt-admin',f.admin],['opt-employee',f.employee],
     ['h-signalr',f.signalrTitle],
-    ['lists-page-title', lang==='ar'?'القوائم الديناميكية':'Dynamic Lists'],
-    ['lists-page-subtitle', lang==='ar'?'إدارة أنواع الفصول والاشتراكات والرحلات':'Manage class types, subscriptions and trip statuses'],['btn-connect',f.connect],['btn-disconnect',f.disconnect],['h-log',f.logTitle],
+    ['lists-page-title', currentLang==='ar'?'القوائم الديناميكية':'Dynamic Lists'],
+    ['lists-page-subtitle', currentLang==='ar'?'إدارة أنواع الفصول والاشتراكات والرحلات':'Manage class types, subscriptions and trip statuses'],['btn-connect',f.connect],['btn-disconnect',f.disconnect],['h-log',f.logTitle],
   ];
   sets.forEach(([id,val])=>{const el=document.getElementById(id);if(el&&val)el.textContent=val;});
   const childNameInput=document.getElementById('childName');
