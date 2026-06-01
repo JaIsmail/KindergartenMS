@@ -1310,7 +1310,7 @@ async function loadLists(){
       TripStatuses:     {ar:'حالات الرحلات',     en:'Trip Statuses'},
       PaymentStatuses:  {ar:'حالات الدفع',       en:'Payment Statuses'}
     };
-  div.innerHTML = '<table><thead><tr><th>#</th><th>'+(ar?'التصنيف':'Category')+'</th><th>'+(ar?'الاسم':'Name')+'</th><th>Value</th><th>'+(ar?'الترتيب':'Order')+'</th><th>'+(ar?'إجراء':'Action')+'</th></tr></thead><tbody>'+
+  div.innerHTML = '<table><thead><tr><th>#</th><th>'+(ar?'التصنيف':'Category')+'</th><th>'+(ar?'الاسم':'Name')+'</th><th>'+(ar?'الترتيب':'Order')+'</th><th>'+(ar?'إجراء':'Action')+'</th></tr></thead><tbody>'+
     items.map(i=>'<tr>'+
       '<td style="color:var(--text3)">'+i.id+'</td>'+
       '<td><span class="badge badge-blue">'+(categoryLabels[i.category]?(ar?categoryLabels[i.category].ar:categoryLabels[i.category].en):i.category)+'</span></td>'+
