@@ -23,7 +23,6 @@ public class SubscriptionsController : ControllerBase
     [RequirePermission("ViewSubscriptions")]
     public async Task<IActionResult> GetAll()
     {
-        var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
         var subs = role == "Admin"
             ? await _subscriptionService.GetAllAsync(null)
             : await _subscriptionService.GetAllAsync(GetUserId());

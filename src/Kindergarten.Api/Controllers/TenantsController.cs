@@ -73,8 +73,8 @@ public class TenantsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        var isSuperAdmin = User.IsInRole("SuperAdmin");
         var tenantId = int.TryParse(User.FindFirstValue("TenantId"), out var tid) ? tid : 0;
+        var isSuperAdmin = tenantId == 0;
         var tenantsQuery = isSuperAdmin
             ? _db.Tenants
             : _db.Tenants.Where(t => t.Id == tenantId);
@@ -315,8 +315,7 @@ public class TenantsController : ControllerBase
             new(System.Security.Claims.ClaimTypes.NameIdentifier, currentUser.Id),
             new(System.Security.Claims.ClaimTypes.Email, currentUser.Email!),
             new(System.Security.Claims.ClaimTypes.Name, currentUser.FullName),
-            new(System.Security.Claims.ClaimTypes.Role, "Admin"),
-            new("TenantId", id.ToString()),
+                        new("TenantId", id.ToString()),
             new("ImpersonatingTenant", id.ToString()),
             new("ImpersonatingTenantName", tenant.NameAr),
             new("OriginalRole", currentUser.RoleType),

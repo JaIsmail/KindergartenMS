@@ -26,7 +26,7 @@ public class UsersController : ControllerBase
 
     private int GetTenantId() =>
         int.TryParse(User.FindFirstValue("TenantId"), out var id) ? id : 1;
-    private bool IsSuperAdmin() => User.IsInRole("SuperAdmin");
+    private bool IsSuperAdmin() => User.FindFirstValue("TenantId") == "0";
 
     // GET all users
     [HttpGet]

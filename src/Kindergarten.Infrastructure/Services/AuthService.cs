@@ -65,7 +65,6 @@ public class AuthService : IAuthService
 
     private async Task<AuthResponseDto> GenerateTokenAsync(ApplicationUser user)
     {
-        // Get user's permission groups with their permissions
         var permGroups = await _db.UserPermissionGroups
             .IgnoreQueryFilters()
             .Include(x => x.Group)
@@ -74,12 +73,6 @@ public class AuthService : IAuthService
             .Where(x => x.UserId == user.Id)
             .ToListAsync();
 
-        // Role = group names comma-separated
-        var role = permGroups.Any()
-            ? string.Join(",", permGroups.Select(g => g.Group.NameEn))
-            : user.RoleType;
-
-        // Collect all unique permissions from all groups
         var permissions = permGroups
             .SelectMany(g => g.Group.GroupPermissions)
             .Select(gp => gp.Permission.Name)
@@ -91,13 +84,17 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Email,          user.Email!),
             new Claim(ClaimTypes.Name,           user.FullName),
-            new Claim(ClaimTypes.Role,           role),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("TenantId", user.TenantId.ToString())
         };
 
-        // Add each permission as a separate claim in JWT
         claims.AddRange(permissions.Select(p => new Claim("Permission", p)));
+
+        foreach (var g in permGroups)
+        {
+            claims.Add(new Claim("GroupNameEn", g.Group.NameEn));
+            claims.Add(new Claim("GroupNameAr", g.Group.NameAr));
+        }
 
         var key    = new SymmetricSecurityKey(Encoding.UTF8.GetBytes((_config["Jwt__Key"] ?? _config["Jwt:Key"])!));
         var creds  = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -111,13 +108,17 @@ public class AuthService : IAuthService
             signingCredentials: creds
         );
 
+        var displayRole = permGroups.Any()
+            ? string.Join(",", permGroups.Select(g => g.Group.NameEn))
+            : user.RoleType;
+
         return new AuthResponseDto
         {
             Token    = new JwtSecurityTokenHandler().WriteToken(token),
             UserId   = user.Id,
             Email    = user.Email!,
             FullName = user.FullName,
-            Role     = role,
+            Role     = displayRole,
             TenantId = user.TenantId,
             Expiry   = expiry
         };

@@ -22,7 +22,6 @@ public class ChildrenController : ControllerBase
     [RequirePermission("ViewChildren")]
     public async Task<IActionResult> GetAll()
     {
-        var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
         var isAdminOrSuper = role == "Admin" || role == "SuperAdmin";
         var parentId = isAdminOrSuper ? null : GetUserId();
         var children = await _childService.GetAllAsync(parentId);
@@ -43,7 +42,6 @@ public class ChildrenController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateChildDto dto)
     {
         // Admin can specify parentId, others use their own ID
-        var role     = User.FindFirstValue(ClaimTypes.Role) ?? "";
         var parentId = (role == "Admin" && !string.IsNullOrEmpty(dto.ParentId))
                        ? dto.ParentId
                        : GetUserId();

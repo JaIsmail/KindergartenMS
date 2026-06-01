@@ -425,6 +425,8 @@ function setLang(l) {
   if(btnOut) btnOut.textContent = '🚪 ' + t('logout');
   buildNav();
   if(typeof buildDrawer === 'function') buildDrawer();
+  var pRoleEl = document.getElementById('pRole');
+  if(pRoleEl) pRoleEl.innerHTML = '<span class="badge bb">'+groupBadgeLabel()+'</span>';
   var loaderMap={home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt,notifs:loadNotifs,leave:loadLeave};
   if(token && page && loaderMap[page]) loaderMap[page]();
   if(page) {
@@ -499,7 +501,7 @@ function initApp() {
   document.getElementById('pName').textContent = name;
   document.getElementById('pEmail').textContent = localStorage.getItem('kms_email') || '';
   document.getElementById('pAv').textContent = name ? name[0].toUpperCase() : '?';
-  document.getElementById('pRole').innerHTML = '<span class="badge bb">'+tr(role)+'</span>';
+  document.getElementById('pRole').innerHTML = '<span class="badge bb">'+groupBadgeLabel()+'</span>';
   setLang(lang);
   buildDrawer();
   if(role === 'Driver' || role.includes('Driver')) showPage('dtrips');
@@ -969,7 +971,7 @@ function buildDrawer(){
   var dAv=document.getElementById('dAv'); if(dAv) dAv.textContent=name?name[0].toUpperCase():'?';
   var dName=document.getElementById('dName'); if(dName) dName.textContent=name;
   var dEmail=document.getElementById('dEmail'); if(dEmail) dEmail.textContent=email;
-  var dRole=document.getElementById('dRole'); if(dRole) dRole.textContent=tr(role);
+  var dRole=document.getElementById('dRole'); if(dRole) dRole.textContent=groupBadgeLabel();
   var allItems=[
     {id:'home',   i:'🏠', l:t('home'),       roles:['Parent','Admin']},
     {id:'ptrips', i:'🚌', l:t('childTrips'), roles:['Parent','Admin']},

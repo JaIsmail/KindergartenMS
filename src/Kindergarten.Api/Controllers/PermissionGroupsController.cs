@@ -34,7 +34,7 @@ public class PermissionGroupsController : ControllerBase
     [HttpGet]
  public async Task<IActionResult> GetAll()
     {
-        var isSuperAdmin = User.IsInRole("SuperAdmin");
+        var isSuperAdmin = User.FindFirstValue("TenantId") == "0";
         var query = isSuperAdmin
             ? _db.PermissionGroups.IgnoreQueryFilters()
             : _db.PermissionGroups;
@@ -60,7 +60,7 @@ public class PermissionGroupsController : ControllerBase
     [HttpGet("{id}")]
 public async Task<IActionResult> GetById(int id)
     {
-        var isSuperAdmin = User.IsInRole("SuperAdmin");
+        var isSuperAdmin = User.FindFirstValue("TenantId") == "0";
         var group = await _db.PermissionGroups
             .IgnoreQueryFilters()
             .Include(g => g.GroupPermissions)

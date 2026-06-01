@@ -15,24 +15,24 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
-        // SuperAdmin bypasses all checks
-        if (context.User.IsInRole("SuperAdmin"))
+        // SuperAdmin bypasses all checks — identified by TenantId=0, not role claim
+        var tenantIdClaim = context.User.FindFirstValue("TenantId");
+        if (tenantIdClaim == "0")
         {
             context.Succeed(requirement);
             return;
         }
 
-        // Check permission claims in JWT (impersonation token)
-        // Try multiple claim type formats
         var permClaims = context.User.FindAll("Permission").ToList();
         if (!permClaims.Any())
             permClaims = context.User.Claims.Where(c => c.Type == "Permission").ToList();
-        // Direct claim check
+
         if (permClaims.Any(pc => pc.Value == requirement.Permission))
         {
             context.Succeed(requirement);
             return;
         }
+
         foreach (var claim in permClaims)
         {
             if (claim.Value == requirement.Permission)
@@ -55,13 +55,6 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             }
         }
 
-        // Admin role bypasses all permission checks within their tenant
-        if (context.User.IsInRole("Admin"))
-        {
-            context.Succeed(requirement);
-            return;
-        }
-
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId))
         {
@@ -69,7 +62,6 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             return;
         }
 
-        // Check direct UserPermissions table
         var hasPermission = await _db.UserPermissions
             .Include(up => up.Permission)
             .AnyAsync(up => up.UserId == userId &&
@@ -80,7 +72,6 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
             return;
         }
 
-        // Check permissions via PermissionGroups - simplified query
         var userGroupIds = await _db.UserPermissionGroups
             .IgnoreQueryFilters()
             .Where(upg => upg.UserId == userId)
