@@ -342,9 +342,37 @@ let token = localStorage.getItem('kms_token');
 let lang = localStorage.getItem('kms_lang') || 'ar';
 let role = localStorage.getItem('kms_role') || '';
 let page = 'home';
+let permissions = [];
+let groupNamesEn = [];
+let groupNamesAr = [];
 let gpsTimer = null;
 let dMap = null, pMap = null, dMarker = null, pMarker = null;
 let signalrConn = null;
+function loadPermissionsFromToken() {
+  try {
+    const t = localStorage.getItem('kms_token');
+    if (!t) return;
+    const payload = JSON.parse(atob(t.split('.')[1]));
+    const raw = payload['Permission'];
+    permissions = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    const enRaw = payload['GroupNameEn'];
+    const arRaw = payload['GroupNameAr'];
+    groupNamesEn = Array.isArray(enRaw) ? enRaw : (enRaw ? [enRaw] : []);
+    groupNamesAr = Array.isArray(arRaw) ? arRaw : (arRaw ? [arRaw] : []);
+  } catch(e) {
+    permissions = []; groupNamesEn = []; groupNamesAr = [];
+  }
+}
+
+function hasPermission(name) {
+  return permissions.includes(name);
+}
+
+function groupBadgeLabel() {
+  const names = lang === 'ar' ? groupNamesAr : groupNamesEn;
+  return names.length ? names.join(' · ') : '';
+}
+
 
 const TX = {
   ar:{
@@ -427,6 +455,8 @@ function setLang(l) {
   if(typeof buildDrawer === 'function') buildDrawer();
   var pRoleEl = document.getElementById('pRole');
   if(pRoleEl) pRoleEl.innerHTML = '<span class="badge bb">'+groupBadgeLabel()+'</span>';
+  var pRoleEl = document.getElementById('pRole');
+  if(pRoleEl) pRoleEl.innerHTML = '<span class="badge bb">'+groupBadgeLabel()+'</span>';
   var loaderMap={home:loadHome,subs:loadSubs,ptrips:loadPTrips,dtrips:loadDTrips,att:loadAtt,notifs:loadNotifs,leave:loadLeave};
   if(token && page && loaderMap[page]) loaderMap[page]();
   if(page) {
@@ -474,6 +504,7 @@ async function doLogin() {
       localStorage.setItem('kms_name', d.fullName);
       localStorage.setItem('kms_email', d.email);
       role = d.role;
+      loadPermissionsFromToken();
       initApp();
       connectSignalR();
     } else {
@@ -1018,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btnCO').addEventListener('click', doCheckOut);
   document.getElementById('inPass').addEventListener('keydown', function(e) { if(e.key==='Enter') doLogin(); });
   setLang(lang);
-  if(token) { role = localStorage.getItem('kms_role') || ''; initApp(); connectSignalR(); }
+  if(token) { role = localStorage.getItem('kms_role') || ''; loadPermissionsFromToken(); initApp(); connectSignalR(); }
 });
 </script>
 </body>
