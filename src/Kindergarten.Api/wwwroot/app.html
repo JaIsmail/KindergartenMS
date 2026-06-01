@@ -1048,8 +1048,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btnCI').addEventListener('click', doCheckIn);
   document.getElementById('btnCO').addEventListener('click', doCheckOut);
   document.getElementById('inPass').addEventListener('keydown', function(e) { if(e.key==='Enter') doLogin(); });
+  if(token) { role = localStorage.getItem('kms_role') || ''; loadPermissionsFromToken(); }
   setLang(lang);
-  if(token) { role = localStorage.getItem('kms_role') || ''; loadPermissionsFromToken(); initApp(); connectSignalR(); }
+  if(token) { initApp(); connectSignalR(); }
 });
 </script>
 </body>
