@@ -119,6 +119,13 @@ public class DynamicListsController : ControllerBase
             new() { Category="PaymentStatuses", NameAr="متأخر",        NameEn="Overdue",   Value="Overdue",   Order=3, TenantId=tenantId },
             new() { Category="PaymentStatuses", NameAr="ملغي",         NameEn="Cancelled", Value="Cancelled", Order=4, TenantId=tenantId },
             new() { Category="PaymentStatuses", NameAr="مُسترد",       NameEn="Refunded",  Value="Refunded",  Order=5, TenantId=tenantId },
+            // Payment methods
+            new() { Category="PaymentMethods", NameAr="نقداً",         NameEn="Cash",            Value="Cash",            Order=1, TenantId=tenantId },
+            new() { Category="PaymentMethods", NameAr="تحويل بنكي",    NameEn="Bank Transfer",   Value="Bank Transfer",   Order=2, TenantId=tenantId },
+            new() { Category="PaymentMethods", NameAr="دفع إلكتروني",  NameEn="Online",          Value="Online",          Order=3, TenantId=tenantId },
+            new() { Category="PaymentMethods", NameAr="مدى",           NameEn="Mada",            Value="Mada",            Order=4, TenantId=tenantId },
+            new() { Category="PaymentMethods", NameAr="STC Pay",       NameEn="STC Pay",         Value="STC Pay",         Order=5, TenantId=tenantId },
+            new() { Category="PaymentMethods", NameAr="Apple Pay",     NameEn="Apple Pay",       Value="Apple Pay",       Order=6, TenantId=tenantId },
         };
 
         _db.DynamicLists.AddRange(items);

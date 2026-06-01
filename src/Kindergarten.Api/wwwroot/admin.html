@@ -385,7 +385,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div class="form-field"><label id="lbl-pay-sub">رقم الاشتراك</label><input type="number" id="paySubId" placeholder="1"></div>
         <div class="form-field"><label id="lbl-pay-amount">المبلغ (ريال)</label><input type="number" id="payAmount" value="500"></div>
       </div>
-      <div class="form-row full"><div class="form-field"><label id="lbl-pay-method">طريقة الدفع</label><select id="payMethod"><option value="Cash" id="opt-cash">نقداً</option><option value="Transfer" id="opt-transfer">تحويل بنكي</option><option value="Online" id="opt-online">دفع إلكتروني</option></select></div></div>
+      <div class="form-row full"><div class="form-field"><label id="lbl-pay-method">طريقة الدفع</label><select id="payMethod"><option value="Cash">نقداً</option></select></div></div>
       <div class="form-row full"><div class="form-field"><label>حالة الدفع</label><select id="payStatus"><option value="Paid">مدفوع</option></select></div></div>
       <button class="btn btn-primary" id="btn-record-pay" onclick="recordPayment()">تسجيل الدفعة</button>
     </div>
@@ -513,6 +513,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <button class="btn btn-ghost btn-sm" onclick="filterLists('SubscriptionTypes')" data-ar="أنواع الاشتراكات" data-en="Subscription Types">أنواع الاشتراكات</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('TripStatuses')" data-ar="حالات الرحلات" data-en="Trip Statuses">حالات الرحلات</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentStatuses')" data-ar="حالات الدفع" data-en="Payment Statuses">حالات الدفع</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentMethods')" data-ar="طرق الدفع" data-en="Payment Methods">طرق الدفع</button>
     </div>
     <div class="table-card"><div id="lists-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
@@ -533,6 +534,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
             <option value="SubscriptionTypes" data-ar="أنواع الاشتراكات" data-en="Subscription Types">أنواع الاشتراكات</option>
             <option value="TripStatuses" data-ar="حالات الرحلات" data-en="Trip Statuses">حالات الرحلات</option>
             <option value="PaymentStatuses" data-ar="حالات الدفع" data-en="Payment Statuses">حالات الدفع</option>
+            <option value="PaymentMethods" data-ar="طرق الدفع" data-en="Payment Methods">طرق الدفع</option>
           </select>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
@@ -1308,7 +1310,8 @@ async function loadLists(){
       Classes:          {ar:'أنواع الفصول',      en:'Class Types'},
       SubscriptionTypes:{ar:'أنواع الاشتراكات',  en:'Subscription Types'},
       TripStatuses:     {ar:'حالات الرحلات',     en:'Trip Statuses'},
-      PaymentStatuses:  {ar:'حالات الدفع',       en:'Payment Statuses'}
+      PaymentStatuses:  {ar:'حالات الدفع',       en:'Payment Statuses'},
+      PaymentMethods:   {ar:'طرق الدفع',        en:'Payment Methods'}
     };
   div.innerHTML = '<table><thead><tr><th>#</th><th>'+(ar?'التصنيف':'Category')+'</th><th>'+(ar?'الاسم':'Name')+'</th><th>'+(ar?'الترتيب':'Order')+'</th><th>'+(ar?'إجراء':'Action')+'</th></tr></thead><tbody>'+
     items.map(i=>'<tr>'+
