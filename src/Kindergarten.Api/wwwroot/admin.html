@@ -1298,7 +1298,7 @@ async function loadLists(){
   const url = currentListFilter === 'all' ? '/api/lists' : '/api/lists/'+currentListFilter;
   const items = await api(url) || [];
   if(!items.length){
-    const isSA = token && JSON.parse(atob(token.split('.')[1]))?.TenantId === '0';
+    const isSA = token && JSON.parse(decodeURIComponent(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')))?.TenantId === '0';
     const msg = isSA ? (ar?'يرجى إدارة روضة محددة أولاً عبر صفحة الروضات':'Please manage a specific tenant first via the Tenants page') : (ar?'لا توجد عناصر':'No items found');
     div.innerHTML = '<div class="empty"><div class="emoji">📋</div><h4>'+msg+'</h4></div>';
     return;
