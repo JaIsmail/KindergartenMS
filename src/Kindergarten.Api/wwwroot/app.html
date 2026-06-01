@@ -352,7 +352,11 @@ function loadPermissionsFromToken() {
   try {
     const t = localStorage.getItem('kms_token');
     if (!t) return;
-    const payload = JSON.parse(atob(t.split('.')[1]));
+    // UTF-8 safe JWT decode (handles Arabic and non-ASCII characters)
+    const base64 = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join('')));
     const raw = payload['Permission'];
     permissions = Array.isArray(raw) ? raw : (raw ? [raw] : []);
     const enRaw = payload['GroupNameEn'];
