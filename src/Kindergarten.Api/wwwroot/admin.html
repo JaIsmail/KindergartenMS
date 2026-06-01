@@ -505,7 +505,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   <div class="page" id="page-lists">
     <div class="page-header">
       <div><h3>القوائم الديناميكية</h3><p>إدارة أنواع الفصول والاشتراكات والرحلات</p></div>
-      <button class="btn btn-primary btn-sm" onclick="openAddListModal()">➕ إضافة عنصر</button>
+      <button class="btn btn-primary btn-sm" onclick="openAddListModal()" data-ar="➕ إضافة عنصر" data-en="➕ Add Item">➕ إضافة عنصر</button>
     </div>
     <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" onclick="filterLists('all')" data-ar="الكل" data-en="All">الكل</button>
@@ -1039,7 +1039,9 @@ function applyTranslations(){
     ['opt-cash',f.cash],['opt-transfer',f.transfer],['opt-online',f.online],
     ['h-reg-user',f.regUser],['lbl-user-name',f.userName],['lbl-user-email',f.userEmail],['lbl-user-pass',f.userPass],['lbl-user-phone',f.userPhone],['lbl-user-role',f.userRole],['btn-reg-user',f.regUserBtn],['h-all-users',f.allUsers],
     ['opt-parent',f.parent],['opt-driver',f.driver],['opt-admin',f.admin],['opt-employee',f.employee],
-    ['h-signalr',f.signalrTitle],['btn-connect',f.connect],['btn-disconnect',f.disconnect],['h-log',f.logTitle],
+    ['h-signalr',f.signalrTitle],
+    ['lists-page-title', lang==='ar'?'القوائم الديناميكية':'Dynamic Lists'],
+    ['lists-page-subtitle', lang==='ar'?'إدارة أنواع الفصول والاشتراكات والرحلات':'Manage class types, subscriptions and trip statuses'],['btn-connect',f.connect],['btn-disconnect',f.disconnect],['h-log',f.logTitle],
   ];
   sets.forEach(([id,val])=>{const el=document.getElementById(id);if(el&&val)el.textContent=val;});
   const childNameInput=document.getElementById('childName');
