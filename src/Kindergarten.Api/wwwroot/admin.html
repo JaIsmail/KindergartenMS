@@ -1303,11 +1303,16 @@ async function loadLists(){
     div.innerHTML = '<div class="empty"><div class="emoji">📋</div><h4>'+msg+'</h4></div>';
     return;
   }
-  const categoryLabels = {Classes:'أنواع الفصول', SubscriptionTypes:'أنواع الاشتراكات', TripStatuses:'حالات الرحلات', PaymentStatuses:'حالات الدفع'};
+  const categoryLabels = {
+      Classes:          {ar:'أنواع الفصول',      en:'Class Types'},
+      SubscriptionTypes:{ar:'أنواع الاشتراكات',  en:'Subscription Types'},
+      TripStatuses:     {ar:'حالات الرحلات',     en:'Trip Statuses'},
+      PaymentStatuses:  {ar:'حالات الدفع',       en:'Payment Statuses'}
+    };
   div.innerHTML = '<table><thead><tr><th>#</th><th>'+(ar?'التصنيف':'Category')+'</th><th>'+(ar?'الاسم':'Name')+'</th><th>Value</th><th>'+(ar?'الترتيب':'Order')+'</th><th>'+(ar?'إجراء':'Action')+'</th></tr></thead><tbody>'+
     items.map(i=>'<tr>'+
       '<td style="color:var(--text3)">'+i.id+'</td>'+
-      '<td><span class="badge badge-blue">'+(categoryLabels[i.category]||i.category)+'</span></td>'+
+      '<td><span class="badge badge-blue">'+(categoryLabels[i.category]?(ar?categoryLabels[i.category].ar:categoryLabels[i.category].en):i.category)+'</span></td>'+
       '<td><strong>'+(ar?i.nameAr:i.nameEn)+'</strong></td>'+
       '<td style="direction:ltr">'+i.value+'</td>'+
       '<td>'+i.order+'</td>'+
