@@ -539,10 +539,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
           <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">الاسم (عربي)</label><input type="text" id="listNameAr" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
           <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">Name (English)</label><input type="text" id="listNameEn" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
         </div>
-        <div style="margin-bottom:1rem">
-          <label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">القيمة (Value)</label>
-          <input type="text" id="listValue" placeholder="e.g. KG1" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
-        </div>
+        <!-- Value hidden — auto-set from NameEn (Note 49: remove from DB later) -->
+        <input type="hidden" id="listValue">
         <div>
           <label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">الترتيب</label>
           <input type="number" id="listOrder" value="0" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
@@ -1142,7 +1140,7 @@ async function loadDynamicList(category, selectId, selectedValue=''){
   if(!sel) return;
   const ar = currentLang === 'ar';
   sel.innerHTML = '<option value="">-- اختر --</option>' +
-    items.map(i => `<option value="${i.value}" ${i.value===selectedValue?'selected':''}>${ar?i.nameAr:i.nameEn}</option>`).join('');
+    items.map(i => `<option value="${i.nameEn}" ${i.nameEn===selectedValue?'selected':''}>${ar?i.nameAr:i.nameEn}</option>`).join('');
 }
 
 let currentListFilter = 'all';
@@ -1317,7 +1315,7 @@ async function loadLists(){
       '<td style="color:var(--text3)">'+i.id+'</td>'+
       '<td><span class="badge badge-blue">'+(categoryLabels[i.category]?(ar?categoryLabels[i.category].ar:categoryLabels[i.category].en):i.category)+'</span></td>'+
       '<td><strong>'+(ar?i.nameAr:i.nameEn)+'</strong></td>'+
-      '<td style="direction:ltr">'+i.value+'</td>'+
+
       '<td>'+i.order+'</td>'+
       '<td style="display:flex;gap:0.4rem">'+
         '<button class="icon-btn icon-btn-edit" onclick="editListItem('+i.id+')" title="تعديل">✏️</button>'+
@@ -1361,7 +1359,7 @@ async function saveListItem(){
     category: document.getElementById('listCategory').value,
     nameAr:   document.getElementById('listNameAr').value,
     nameEn:   document.getElementById('listNameEn').value,
-    value:    document.getElementById('listValue').value,
+    value:    document.getElementById('listNameEn').value, // Phase 1: auto-set from NameEn
     order:    parseInt(document.getElementById('listOrder').value)||0,
     isActive: true
   };
@@ -2123,7 +2121,7 @@ async function createSubscription(){
 async function openUpdateStatus(subId, currentStatus){
   const statuses = await api('/api/lists/PaymentStatuses') || [];
   const ar = currentLang === 'ar';
-  const opts = statuses.map(s=>'<option value="'+s.value+'"'+(s.value===currentStatus?' selected':'')+'>'+( ar ? s.nameAr : s.nameEn)+'</option>').join('');
+  const opts = statuses.map(s=>'<option value="'+s.nameEn+'"'+(s.nameEn===currentStatus?' selected':'')+'>'+( ar ? s.nameAr : s.nameEn)+'</option>').join('');
   const html = '<div style="padding:1rem"><h4 style="margin-bottom:1rem">'+(ar?'تغيير حالة الاشتراك #':'Update Subscription #')+subId+'</h4>'+
     '<select id="statusSelect" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);margin-bottom:1rem">'+opts+'</select>'+
     '<button class="btn btn-primary" style="width:100%" onclick="updateSubscriptionStatus('+subId+')">'+(ar?'حفظ':'Save')+'</button></div>';
@@ -2146,7 +2144,7 @@ async function openUpdateStatus(subId, currentStatus){
   const statuses = await api('/api/lists/PaymentStatuses') || [];
   const sel = document.getElementById('statusSelect');
   sel.innerHTML = statuses.length
-    ? statuses.map(s=>'<option value="'+s.value+'"'+(s.value===currentStatus?' selected':'')+'>'+( ar ? s.nameAr : s.nameEn)+'</option>').join('')
+    ? statuses.map(s=>'<option value="'+s.nameEn+'"'+(s.nameEn===currentStatus?' selected':'')+'>'+( ar ? s.nameAr : s.nameEn)+'</option>').join('')
     : '<option value="Pending">Pending</option><option value="Paid">Paid</option><option value="Overdue">Overdue</option><option value="Cancelled">Cancelled</option>';
   document.getElementById('statusModal').classList.add('open');
 }
