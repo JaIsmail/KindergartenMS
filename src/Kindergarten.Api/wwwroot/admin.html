@@ -386,6 +386,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div class="form-field"><label id="lbl-pay-amount">المبلغ (ريال)</label><input type="number" id="payAmount" value="500"></div>
       </div>
       <div class="form-row full"><div class="form-field"><label id="lbl-pay-method">طريقة الدفع</label><select id="payMethod"><option value="Cash" id="opt-cash">نقداً</option><option value="Transfer" id="opt-transfer">تحويل بنكي</option><option value="Online" id="opt-online">دفع إلكتروني</option></select></div></div>
+      <div class="form-row full"><div class="form-field"><label>حالة الدفع</label><select id="payStatus"><option value="Paid">مدفوع</option></select></div></div>
       <button class="btn btn-primary" id="btn-record-pay" onclick="recordPayment()">تسجيل الدفعة</button>
     </div>
     <div class="section-header"><div><h3 id="h-pay-history">سجل المدفوعات</h3></div></div>
@@ -510,6 +511,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <button class="btn btn-ghost btn-sm" onclick="filterLists('all')">الكل</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('Classes')">أنواع الفصول</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('SubscriptionTypes')">أنواع الاشتراكات</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentStatuses')">حالات الدفع</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentStatuses')">حالات الدفع</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('TripStatuses')">حالات الرحلات</button>
     </div>
     <div class="table-card"><div id="lists-table"><div class="loading"><div class="spinner"></div></div></div></div>
@@ -1301,7 +1304,7 @@ async function loadLists(){
     div.innerHTML = '<div class="empty"><div class="emoji">📋</div><h4>'+msg+'</h4></div>';
     return;
   }
-  const categoryLabels = {Classes:'أنواع الفصول', SubscriptionTypes:'أنواع الاشتراكات', TripStatuses:'حالات الرحلات'};
+  const categoryLabels = {Classes:'أنواع الفصول', SubscriptionTypes:'أنواع الاشتراكات', TripStatuses:'حالات الرحلات', PaymentStatuses:'حالات الدفع'};
   div.innerHTML = '<table><thead><tr><th>#</th><th>'+(ar?'التصنيف':'Category')+'</th><th>'+(ar?'الاسم':'Name')+'</th><th>Value</th><th>'+(ar?'الترتيب':'Order')+'</th><th>'+(ar?'إجراء':'Action')+'</th></tr></thead><tbody>'+
     items.map(i=>'<tr>'+
       '<td style="color:var(--text3)">'+i.id+'</td>'+
@@ -2098,7 +2101,7 @@ async function loadSubscriptions(){
   if(children&&children.length>0)sel.innerHTML=children.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
   const div=document.getElementById('subs-table');
   if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>'+t('noData')+'</h4></div>';return;}
-  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.child')+'</th><th>'+t('cols.type')+'</th><th>'+t('cols.price')+'</th><th>'+t('cols.period')+'</th><th>'+t('cols.status')+'</th></tr></thead><tbody>'+data.map(s=>'<tr><td style="color:var(--text3)">#'+s.id+'</td><td><strong>'+s.childName+'</strong></td><td><span class="badge badge-blue">'+s.type+'</span></td><td style="font-weight:700;color:var(--primary2)">'+formatPrice(s.price)+'</td><td>'+formatDate(s.startDate)+' → '+formatDate(s.endDate)+'</td><td>'+statusBadge(s.paymentStatus)+'</td></tr>').join('')+'</tbody></table>';
+  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.child')+'</th><th>'+t('cols.type')+'</th><th>'+t('cols.price')+'</th><th>'+t('cols.period')+'</th><th>'+t('cols.status')+'</th></tr></thead><tbody>'+data.map(s=>'<tr><td style="color:var(--text3)">#'+s.id+'</td><td><strong>'+s.childName+'</strong></td><td><span class="badge badge-blue">'+s.type+'</span></td><td style="font-weight:700;color:var(--primary2)">'+formatPrice(s.price)+'</td><td>'+formatDate(s.startDate)+' → '+formatDate(s.endDate)+'</td><td>'+statusBadge(s.paymentStatus)+'</td><td><button class="btn btn-xs btn-ghost" onclick="openUpdateStatus('+s.id+',\''+s.paymentStatus+'\')">'+(currentLang==='ar'?'تغيير الحالة':'Update Status')+'</button></td></tr>').join('')+'</tbody></table>';
 }
 
 async function createSubscription(){
@@ -2110,7 +2113,49 @@ async function createSubscription(){
   else showToast(t('err.failed'),'error');
 }
 
+async function openUpdateStatus(subId, currentStatus){
+  const statuses = await api('/api/lists/PaymentStatuses') || [];
+  const ar = currentLang === 'ar';
+  const opts = statuses.map(s=>'<option value="'+s.value+'"'+(s.value===currentStatus?' selected':'')+'>'+( ar ? s.nameAr : s.nameEn)+'</option>').join('');
+  const html = '<div style="padding:1rem"><h4 style="margin-bottom:1rem">'+(ar?'تغيير حالة الاشتراك #':'Update Subscription #')+subId+'</h4>'+
+    '<select id="statusSelect" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);margin-bottom:1rem">'+opts+'</select>'+
+    '<button class="btn btn-primary" style="width:100%" onclick="updateSubscriptionStatus('+subId+')">'+(ar?'حفظ':'Save')+'</button></div>';
+  showModal(html);
+}
+
+async function updateSubscriptionStatus(subId){
+  const status = document.getElementById('statusSelect').value;
+  const result = await api('/api/subscriptions/'+subId+'/status','PATCH',{status});
+  if(result){ showToast('✅ '+(currentLang==='ar'?'تم تحديث الحالة':'Status updated'),'success'); closeModal(); loadSubscriptions(); }
+  else showToast(currentLang==='ar'?'فشل التحديث':'Update failed','error');
+}
+
+let _updateStatusSubId = null;
+
+async function openUpdateStatus(subId, currentStatus){
+  _updateStatusSubId = subId;
+  const ar = currentLang === 'ar';
+  document.getElementById('statusModalTitle').textContent = (ar?'تغيير حالة الاشتراك #':'Update Subscription #') + subId;
+  const statuses = await api('/api/lists/PaymentStatuses') || [];
+  const sel = document.getElementById('statusSelect');
+  sel.innerHTML = statuses.length
+    ? statuses.map(s=>'<option value="'+s.value+'"'+(s.value===currentStatus?' selected':'')+'>'+( ar ? s.nameAr : s.nameEn)+'</option>').join('')
+    : '<option value="Pending">Pending</option><option value="Paid">Paid</option><option value="Overdue">Overdue</option><option value="Cancelled">Cancelled</option>';
+  document.getElementById('statusModal').classList.add('open');
+}
+
+async function confirmUpdateStatus(){
+  const status = document.getElementById('statusSelect').value;
+  const result = await api('/api/subscriptions/'+_updateStatusSubId+'/status','PATCH',{status});
+  if(result){
+    showToast('✅ '+(currentLang==='ar'?'تم تحديث الحالة':'Status updated'),'success');
+    closeModal('statusModal');
+    loadSubscriptions();
+  } else showToast(currentLang==='ar'?'فشل التحديث':'Update failed','error');
+}
+
 async function loadPayments(){
+  await loadPayStatusDropdown();
   const div=document.getElementById('payments-table');
   const overdueDiv=document.getElementById('overdue-table');
   div.innerHTML='<div class="loading"><div class="spinner"></div></div>';
@@ -2141,10 +2186,20 @@ async function loadPayments(){
   }
 }
 
+async function loadPayStatusDropdown(){
+  const statuses = await api('/api/lists/PaymentStatuses') || [];
+  const ar = currentLang === 'ar';
+  const sel = document.getElementById('payStatus');
+  if(sel && statuses.length) {
+    sel.innerHTML = statuses.map(s=>'<option value="'+s.value+'">'+( ar ? s.nameAr : s.nameEn)+'</option>').join('');
+  }
+}
+
 async function recordPayment(){
   const subId=parseInt(document.getElementById('paySubId').value);const amount=parseFloat(document.getElementById('payAmount').value);const method=document.getElementById('payMethod').value;
   if(!subId||!amount){showToast(t('err.fill'),'error');return;}
-  const result=await api('/api/payments','POST',{subscriptionId:subId,amount,method});
+  const status=document.getElementById('payStatus')?document.getElementById('payStatus').value:'Paid';
+  const result=await api('/api/payments','POST',{subscriptionId:subId,amount,method,status});
   if(result){showToast('✅ '+t('succ.pay'),'success');loadPayments();}
   else showToast(t('err.failed'),'error');
 }
@@ -2413,5 +2468,26 @@ function addLog(c,msg,color){const colors={blue:'#3b82f6',green:'#22c55e',orange
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+type;setTimeout(()=>t.className='',3000);}
 </script>
+
+  <!-- Update Payment Status Modal -->
+  <div class="modal-overlay" id="statusModal">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <h3 id="statusModalTitle">تغيير حالة الدفع</h3>
+        <button class="modal-close" onclick="closeModal('statusModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem">
+        <div class="form-field">
+          <label>حالة الدفع</label>
+          <select id="statusSelect" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border)"></select>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-top:1rem">
+          <button class="btn btn-primary" style="flex:1" onclick="confirmUpdateStatus()">حفظ</button>
+          <button class="btn btn-ghost" style="flex:1" onclick="closeModal('statusModal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

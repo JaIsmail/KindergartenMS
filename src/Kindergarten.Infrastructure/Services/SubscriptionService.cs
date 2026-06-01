@@ -87,4 +87,29 @@ public class SubscriptionService : ISubscriptionService
             PaymentStatus = subscription.PaymentStatus
         };
     }
+
+    public async Task<SubscriptionResponseDto?> UpdateStatusAsync(int id, string status)
+    {
+        var sub = await _db.Subscriptions
+            .Include(s => s.Child)
+            .Include(s => s.Parent)
+            .FirstOrDefaultAsync(s => s.Id == id);
+        if (sub == null) return null;
+
+        sub.PaymentStatus = status;
+        await _db.SaveChangesAsync();
+
+        return new SubscriptionResponseDto
+        {
+            Id            = sub.Id,
+            ChildId       = sub.ChildId,
+            ChildName     = sub.Child.Name,
+            Type          = sub.Type,
+            Price         = sub.Price,
+            StartDate     = sub.StartDate,
+            EndDate       = sub.EndDate,
+            PaymentStatus = sub.PaymentStatus
+        };
+    }
+
 }

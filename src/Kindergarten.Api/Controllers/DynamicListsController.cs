@@ -113,6 +113,12 @@ public class DynamicListsController : ControllerBase
             new() { Category="TripStatuses", NameAr="تم الإنشاء",  NameEn="Created",    Value="Created",    Order=1, TenantId=tenantId },
             new() { Category="TripStatuses", NameAr="جاري",        NameEn="InProgress", Value="InProgress", Order=2, TenantId=tenantId },
             new() { Category="TripStatuses", NameAr="مكتملة",      NameEn="Completed",  Value="Completed",  Order=3, TenantId=tenantId },
+            // Payment statuses
+            new() { Category="PaymentStatuses", NameAr="قيد الانتظار", NameEn="Pending",   Value="Pending",   Order=1, TenantId=tenantId },
+            new() { Category="PaymentStatuses", NameAr="مدفوع",        NameEn="Paid",      Value="Paid",      Order=2, TenantId=tenantId },
+            new() { Category="PaymentStatuses", NameAr="متأخر",        NameEn="Overdue",   Value="Overdue",   Order=3, TenantId=tenantId },
+            new() { Category="PaymentStatuses", NameAr="ملغي",         NameEn="Cancelled", Value="Cancelled", Order=4, TenantId=tenantId },
+            new() { Category="PaymentStatuses", NameAr="مُسترد",       NameEn="Refunded",  Value="Refunded",  Order=5, TenantId=tenantId },
         };
 
         _db.DynamicLists.AddRange(items);

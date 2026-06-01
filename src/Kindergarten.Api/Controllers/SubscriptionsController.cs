@@ -39,6 +39,16 @@ public class SubscriptionsController : ControllerBase
         return Ok(sub);
     }
 
+
+    [HttpPatch("{id}/status")]
+    [RequirePermission("ManageSubscriptions")]
+    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
+    {
+        var sub = await _subscriptionService.UpdateStatusAsync(id, dto.Status);
+        if (sub == null) return NotFound();
+        return Ok(sub);
+    }
+
     [HttpPost]
     [RequirePermission("ManageSubscriptions")]
     public async Task<IActionResult> Create([FromBody] CreateSubscriptionDto dto)
@@ -46,4 +56,9 @@ public class SubscriptionsController : ControllerBase
         var sub = await _subscriptionService.CreateAsync(dto, GetUserId());
         return CreatedAtAction(nameof(GetById), new { id = sub.Id }, sub);
     }
+}
+
+public class UpdateStatusDto
+{
+    public string Status { get; set; } = string.Empty;
 }
