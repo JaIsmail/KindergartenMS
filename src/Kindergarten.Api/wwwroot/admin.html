@@ -508,12 +508,11 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <button class="btn btn-primary btn-sm" onclick="openAddListModal()">➕ إضافة عنصر</button>
     </div>
     <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-sm" onclick="filterLists('all')">الكل</button>
-      <button class="btn btn-ghost btn-sm" onclick="filterLists('Classes')">أنواع الفصول</button>
-      <button class="btn btn-ghost btn-sm" onclick="filterLists('SubscriptionTypes')">أنواع الاشتراكات</button>
-      <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentStatuses')">حالات الدفع</button>
-      <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentStatuses')">حالات الدفع</button>
-      <button class="btn btn-ghost btn-sm" onclick="filterLists('TripStatuses')">حالات الرحلات</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('all')" data-ar="الكل" data-en="All">الكل</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('Classes')" data-ar="أنواع الفصول" data-en="Class Types">أنواع الفصول</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('SubscriptionTypes')" data-ar="أنواع الاشتراكات" data-en="Subscription Types">أنواع الاشتراكات</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('TripStatuses')" data-ar="حالات الرحلات" data-en="Trip Statuses">حالات الرحلات</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentStatuses')" data-ar="حالات الدفع" data-en="Payment Statuses">حالات الدفع</button>
     </div>
     <div class="table-card"><div id="lists-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
