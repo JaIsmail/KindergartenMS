@@ -416,3 +416,13 @@ Notes completed: 2, 3, 6, 8, 18, 19, 20, 21, 27, 31
 - Completed: 10 (21%)
 - In progress / partial: 2 (Notes 7, 9)
 - Pending: 36 (75%)
+---
+
+## Note 49: Remove `Value` Field from DynamicLists 🔵 (Pre-Production)
+- **Phase 1 ✅ DONE:** Value field hidden from UI, auto-set from NameEn, dropdowns use nameEn
+- **Phase 2 (Before Production):**
+  - Data cleanup migration: set Value = NameEn for all existing rows
+  - Update backend hardcoded comparisons (e.g. trip.Status == "InProgress")
+  - EF Core migration to remove Value column from DynamicLists table
+  - Update API response — remove value from JSON
+  - Update MAUI — switch from item.value to item.nameEn
