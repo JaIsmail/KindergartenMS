@@ -2195,12 +2195,15 @@ async function loadPayments(){
 }
 
 async function loadPayStatusDropdown(){
-  const statuses = await api('/api/lists/PaymentStatuses') || [];
   const ar = currentLang === 'ar';
+  const statuses = await api('/api/lists/PaymentStatuses') || [];
   const sel = document.getElementById('payStatus');
-  if(sel && statuses.length) {
-    sel.innerHTML = statuses.map(s=>'<option value="'+s.value+'">'+( ar ? s.nameAr : s.nameEn)+'</option>').join('');
-  }
+  if(sel && statuses.length)
+    sel.innerHTML = statuses.map(s=>'<option value="'+s.nameEn+'">'+( ar ? s.nameAr : s.nameEn)+'</option>').join('');
+  const methods = await api('/api/lists/PaymentMethods') || [];
+  const mSel = document.getElementById('payMethod');
+  if(mSel && methods.length)
+    mSel.innerHTML = methods.map(m=>'<option value="'+m.nameEn+'">'+( ar ? m.nameAr : m.nameEn)+'</option>').join('');
 }
 
 async function recordPayment(){
