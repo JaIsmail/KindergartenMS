@@ -57,4 +57,14 @@ public class ChildrenController : ControllerBase
         if (!result) return NotFound();
         return NoContent();
     }
+
+    [HttpPut("{id}")]
+    [RequirePermission("ManageChildren")]
+    public async Task<IActionResult> Update(int id, [FromBody] CreateChildDto dto)
+    {
+        var child = await _childService.UpdateAsync(id, dto, GetUserId());
+        if (child == null) return NotFound();
+        return Ok(child);
+    }
+
 }

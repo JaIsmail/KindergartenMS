@@ -126,6 +126,18 @@ public class DynamicListsController : ControllerBase
             new() { Category="PaymentMethods", NameAr="مدى",           NameEn="Mada",            Value="Mada",            Order=4, TenantId=tenantId },
             new() { Category="PaymentMethods", NameAr="STC Pay",       NameEn="STC Pay",         Value="STC Pay",         Order=5, TenantId=tenantId },
             new() { Category="PaymentMethods", NameAr="Apple Pay",     NameEn="Apple Pay",       Value="Apple Pay",       Order=6, TenantId=tenantId },
+            // Age groups
+            new() { Category="AgeGroups", NameAr="حضانة (0-2)",     NameEn="Nursery (0-2)",   Value="Nursery",   Order=1, TenantId=tenantId },
+            new() { Category="AgeGroups", NameAr="ما قبل الروضة (2-3)", NameEn="Pre-KG (2-3)", Value="Pre-KG",    Order=2, TenantId=tenantId },
+            new() { Category="AgeGroups", NameAr="روضة (3-5)",      NameEn="KG (3-5)",        Value="KG",        Order=3, TenantId=tenantId },
+            new() { Category="AgeGroups", NameAr="الصف 1 و 2",      NameEn="Grade 1&2",       Value="Grade1-2",  Order=4, TenantId=tenantId },
+            new() { Category="AgeGroups", NameAr="فصل ABA",         NameEn="ABA Class",       Value="ABA",       Order=5, TenantId=tenantId },
+            // Neighborhoods (sample — admin adds more)
+            new() { Category="Neighborhoods", NameAr="العليا",       NameEn="Al Olaya",        Value="Al Olaya",       Order=1, TenantId=tenantId },
+            new() { Category="Neighborhoods", NameAr="النزهة",       NameEn="Al Nuzha",        Value="Al Nuzha",       Order=2, TenantId=tenantId },
+            new() { Category="Neighborhoods", NameAr="المربع",       NameEn="Al Murabba",      Value="Al Murabba",     Order=3, TenantId=tenantId },
+            new() { Category="Neighborhoods", NameAr="الروضة",       NameEn="Al Rawdah",       Value="Al Rawdah",      Order=4, TenantId=tenantId },
+            new() { Category="Neighborhoods", NameAr="المنصورة",     NameEn="Al Mansourah",    Value="Al Mansourah",   Order=5, TenantId=tenantId },
         };
 
         _db.DynamicLists.AddRange(items);

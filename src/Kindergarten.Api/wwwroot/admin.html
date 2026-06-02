@@ -329,20 +329,55 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   <div class="page" id="page-children">
     <div class="form-card">
       <h3 id="h-add-child">➕ إضافة طفل جديد</h3>
-      <div class="form-row">
-        <div class="form-field"><label id="lbl-child-name">اسم الطفل</label><input type="text" id="childName" placeholder="الاسم الكامل"></div>
-        <div class="form-field"><label id="lbl-child-dob">تاريخ الميلاد</label><input type="date" id="childDob"></div>
+
+      <div style="margin-bottom:0.75rem;padding:0.5rem 0.75rem;background:var(--surface2);border-radius:8px;font-size:0.8rem;color:var(--text2);font-weight:600">
+        🧒 البيانات الأساسية
       </div>
-      <div class="form-row full">
+      <div class="form-row">
+        <div class="form-field"><label>اسم الطفل *</label><input type="text" id="childName" placeholder="الاسم الكامل"></div>
+        <div class="form-field"><label>هوية الطفل</label><input type="text" id="childNationalId" placeholder="رقم الهوية"></div>
+      </div>
+      <div class="form-row">
         <div class="form-field">
-          <label id="lbl-child-parent">ولي الأمر</label>
-          <select id="childParent"></select>
+          <label>تاريخ الميلاد *</label>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <input type="date" id="childDob" style="flex:1" oninput="calcChildAge()">
+            <select id="childCalType" onchange="toggleCalendar()" style="width:110px;padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.8rem">
+              <option value="gregorian">ميلادي</option>
+              <option value="hijri">هجري</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>العمر</label>
+          <input type="text" id="childAge" placeholder="يحسب تلقائياً" readonly style="background:var(--surface2);cursor:default">
         </div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label id="lbl-child-class">الفصل</label><select id="childClass"><option value="">-- اختر الفصل --</option></select></div>
-        <div class="form-field"><label id="lbl-child-health">ملاحظات صحية</label><input type="text" id="childHealth" placeholder="أي حساسية أو ملاحظات"></div>
+        <div class="form-field"><label>ولي الأمر *</label><select id="childParent"></select></div>
+        <div class="form-field"><label>جوال الأم</label><input type="tel" id="childMotherPhone" placeholder="05xxxxxxxx"></div>
       </div>
+
+      <div style="margin:0.75rem 0;padding:0.5rem 0.75rem;background:var(--surface2);border-radius:8px;font-size:0.8rem;color:var(--text2);font-weight:600">
+        🏫 البيانات التعليمية
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>الفصل</label><select id="childClass"><option value="">-- اختر الفصل --</option></select></div>
+        <div class="form-field"><label>المرحلة العمرية</label><select id="childAgeGroup"><option value="">-- اختر المرحلة --</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>الحي</label><select id="childNeighborhood"><option value="">-- اختر الحي --</option></select></div>
+        <div class="form-field"><label>الحالة</label>
+          <select id="childIsActive">
+            <option value="true">نشط ✅</option>
+            <option value="false">غير نشط ❌</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field"><label>ملاحظات صحية</label><input type="text" id="childHealth" placeholder="أي حساسية أو ملاحظات صحية"></div>
+      </div>
+
       <button class="btn btn-primary" id="btn-add-child" onclick="createChild()">إضافة طفل</button>
     </div>
     <div class="section-header"><div><h3 id="h-all-children">جميع الأطفال</h3><p id="children-count">جاري التحميل...</p></div></div>
@@ -514,6 +549,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <button class="btn btn-ghost btn-sm" onclick="filterLists('TripStatuses')" data-ar="حالات الرحلات" data-en="Trip Statuses">حالات الرحلات</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentStatuses')" data-ar="حالات الدفع" data-en="Payment Statuses">حالات الدفع</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentMethods')" data-ar="طرق الدفع" data-en="Payment Methods">طرق الدفع</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('AgeGroups')" data-ar="المراحل العمرية" data-en="Age Groups">المراحل العمرية</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('Neighborhoods')" data-ar="الأحياء" data-en="Neighborhoods">الأحياء</button>
     </div>
     <div class="table-card"><div id="lists-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
@@ -535,6 +572,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
             <option value="TripStatuses" data-ar="حالات الرحلات" data-en="Trip Statuses">حالات الرحلات</option>
             <option value="PaymentStatuses" data-ar="حالات الدفع" data-en="Payment Statuses">حالات الدفع</option>
             <option value="PaymentMethods" data-ar="طرق الدفع" data-en="Payment Methods">طرق الدفع</option>
+            <option value="AgeGroups" data-ar="المراحل العمرية" data-en="Age Groups">المراحل العمرية</option>
+            <option value="Neighborhoods" data-ar="الأحياء" data-en="Neighborhoods">الأحياء</option>
           </select>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
@@ -1311,7 +1350,9 @@ async function loadLists(){
       SubscriptionTypes:{ar:'أنواع الاشتراكات',  en:'Subscription Types'},
       TripStatuses:     {ar:'حالات الرحلات',     en:'Trip Statuses'},
       PaymentStatuses:  {ar:'حالات الدفع',       en:'Payment Statuses'},
-      PaymentMethods:   {ar:'طرق الدفع',        en:'Payment Methods'}
+      PaymentMethods:   {ar:'طرق الدفع',        en:'Payment Methods'},
+      AgeGroups:        {ar:'المراحل العمرية',  en:'Age Groups'},
+      Neighborhoods:    {ar:'الأحياء',          en:'Neighborhoods'}
     };
   div.innerHTML = '<table><thead><tr><th>#</th><th>'+(ar?'التصنيف':'Category')+'</th><th>'+(ar?'الاسم':'Name')+'</th><th>'+(ar?'الترتيب':'Order')+'</th><th>'+(ar?'إجراء':'Action')+'</th></tr></thead><tbody>'+
     items.map(i=>'<tr>'+
@@ -1406,8 +1447,36 @@ async function loadDashboard(){
   else{subsDiv.innerHTML='<table><thead><tr><th>'+t('cols.child')+'</th><th>'+t('cols.type')+'</th><th>'+t('cols.status')+'</th></tr></thead><tbody>'+subs.slice(0,5).map(s=>'<tr><td>'+s.childName+'</td><td><span class="badge badge-blue">'+s.type+'</span></td><td>'+statusBadge(s.paymentStatus)+'</td></tr>').join('')+'</tbody></table>';}
 }
 
+
+function calcChildAge() {
+  const dob = document.getElementById('childDob')?.value;
+  const ageEl = document.getElementById('childAge');
+  if (!dob || !ageEl) return;
+  const birth = new Date(dob);
+  const now = new Date();
+  let years = now.getFullYear() - birth.getFullYear();
+  let months = now.getMonth() - birth.getMonth();
+  if (months < 0) { years--; months += 12; }
+  ageEl.value = years > 0 ? `${years} سنة ${months} شهر` : `${months} شهر`;
+}
+
+function toggleCalendar() {
+  const type = document.getElementById('childCalType')?.value;
+  const dobInput = document.getElementById('childDob');
+  if (!dobInput) return;
+  if (type === 'hijri') {
+    dobInput.setAttribute('data-hijri', 'true');
+    dobInput.placeholder = 'YYYY/MM/DD هجري';
+  } else {
+    dobInput.removeAttribute('data-hijri');
+    dobInput.placeholder = '';
+  }
+}
+
 async function loadChildren(){
   await loadDynamicList('Classes', 'childClass');
+  await loadDynamicList('AgeGroups', 'childAgeGroup');
+  await loadDynamicList('Neighborhoods', 'childNeighborhood');
   // Load parents for dropdown
   const users=await api('/api/users');
   const parentSel=document.getElementById('childParent');
@@ -1425,8 +1494,15 @@ async function loadChildren(){
 }
 
 async function createChild(){
-  const name=document.getElementById('childName').value;const dob=document.getElementById('childDob').value;
-  const cls=document.getElementById('childClass').value;const health=document.getElementById('childHealth').value;
+  const name=document.getElementById('childName').value;
+  const dob=document.getElementById('childDob').value;
+  const cls=document.getElementById('childClass').value;
+  const health=document.getElementById('childHealth').value;
+  const nationalId=document.getElementById('childNationalId')?.value||'';
+  const ageGroup=document.getElementById('childAgeGroup')?.value||'';
+  const motherPhone=document.getElementById('childMotherPhone')?.value||'';
+  const neighborhood=document.getElementById('childNeighborhood')?.value||'';
+  const isActive=document.getElementById('childIsActive')?.value!=='false';
   if(!name||!dob){showToast(t('err.fill'),'error');return;}
   const result=await api('/api/children','POST',{name,birthDate:dob,class:cls,healthNotes:health});
   if(result){showToast('✅ '+t('succ.child'),'success');document.getElementById('childName').value='';document.getElementById('childDob').value='';loadChildren();}

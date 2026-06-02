@@ -24,13 +24,18 @@ public class ChildService : IChildService
         return await query
             .Select(c => new ChildResponseDto
             {
-                Id          = c.Id,
-                Name        = c.Name,
-                BirthDate   = c.BirthDate,
-                Class       = c.Class,
-                HealthNotes = c.HealthNotes,
-                ParentId    = c.ParentId,
-                ParentName  = c.Parent.FullName
+                Id           = c.Id,
+                Name         = c.Name,
+                NationalId   = c.NationalId,
+                BirthDate    = c.BirthDate,
+                Class        = c.Class,
+                AgeGroup     = c.AgeGroup,
+                MotherPhone  = c.MotherPhone,
+                Neighborhood = c.Neighborhood,
+                HealthNotes  = c.HealthNotes,
+                IsActive     = c.IsActive,
+                ParentId     = c.ParentId,
+                ParentName   = c.Parent.FullName
             })
             .ToListAsync();
     }
@@ -45,13 +50,18 @@ public class ChildService : IChildService
 
         return new ChildResponseDto
         {
-            Id          = c.Id,
-            Name        = c.Name,
-            BirthDate   = c.BirthDate,
-            Class       = c.Class,
-            HealthNotes = c.HealthNotes,
-            ParentId    = c.ParentId,
-            ParentName  = c.Parent.FullName
+            Id           = c.Id,
+            Name         = c.Name,
+            NationalId   = c.NationalId,
+            BirthDate    = c.BirthDate,
+            Class        = c.Class,
+            AgeGroup     = c.AgeGroup,
+            MotherPhone  = c.MotherPhone,
+            Neighborhood = c.Neighborhood,
+            HealthNotes  = c.HealthNotes,
+            IsActive     = c.IsActive,
+            ParentId     = c.ParentId,
+            ParentName   = c.Parent.FullName
         };
     }
 
@@ -59,12 +69,17 @@ public class ChildService : IChildService
     {
         var child = new Child
         {
-            Name        = dto.Name,
-            BirthDate   = dto.BirthDate,
-            Class       = dto.Class,
-            HealthNotes = dto.HealthNotes,
-            ParentId    = parentId,
-            TenantId    = _tenantService.GetTenantId()
+            Name         = dto.Name,
+            NationalId   = dto.NationalId,
+            BirthDate    = dto.BirthDate,
+            Class        = dto.Class,
+            AgeGroup     = dto.AgeGroup,
+            MotherPhone  = dto.MotherPhone,
+            Neighborhood = dto.Neighborhood,
+            HealthNotes  = dto.HealthNotes,
+            IsActive     = dto.IsActive,
+            ParentId     = parentId,
+            TenantId     = _tenantService.GetTenantId()
         };
 
         _db.Children.Add(child);
@@ -74,13 +89,18 @@ public class ChildService : IChildService
 
         return new ChildResponseDto
         {
-            Id          = child.Id,
-            Name        = child.Name,
-            BirthDate   = child.BirthDate,
-            Class       = child.Class,
-            HealthNotes = child.HealthNotes,
-            ParentId    = child.ParentId,
-            ParentName  = parent?.FullName ?? string.Empty
+            Id           = child.Id,
+            Name         = child.Name,
+            NationalId   = child.NationalId,
+            BirthDate    = child.BirthDate,
+            Class        = child.Class,
+            AgeGroup     = child.AgeGroup,
+            MotherPhone  = child.MotherPhone,
+            Neighborhood = child.Neighborhood,
+            HealthNotes  = child.HealthNotes,
+            IsActive     = child.IsActive,
+            ParentId     = child.ParentId,
+            ParentName   = parent?.FullName ?? string.Empty
         };
     }
 
@@ -95,4 +115,44 @@ public class ChildService : IChildService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    public async Task<ChildResponseDto?> UpdateAsync(int id, CreateChildDto dto, string parentId)
+    {
+        var canViewAll = true; // called from admin context
+        var child = await _db.Children
+            .Include(c => c.Parent)
+            .FirstOrDefaultAsync(c => c.Id == id);
+        if (child == null) return null;
+
+        child.Name         = dto.Name;
+        child.NationalId   = dto.NationalId;
+        child.BirthDate    = dto.BirthDate;
+        child.Class        = dto.Class;
+        child.AgeGroup     = dto.AgeGroup;
+        child.MotherPhone  = dto.MotherPhone;
+        child.Neighborhood = dto.Neighborhood;
+        child.HealthNotes  = dto.HealthNotes;
+        child.IsActive     = dto.IsActive;
+        if (!string.IsNullOrEmpty(dto.ParentId))
+            child.ParentId = dto.ParentId;
+
+        await _db.SaveChangesAsync();
+
+        return new ChildResponseDto
+        {
+            Id           = child.Id,
+            Name         = child.Name,
+            NationalId   = child.NationalId,
+            BirthDate    = child.BirthDate,
+            Class        = child.Class,
+            AgeGroup     = child.AgeGroup,
+            MotherPhone  = child.MotherPhone,
+            Neighborhood = child.Neighborhood,
+            HealthNotes  = child.HealthNotes,
+            IsActive     = child.IsActive,
+            ParentId     = child.ParentId,
+            ParentName   = child.Parent?.FullName ?? string.Empty
+        };
+    }
+
 }

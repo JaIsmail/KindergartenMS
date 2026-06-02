@@ -9,7 +9,12 @@ public class Child
     public string Name { get; set; } = string.Empty;
     public DateTime BirthDate { get; set; }
     public string Class { get; set; } = string.Empty;
-    public string HealthNotes { get; set; } = string.Empty;
+    public string HealthNotes      { get; set; } = string.Empty;
+    public string NationalId       { get; set; } = string.Empty;
+    public string MotherPhone      { get; set; } = string.Empty;
+    public string Neighborhood     { get; set; } = string.Empty;
+    public string AgeGroup         { get; set; } = string.Empty;
+    public bool   IsActive         { get; set; } = true;
     public ApplicationUser Parent { get; set; } = null!;
     public ICollection<TripChild> TripChildren { get; set; } = new List<TripChild>();
 }
