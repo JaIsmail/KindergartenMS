@@ -1672,6 +1672,58 @@ async function viewChildDetails(childId) {
   document.getElementById('childDetailsModal').classList.add('open');
 }
 
+
+async function openEditChild(childId) {
+  const data = await api('/api/children');
+  const ch = data && data.find(function(x){return x.id===childId;});
+  if (!ch) return showToast('لم يتم العثور على بيانات الطفل','error');
+  const ar = currentLang === 'ar';
+  document.getElementById('editChildId').value = ch.id;
+  document.getElementById('editChildName').value = ch.name || '';
+  document.getElementById('editChildNationalId').value = ch.nationalId || '';
+  document.getElementById('editChildDob').value = ch.birthDate ? ch.birthDate.split('T')[0] : '';
+  document.getElementById('editChildMotherPhone').value = ch.motherPhone || '';
+  document.getElementById('editChildHealth').value = ch.healthNotes || '';
+  document.getElementById('editChildIsActive').value = ch.isActive !== false ? 'true' : 'false';
+  var clsEl=document.getElementById('editChildClass');
+  var agEl=document.getElementById('editChildAgeGroup');
+  var nbEl=document.getElementById('editChildNeighborhood');
+  if(clsEl) clsEl.innerHTML='';
+  if(agEl) agEl.innerHTML='';
+  if(nbEl) nbEl.innerHTML='';
+  await loadDynamicList('Classes','editChildClass',ch.class||'');
+  await loadDynamicList('AgeGroups','editChildAgeGroup',ch.ageGroup||'');
+  await loadDynamicList('Neighborhoods','editChildNeighborhood',ch.neighborhood||'');
+  const users=await api('/api/users');
+  const parentSel=document.getElementById('editChildParent');
+  if(users&&parentSel){
+    const parents=users.filter(function(u){return u.roleType==='Parent';});
+    parentSel.innerHTML='<option value="">-- '+(ar?'اختر ولي الأمر':'Select Parent')+' --</option>'+
+      parents.map(function(p){return '<option value="'+p.id+'"'+(p.id===ch.parentId?' selected':'')+'>'+p.fullName+'</option>';}).join('');
+  }
+  document.getElementById('editChildModal').classList.add('open');
+}
+
+async function saveEditChild() {
+  var id=document.getElementById('editChildId').value;
+  var name=document.getElementById('editChildName').value;
+  var nationalId=document.getElementById('editChildNationalId').value;
+  var birthDate=document.getElementById('editChildDob').value;
+  var cls=document.getElementById('editChildClass').value;
+  var ageGroup=document.getElementById('editChildAgeGroup').value;
+  var motherPhone=document.getElementById('editChildMotherPhone').value;
+  var neighborhood=document.getElementById('editChildNeighborhood').value;
+  var healthNotes=document.getElementById('editChildHealth').value;
+  var isActive=document.getElementById('editChildIsActive').value!=='false';
+  var parentId=document.getElementById('editChildParent').value;
+  if(!name) return showToast(currentLang==='ar'?'اسم الطفل مطلوب':'Child name required','error');
+  var result=await api('/api/children/'+id,'PUT',{name,nationalId,birthDate,class:cls,ageGroup,motherPhone,neighborhood,healthNotes,isActive,parentId});
+  if(result){
+    showToast('ok '+(currentLang==='ar'?'تم تحديث بيانات الطفل':'Child updated'),'success');
+    closeModal('editChildModal');
+    loadChildren();
+  } else showToast(currentLang==='ar'?'فشل التحديث':'Update failed','error');
+}
 async function loadChildren(){
   // already cleared in table section below — skip duplicate load here
   // Load parents for dropdown
