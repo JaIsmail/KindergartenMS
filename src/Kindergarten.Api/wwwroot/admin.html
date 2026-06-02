@@ -1453,7 +1453,7 @@ async function saveListItem(){
     closeModal('listModal');
     loadLists();
     // Reload dropdowns
-    loadDynamicList('Classes','childClass');
+    // loadDynamicList moved to loadChildren to prevent duplicates
     loadDynamicList('SubscriptionTypes','subType');
   } else showToast('❌ فشل الحفظ','error');
 }
