@@ -335,7 +335,15 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       </div>
       <div class="form-row">
         <div class="form-field"><label>اسم الطفل *</label><input type="text" id="childName" placeholder="الاسم الكامل"></div>
-        <div class="form-field"><label>هوية الطفل</label><input type="text" id="childNationalId" placeholder="رقم الهوية"></div>
+        <div class="form-field">
+          <label>هوية الطفل</label>
+          <input type="text" id="childNationalId" placeholder="رقم الهوية (10 أرقام)" maxlength="10"
+            oninput="validateNationalId(this)"
+            style="transition:border-color 0.2s">
+          <div id="nidError" style="font-size:0.72rem;color:#dc2626;margin-top:0.25rem;display:none">
+            ⚠️ رقم الهوية يجب أن يكون 10 أرقام
+          </div>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-field">
@@ -1587,6 +1595,76 @@ function onGregorianChange() {
 }
 
 
+
+
+function validateNationalId(input) {
+  const val = input.value.replace(/\D/g,'');
+  input.value = val; // numbers only
+  const errEl = document.getElementById('nidError');
+  if (val.length > 0 && val.length !== 10) {
+    input.style.borderColor = '#dc2626';
+    if(errEl) errEl.style.display = 'block';
+  } else {
+    input.style.borderColor = val.length===10 ? '#16a34a' : 'var(--border)';
+    if(errEl) errEl.style.display = 'none';
+  }
+}
+
+async function viewChildDetails(childId) {
+  const data = await api('/api/children');
+  const ch = data?.find(x => x.id === childId);
+  if (!ch) return;
+  const ar = currentLang === 'ar';
+  const hijri = ch.birthDate ? new Date(ch.birthDate).toLocaleDateString('ar-SA-u-ca-islamic',{year:'numeric',month:'long',day:'numeric'}) : '—';
+  const gregorian = ch.birthDate ? formatDate(ch.birthDate) : '—';
+
+  // Calculate age
+  let ageStr = '—';
+  if (ch.birthDate) {
+    const birth = new Date(ch.birthDate);
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    if (months < 0) { years--; months += 12; }
+    ageStr = years > 0 ? `${years} ${ar?'سنة':'yr'} ${months} ${ar?'شهر':'mo'}` : `${months} ${ar?'شهر':'mo'}`;
+  }
+
+  const html = `
+    <div style="padding:0.5rem">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;font-weight:800;flex-shrink:0">
+          ${ch.name[0]}
+        </div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:800;color:var(--text1)">${ch.name}</div>
+          <div style="font-size:0.8rem;color:var(--text3)">${ch.ageGroup||'—'} · ${ch.class||'—'}</div>
+        </div>
+        <span style="margin-right:auto;background:${ch.isActive!==false?'#dcfce7':'#fee2e2'};color:${ch.isActive!==false?'#16a34a':'#dc2626'};padding:0.25rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700">
+          ${ch.isActive!==false?(ar?'نشط':'Active'):(ar?'غير نشط':'Inactive')}
+        </span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
+        ${[
+          [ar?'هوية الطفل':'National ID', ch.nationalId||'—'],
+          [ar?'تاريخ الميلاد (م)':'Birth Date (G)', gregorian],
+          [ar?'تاريخ الميلاد (هـ)':'Birth Date (H)', hijri],
+          [ar?'العمر':'Age', ageStr],
+          [ar?'ولي الأمر':'Parent', ch.parentName||'—'],
+          [ar?'جوال الأم':'Mother Phone', ch.motherPhone||'—'],
+          [ar?'الحي':'Neighborhood', ch.neighborhood||'—'],
+          [ar?'الفصل':'Class', ch.class||'—'],
+          [ar?'الملاحظات الصحية':'Health Notes', ch.healthNotes||'—'],
+        ].map(([label,val])=>`
+          <div style="background:var(--surface2);border-radius:10px;padding:0.65rem 0.75rem">
+            <div style="font-size:0.68rem;color:var(--text3);font-weight:600;margin-bottom:0.2rem">${label}</div>
+            <div style="font-weight:600;color:var(--text1);font-size:0.85rem">${val}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  document.getElementById('childDetailsBody').innerHTML = html;
+  document.getElementById('childDetailsModal').classList.add('open');
+}
 
 async function loadChildren(){
   await loadDynamicList('Classes', 'childClass');
