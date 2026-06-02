@@ -1217,8 +1217,14 @@ async function loadDynamicList(category, selectId, selectedValue=''){
   const sel = document.getElementById(selectId);
   if(!sel) return;
   const ar = currentLang === 'ar';
-  sel.innerHTML = '<option value="">-- اختر --</option>' +
-    items.map(i => `<option value="${i.nameEn}" ${i.nameEn===selectedValue?'selected':''}>${ar?i.nameAr:i.nameEn}</option>`).join('');
+  sel.options.length = 0;
+  const placeholder = new Option('-- ' + (ar?'اختر':'Select') + ' --', '');
+  sel.add(placeholder);
+  items.forEach(i => {
+    const opt = new Option(ar?i.nameAr:i.nameEn, i.nameEn);
+    if(i.nameEn===selectedValue) opt.selected = true;
+    sel.add(opt);
+  });
 }
 
 let currentListFilter = 'all';
