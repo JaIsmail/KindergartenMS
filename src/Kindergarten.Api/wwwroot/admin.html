@@ -340,12 +340,41 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <div class="form-row">
         <div class="form-field">
           <label>تاريخ الميلاد *</label>
-          <div style="display:flex;gap:0.5rem;align-items:center">
-            <input type="date" id="childDob" style="flex:1" oninput="calcChildAge()">
-            <select id="childCalType" onchange="toggleCalendar()" style="width:110px;padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.8rem">
-              <option value="gregorian">ميلادي</option>
-              <option value="hijri">هجري</option>
-            </select>
+          <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.35rem">
+            <button type="button" id="calTypeBtn" onclick="switchCalType()"
+              style="padding:0.35rem 0.75rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.78rem;cursor:pointer;background:var(--surface2);font-family:inherit;font-weight:600">
+              ميلادي ⇄ هجري
+            </button>
+            <span id="calTypeLabel" style="font-size:0.78rem;color:var(--text2)">التقويم الميلادي</span>
+          </div>
+          <div id="gregorianPicker">
+            <input type="date" id="childDob" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-size:0.85rem;box-sizing:border-box" oninput="onGregorianChange()">
+          </div>
+          <div id="hijriPicker" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem">
+              <select id="hijriDay" onchange="onHijriChange()" style="padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem">
+                <option value="">يوم</option>
+              </select>
+              <select id="hijriMonth" onchange="onHijriChange()" style="padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem">
+                <option value="">شهر</option>
+                <option value="1">محرم</option>
+                <option value="2">صفر</option>
+                <option value="3">ربيع الأول</option>
+                <option value="4">ربيع الثاني</option>
+                <option value="5">جمادى الأولى</option>
+                <option value="6">جمادى الآخرة</option>
+                <option value="7">رجب</option>
+                <option value="8">شعبان</option>
+                <option value="9">رمضان</option>
+                <option value="10">شوال</option>
+                <option value="11">ذو القعدة</option>
+                <option value="12">ذو الحجة</option>
+              </select>
+              <select id="hijriYear" onchange="onHijriChange()" style="padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem">
+                <option value="">سنة</option>
+              </select>
+            </div>
+            <div id="hijriEquiv" style="font-size:0.75rem;color:var(--text3);margin-top:0.35rem;text-align:center"></div>
           </div>
         </div>
         <div class="form-field">
@@ -1460,18 +1489,104 @@ function calcChildAge() {
   ageEl.value = years > 0 ? `${years} سنة ${months} شهر` : `${months} شهر`;
 }
 
-function toggleCalendar() {
-  const type = document.getElementById('childCalType')?.value;
-  const dobInput = document.getElementById('childDob');
-  if (!dobInput) return;
-  if (type === 'hijri') {
-    dobInput.setAttribute('data-hijri', 'true');
-    dobInput.placeholder = 'YYYY/MM/DD هجري';
+
+// ── Hijri / Gregorian Dual Calendar ──────────────────────────────
+let _calType = 'gregorian';
+
+function switchCalType() {
+  _calType = _calType === 'gregorian' ? 'hijri' : 'gregorian';
+  const gPicker = document.getElementById('gregorianPicker');
+  const hPicker = document.getElementById('hijriPicker');
+  const label   = document.getElementById('calTypeLabel');
+  if (_calType === 'hijri') {
+    if(gPicker) gPicker.style.display = 'none';
+    if(hPicker) hPicker.style.display = 'block';
+    if(label)   label.textContent = 'التقويم الهجري';
+    populateHijriDropdowns();
   } else {
-    dobInput.removeAttribute('data-hijri');
-    dobInput.placeholder = '';
+    if(gPicker) gPicker.style.display = 'block';
+    if(hPicker) hPicker.style.display = 'none';
+    if(label)   label.textContent = 'التقويم الميلادي';
   }
 }
+
+function populateHijriDropdowns() {
+  const dayEl  = document.getElementById('hijriDay');
+  const yearEl = document.getElementById('hijriYear');
+  if (!dayEl || !yearEl) return;
+  if (dayEl.options.length > 1) return; // already populated
+  for (let d = 1; d <= 30; d++) {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    dayEl.appendChild(opt);
+  }
+  // Hijri years range: 1420-1460
+  for (let y = 1460; y >= 1420; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y + ' هـ';
+    yearEl.appendChild(opt);
+  }
+}
+
+function hijriToGregorian(hy, hm, hd) {
+  // Using Intl API to convert — create a date and format as Islamic
+  // Reverse: estimate Gregorian from Hijri using offset ~622 years
+  // More accurate: use formula
+  const N = hd + Math.ceil(29.5001 * (hm - 1)) +
+            (hy - 1) * 354 + Math.floor((3 + (11 * hy)) / 30) + 1948440 - 385;
+  const l = N + 68569;
+  const n = Math.floor((4 * l) / 146097);
+  const l2 = l - Math.floor((146097 * n + 3) / 4);
+  const i = Math.floor((4000 * (l2 + 1)) / 1461001);
+  const l3 = l2 - Math.floor((1461 * i) / 4) + 31;
+  const j = Math.floor((80 * l3) / 2447);
+  const day   = l3 - Math.floor((2447 * j) / 80);
+  const l4    = Math.floor(j / 11);
+  const month = j + 2 - 12 * l4;
+  const year  = 100 * (n - 49) + i + l4;
+  return { year, month, day };
+}
+
+function onHijriChange() {
+  const hd = parseInt(document.getElementById('hijriDay')?.value);
+  const hm = parseInt(document.getElementById('hijriMonth')?.value);
+  const hy = parseInt(document.getElementById('hijriYear')?.value);
+  const equiv = document.getElementById('hijriEquiv');
+  if (!hd || !hm || !hy) { if(equiv) equiv.textContent = ''; return; }
+
+  const g = hijriToGregorian(hy, hm, hd);
+  const gDate = `${g.year}-${String(g.month).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
+
+  // Set hidden gregorian input so backend gets correct value
+  const dobInput = document.getElementById('childDob');
+  if (dobInput) dobInput.value = gDate;
+
+  // Show equivalent
+  const gFormatted = new Date(gDate).toLocaleDateString('ar-SA', {year:'numeric',month:'long',day:'numeric'});
+  if (equiv) equiv.textContent = 'يوافق: ' + gFormatted + ' م';
+
+  calcChildAge();
+}
+
+function onGregorianChange() {
+  const dob = document.getElementById('childDob')?.value;
+  if (!dob) return;
+  // Show hijri equivalent below gregorian input
+  const hijri = new Date(dob).toLocaleDateString('ar-SA-u-ca-islamic', {
+    year:'numeric', month:'long', day:'numeric'
+  });
+  let equiv = document.getElementById('gregorianHijriEquiv');
+  if (!equiv) {
+    equiv = document.createElement('div');
+    equiv.id = 'gregorianHijriEquiv';
+    equiv.style.cssText = 'font-size:0.75rem;color:var(--text3);margin-top:0.35rem;text-align:center';
+    document.getElementById('gregorianPicker')?.appendChild(equiv);
+  }
+  equiv.textContent = 'يوافق: ' + hijri + ' هـ';
+  calcChildAge();
+}
+
+
 
 async function loadChildren(){
   await loadDynamicList('Classes', 'childClass');
