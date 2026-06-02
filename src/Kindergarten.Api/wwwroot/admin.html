@@ -1667,9 +1667,7 @@ async function viewChildDetails(childId) {
 }
 
 async function loadChildren(){
-  await loadDynamicList('Classes', 'childClass');
-  await loadDynamicList('AgeGroups', 'childAgeGroup');
-  await loadDynamicList('Neighborhoods', 'childNeighborhood');
+  // already cleared in table section below — skip duplicate load here
   // Load parents for dropdown
   const users=await api('/api/users');
   const parentSel=document.getElementById('childParent');
@@ -1683,7 +1681,35 @@ async function loadChildren(){
   document.getElementById('childrenBadge').textContent=count;
   const div=document.getElementById('children-table');
   if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">👶</div><h4>'+t('noData')+'</h4></div>';return;}
-  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.name')+'</th><th>'+t('cols.dob')+'</th><th>'+t('cols.class')+'</th><th>'+t('cols.parent')+'</th><th>'+t('cols.health')+'</th></tr></thead><tbody>'+data.map(c=>'<tr><td style="color:var(--text3)">#'+c.id+'</td><td><strong>'+c.name+'</strong></td><td>'+formatDate(c.birthDate)+'</td><td><span class="badge badge-blue">'+c.class+'</span></td><td>'+c.parentName+'</td><td style="color:var(--text3)">'+(c.healthNotes||'—')+'</td></tr>').join('')+'</tbody></table>';
+  const ar=currentLang==='ar';
+  // Clear dropdowns to prevent duplicates
+  ['childClass','childAgeGroup','childNeighborhood'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.innerHTML='';
+  });
+  await loadDynamicList('Classes','childClass');
+  await loadDynamicList('AgeGroups','childAgeGroup');
+  await loadDynamicList('Neighborhoods','childNeighborhood');
+  div.innerHTML='<table><thead><tr>'+
+    '<th>#</th>'+
+    '<th>'+(ar?'الاسم':'Name')+'</th>'+
+    '<th>'+(ar?'المرحلة':'Age Group')+'</th>'+
+    '<th>'+(ar?'الفصل':'Class')+'</th>'+
+    '<th>'+(ar?'الحي':'Area')+'</th>'+
+    '<th>'+(ar?'ولي الأمر':'Parent')+'</th>'+
+    '<th>'+(ar?'الحالة':'Status')+'</th>'+
+    '<th>'+(ar?'إجراء':'Action')+'</th>'+
+    '</tr></thead><tbody>'+
+    data.map(ch=>'<tr>'+
+      '<td style="color:var(--text3)">#'+ch.id+'</td>'+
+      '<td><strong>'+ch.name+'</strong><br><small style="color:var(--text3)">'+formatDate(ch.birthDate)+'</small></td>'+
+      '<td><span class="badge badge-purple">'+(ch.ageGroup||'—')+'</span></td>'+
+      '<td><span class="badge badge-blue">'+(ch.class||'—')+'</span></td>'+
+      '<td style="color:var(--text3);font-size:0.8rem">'+(ch.neighborhood||'—')+'</td>'+
+      '<td>'+ch.parentName+'</td>'+
+      '<td>'+(ch.isActive!==false?'<span class="badge badge-green">'+(ar?'نشط':'Active')+'</span>':'<span class="badge badge-red">'+(ar?'غير نشط':'Inactive')+'</span>')+'</td>'+
+      '<td><button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="viewChildDetails('+ch.id+')">'+(ar?'عرض':'View')+'</button></td>'+
+    '</tr>').join('')+
+    '</tbody></table>';
 }
 
 async function createChild(){
@@ -1697,9 +1723,24 @@ async function createChild(){
   const neighborhood=document.getElementById('childNeighborhood')?.value||'';
   const isActive=document.getElementById('childIsActive')?.value!=='false';
   if(!name||!dob){showToast(t('err.fill'),'error');return;}
-  const result=await api('/api/children','POST',{name,birthDate:dob,class:cls,healthNotes:health});
-  if(result){showToast('✅ '+t('succ.child'),'success');document.getElementById('childName').value='';document.getElementById('childDob').value='';loadChildren();}
-  else showToast(t('err.failed'),'error');
+  // Validate national ID
+  if(nationalId && (nationalId.length!==10||!/^\d{10}$/.test(nationalId))){
+    showToast(currentLang==='ar'?'رقم الهوية يجب أن يكون 10 أرقام':'National ID must be exactly 10 digits','error');
+    return;
+  }
+  const parentId=document.getElementById('childParent')?.value||'';
+  const result=await api('/api/children','POST',{name,nationalId,birthDate:dob,class:cls,ageGroup,motherPhone,neighborhood,healthNotes:health,isActive,parentId});
+  if(result){
+    showToast('✅ '+(currentLang==='ar'?'تم إضافة الطفل':'Child added'),'success');
+    ['childName','childDob','childNationalId','childAge','childMotherPhone','childHealth'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    ['childClass','childAgeGroup','childNeighborhood','childIsActive'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.selectedIndex=0;
+    });
+    if(document.getElementById('childNationalId')) document.getElementById('childNationalId').style.borderColor='';
+    loadChildren();
+  } else showToast(t('err.failed'),'error');
 }
 
 async function openCreateTripModal(){
