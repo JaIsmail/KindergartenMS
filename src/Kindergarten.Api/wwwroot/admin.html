@@ -1713,7 +1713,10 @@ async function loadChildren(){
       '<td style="color:var(--text3);font-size:0.8rem">'+(ch.neighborhood||'—')+'</td>'+
       '<td>'+ch.parentName+'</td>'+
       '<td>'+(ch.isActive!==false?'<span class="badge badge-green">'+(ar?'نشط':'Active')+'</span>':'<span class="badge badge-red">'+(ar?'غير نشط':'Inactive')+'</span>')+'</td>'+
-      '<td><button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="viewChildDetails('+ch.id+')">'+(ar?'عرض':'View')+'</button></td>'+
+      '<td>'+
+      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="viewChildDetails('+ch.id+')">'+(ar?'عرض':'View')+'</button> '+
+      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem;background:var(--primary2);color:#fff" onclick="openEditChild('+ch.id+')">'+(ar?'تعديل':'Edit')+'</button>'+
+      '</td>'+
     '</tr>').join('')+
     '</tbody></table>';
 }
@@ -2816,6 +2819,63 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
     </div>
   </div>
 
-  <div class="modal-overlay" id="childDetailsModal"><div class="modal" style="max-width:560px"><div class="modal-header"><h3 id="childDetailsTitle">بيانات الطفل</h3><button class="modal-close" onclick="closeModal('childDetailsModal')"></body>#x2715;</button></div><div class="modal-body" id="childDetailsBody" style="padding:1.25rem"></div></div></div>
+  <!-- Child Details Modal -->
+  <div class="modal-overlay" id="childDetailsModal">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header">
+        <h3 id="childDetailsTitle">بيانات الطفل</h3>
+        <button class="modal-close" onclick="closeModal('childDetailsModal')">✕</button>
+      </div>
+      <div class="modal-body" id="childDetailsBody" style="padding:1.25rem"></div>
+    </div>
+  </div>
+
+  <!-- Edit Child Modal -->
+  <div class="modal-overlay" id="editChildModal">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <h3>تعديل بيانات الطفل</h3>
+        <button class="modal-close" onclick="closeModal('editChildModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:1.25rem">
+        <input type="hidden" id="editChildId">
+        <div style="margin-bottom:0.75rem;padding:0.5rem 0.75rem;background:var(--surface2);border-radius:8px;font-size:0.8rem;color:var(--text2);font-weight:600">🧒 البيانات الأساسية</div>
+        <div class="form-row">
+          <div class="form-field"><label>اسم الطفل *</label><input type="text" id="editChildName"></div>
+          <div class="form-field"><label>هوية الطفل</label><input type="text" id="editChildNationalId" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>تاريخ الميلاد</label><input type="date" id="editChildDob"></div>
+          <div class="form-field"><label>جوال الأم</label><input type="tel" id="editChildMotherPhone" placeholder="05xxxxxxxx"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>ولي الأمر</label><select id="editChildParent"></select></div>
+          <div class="form-field"><label>الحالة</label>
+            <select id="editChildIsActive">
+              <option value="true">نشط ✅</option>
+              <option value="false">غير نشط ❌</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin:0.75rem 0;padding:0.5rem 0.75rem;background:var(--surface2);border-radius:8px;font-size:0.8rem;color:var(--text2);font-weight:600">🏫 البيانات التعليمية</div>
+        <div class="form-row">
+          <div class="form-field"><label>الفصل</label><select id="editChildClass"></select></div>
+          <div class="form-field"><label>المرحلة العمرية</label><select id="editChildAgeGroup"></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>الحي</label><select id="editChildNeighborhood"></select></div>
+          <div class="form-field"></div>
+        </div>
+        <div class="form-row full">
+          <div class="form-field"><label>ملاحظات صحية</label><input type="text" id="editChildHealth"></div>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:1rem">
+          <button class="btn btn-primary" style="flex:1" onclick="saveEditChild()">💾 حفظ التعديلات</button>
+          <button class="btn btn-ghost" style="flex:1" onclick="closeModal('editChildModal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
