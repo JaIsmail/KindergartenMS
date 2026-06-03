@@ -20,6 +20,7 @@ public class SubscriptionService : ISubscriptionService
     {
         return await _db.Subscriptions
             .Include(s => s.Child)
+            .Include(s => s.Parent)
             .Where(s => parentId == null || s.ParentId == parentId)
             .Select(s => new SubscriptionResponseDto
             {
@@ -30,7 +31,10 @@ public class SubscriptionService : ISubscriptionService
                 Price         = s.Price,
                 StartDate     = s.StartDate,
                 EndDate       = s.EndDate,
-                PaymentStatus = s.PaymentStatus
+                PaymentStatus = s.PaymentStatus,
+                Period        = s.Period,
+                ParentId      = s.ParentId,
+                ParentName    = s.Parent != null ? s.Parent.FullName : string.Empty
             })
             .ToListAsync();
     }
@@ -39,6 +43,7 @@ public class SubscriptionService : ISubscriptionService
     {
         var s = await _db.Subscriptions
             .Include(s => s.Child)
+            .Include(s => s.Parent)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (s == null) return null;
@@ -52,28 +57,38 @@ public class SubscriptionService : ISubscriptionService
             Price         = s.Price,
             StartDate     = s.StartDate,
             EndDate       = s.EndDate,
-            PaymentStatus = s.PaymentStatus
+            PaymentStatus = s.PaymentStatus,
+            Period        = s.Period,
+            ParentId      = s.ParentId,
+            ParentName    = s.Parent?.FullName ?? string.Empty
         };
     }
 
     public async Task<SubscriptionResponseDto> CreateAsync(CreateSubscriptionDto dto, string parentId)
     {
+        // Auto-set ParentId from child if not provided
+        var child = await _db.Children
+            .Include(c => c.Parent)
+            .FirstOrDefaultAsync(c => c.Id == dto.ChildId);
+        var resolvedParentId = !string.IsNullOrEmpty(dto.ParentId)
+            ? dto.ParentId
+            : child?.ParentId ?? parentId;
+
         var subscription = new Subscription
         {
-            ParentId      = parentId,
+            ParentId      = resolvedParentId,
             ChildId       = dto.ChildId,
             Type          = dto.Type,
             Price         = dto.Price,
             StartDate     = dto.StartDate,
             EndDate       = dto.EndDate,
+            Period        = dto.Period,
             PaymentStatus = "Pending",
             TenantId      = _tenantService.GetTenantId()
         };
 
         _db.Subscriptions.Add(subscription);
         await _db.SaveChangesAsync();
-
-        var child = await _db.Children.FindAsync(dto.ChildId);
 
         return new SubscriptionResponseDto
         {
@@ -84,6 +99,9 @@ public class SubscriptionService : ISubscriptionService
             Price         = subscription.Price,
             StartDate     = subscription.StartDate,
             EndDate       = subscription.EndDate,
+            Period        = subscription.Period,
+            ParentId      = subscription.ParentId,
+            ParentName    = child?.Parent?.FullName ?? string.Empty,
             PaymentStatus = subscription.PaymentStatus
         };
     }
@@ -108,7 +126,10 @@ public class SubscriptionService : ISubscriptionService
             Price         = sub.Price,
             StartDate     = sub.StartDate,
             EndDate       = sub.EndDate,
-            PaymentStatus = sub.PaymentStatus
+            PaymentStatus = sub.PaymentStatus,
+            Period        = sub.Period,
+            ParentId      = sub.ParentId,
+            ParentName    = sub.Parent?.FullName ?? string.Empty
         };
     }
 

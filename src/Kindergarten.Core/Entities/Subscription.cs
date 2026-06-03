@@ -12,6 +12,7 @@ public class Subscription
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string PaymentStatus { get; set; } = "Pending";
+    public string Period       { get; set; } = string.Empty;
     public ApplicationUser Parent { get; set; } = null!;
     public Child Child { get; set; } = null!;
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();

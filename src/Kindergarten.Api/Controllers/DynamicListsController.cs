@@ -138,6 +138,12 @@ public class DynamicListsController : ControllerBase
             new() { Category="Neighborhoods", NameAr="المربع",       NameEn="Al Murabba",      Value="Al Murabba",     Order=3, TenantId=tenantId },
             new() { Category="Neighborhoods", NameAr="الروضة",       NameEn="Al Rawdah",       Value="Al Rawdah",      Order=4, TenantId=tenantId },
             new() { Category="Neighborhoods", NameAr="المنصورة",     NameEn="Al Mansourah",    Value="Al Mansourah",   Order=5, TenantId=tenantId },
+            // Periods
+            new() { Category="Periods", NameAr="6:00 ص – 2:00 م",  NameEn="6:00 AM – 2:00 PM",  Value="6AM-2PM",  Order=1, TenantId=tenantId },
+            new() { Category="Periods", NameAr="7:00 ص – 3:00 م",  NameEn="7:00 AM – 3:00 PM",  Value="7AM-3PM",  Order=2, TenantId=tenantId },
+            new() { Category="Periods", NameAr="8:00 ص – 4:00 م",  NameEn="8:00 AM – 4:00 PM",  Value="8AM-4PM",  Order=3, TenantId=tenantId },
+            new() { Category="Periods", NameAr="نصف يوم صباحي",    NameEn="Morning Half Day",    Value="morning",  Order=4, TenantId=tenantId },
+            new() { Category="Periods", NameAr="نصف يوم مسائي",    NameEn="Evening Half Day",    Value="evening",  Order=5, TenantId=tenantId },
         };
 
         _db.DynamicLists.AddRange(items);

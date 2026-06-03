@@ -435,15 +435,46 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   <div class="page" id="page-subscriptions">
     <div class="form-card">
       <h3 id="h-create-sub">➕ إنشاء اشتراك</h3>
+
+      <!-- Child Picker -->
+      <div class="form-row full">
+        <div class="form-field">
+          <label>الطفل *</label>
+          <div id="subChildSelected" style="display:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:0.6rem 1rem;display:none;align-items:center;justify-content:space-between">
+            <div>
+              <strong id="subChildName"></strong>
+              <div style="font-size:0.75rem;color:var(--text3)" id="subChildInfo"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <span id="subChildStatusBadge"></span>
+              <button type="button" onclick="clearSubChild()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem">✕</button>
+            </div>
+          </div>
+          <div id="subChildPickerWrap">
+            <input type="text" id="subChildSearch" placeholder="ابحث باسم الطفل أو ولي الأمر..." autocomplete="off"
+              oninput="filterSubChildren()" onfocus="showSubChildDropdown()"
+              style="width:100%;padding:0.65rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.85rem;box-sizing:border-box">
+            <div id="subChildDropdown" style="display:none;position:absolute;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:100;max-height:220px;overflow-y:auto;margin-top:0.25rem;min-width:100%"></div>
+          </div>
+          <input type="hidden" id="subChildId">
+          <div id="subActiveWarning" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:0.5rem 0.75rem;margin-top:0.35rem;font-size:0.8rem;color:#c2410c">
+            ⚠️ <span id="subActiveWarningText"></span>
+          </div>
+        </div>
+      </div>
+
       <div class="form-row">
-        <div class="form-field"><label id="lbl-sub-child">الطفل</label><select id="subChild"></select></div>
-        <div class="form-field"><label id="lbl-sub-type">النوع</label><select id="subType"><option value="">-- اختر النوع --</option></select></div>
+        <div class="form-field"><label>نوع الاشتراك</label><select id="subType"><option value="">-- اختر النوع --</option></select></div>
+        <div class="form-field"><label>الفترة</label><select id="subPeriod"><option value="">-- اختر الفترة --</option></select></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label id="lbl-sub-price">السعر (ريال)</label><input type="number" id="subPrice" value="500"></div>
-        <div class="form-field"><label id="lbl-sub-start">تاريخ البداية</label><input type="date" id="subStart"></div>
+        <div class="form-field"><label>السعر الإجمالي (ريال) *</label><input type="number" id="subPrice" value="500"></div>
+        <div class="form-field"><label>ولي الأمر</label><input type="text" id="subParentName" readonly style="background:var(--surface2);cursor:default" placeholder="يُحدد تلقائياً من الطفل"></div>
       </div>
-      <div class="form-row full"><div class="form-field"><label id="lbl-sub-end">تاريخ الانتهاء</label><input type="date" id="subEnd"></div></div>
+      <div class="form-row">
+        <div class="form-field"><label>تاريخ البداية *</label><input type="date" id="subStart"></div>
+        <div class="form-field"><label>تاريخ الانتهاء *</label><input type="date" id="subEnd"></div>
+      </div>
       <button class="btn btn-primary" id="btn-create-sub" onclick="createSubscription()">إنشاء اشتراك</button>
     </div>
     <div class="section-header"><div><h3 id="h-all-subs">جميع الاشتراكات</h3><p id="subs-count">جاري التحميل...</p></div></div>
@@ -588,6 +619,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <button class="btn btn-ghost btn-sm" onclick="filterLists('PaymentMethods')" data-ar="طرق الدفع" data-en="Payment Methods">طرق الدفع</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('AgeGroups')" data-ar="المراحل العمرية" data-en="Age Groups">المراحل العمرية</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('Neighborhoods')" data-ar="الأحياء" data-en="Neighborhoods">الأحياء</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('Periods')" data-ar="الفترات" data-en="Periods">الفترات</button>
     </div>
     <div class="table-card"><div id="lists-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
@@ -611,6 +643,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
             <option value="PaymentMethods" data-ar="طرق الدفع" data-en="Payment Methods">طرق الدفع</option>
             <option value="AgeGroups" data-ar="المراحل العمرية" data-en="Age Groups">المراحل العمرية</option>
             <option value="Neighborhoods" data-ar="الأحياء" data-en="Neighborhoods">الأحياء</option>
+            <option value="Periods" data-ar="الفترات" data-en="Periods">الفترات</option>
           </select>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
@@ -1395,7 +1428,8 @@ async function loadLists(){
       PaymentStatuses:  {ar:'حالات الدفع',       en:'Payment Statuses'},
       PaymentMethods:   {ar:'طرق الدفع',        en:'Payment Methods'},
       AgeGroups:        {ar:'المراحل العمرية',  en:'Age Groups'},
-      Neighborhoods:    {ar:'الأحياء',          en:'Neighborhoods'}
+      Neighborhoods:    {ar:'الأحياء',          en:'Neighborhoods'},
+      Periods:          {ar:'الفترات',          en:'Periods'}
     };
   div.innerHTML = '<table><thead><tr><th>#</th><th>'+(ar?'التصنيف':'Category')+'</th><th>'+(ar?'الاسم':'Name')+'</th><th>'+(ar?'الترتيب':'Order')+'</th><th>'+(ar?'إجراء':'Action')+'</th></tr></thead><tbody>'+
     items.map(i=>'<tr>'+
@@ -2471,25 +2505,135 @@ async function loadTrips(){
   div.innerHTML=trips.map(tr=>'<div class="trip-card '+tr.status.toLowerCase()+'"><div class="trip-header"><h4>#'+tr.id+' — '+(tr.direction==='ToKindergarten'?t('toSchool'):t('toHome'))+'</h4>'+statusBadge(tr.status)+'</div><div class="trip-meta"><span>🚗 '+tr.driverName+'</span><span>📅 '+formatDate(tr.date)+'</span>'+(tr.startTime?'<span>▶️ '+formatDateTime(tr.startTime)+'</span>':'')+(tr.endTime?'<span>⏹️ '+formatDateTime(tr.endTime)+'</span>':'')+'</div>'+tr.children.map(c=>'<div class="child-row"><span>👤 '+c.childName+'</span><div style="display:flex;gap:0.5rem">'+statusBadge(c.pickupStatus)+statusBadge(c.dropoffStatus)+'</div></div>').join('')+'</div>').join('');
 }
 
-async function loadSubscriptions(){
-  await loadDynamicList('SubscriptionTypes', 'subType');
-  const data=await api('/api/subscriptions');const count=Array.isArray(data)?data.length:0;
-  document.getElementById('subs-count').textContent=count+t('subsCount');
-  const children=await api('/api/children');
-  const sel=document.getElementById('subChild');
-  if(children&&children.length>0)sel.innerHTML=children.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
-  const div=document.getElementById('subs-table');
-  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>'+t('noData')+'</h4></div>';return;}
-  div.innerHTML='<table><thead><tr><th>'+t('cols.id')+'</th><th>'+t('cols.child')+'</th><th>'+t('cols.type')+'</th><th>'+t('cols.price')+'</th><th>'+t('cols.period')+'</th><th>'+t('cols.status')+'</th></tr></thead><tbody>'+data.map(s=>'<tr><td style="color:var(--text3)">#'+s.id+'</td><td><strong>'+s.childName+'</strong></td><td><span class="badge badge-blue">'+s.type+'</span></td><td style="font-weight:700;color:var(--primary2)">'+formatPrice(s.price)+'</td><td>'+formatDate(s.startDate)+' → '+formatDate(s.endDate)+'</td><td>'+statusBadge(s.paymentStatus)+'</td><td><button class="btn btn-xs btn-ghost" onclick="openUpdateStatus('+s.id+',\''+s.paymentStatus+'\')">'+(currentLang==='ar'?'تغيير الحالة':'Update Status')+'</button></td></tr>').join('')+'</tbody></table>';
+
+// ── Subscription Child Picker ────────────────────────────────────
+window._subAllChildren = [];
+window._subSelectedChild = null;
+
+function showSubChildDropdown() {
+  filterSubChildren();
+  document.getElementById('subChildDropdown').style.display = 'block';
 }
 
+function filterSubChildren() {
+  const q = (document.getElementById('subChildSearch')?.value || '').toLowerCase();
+  const children = window._subAllChildren || [];
+  const ar = currentLang === 'ar';
+  const filtered = children.filter(ch =>
+    ch.name.toLowerCase().includes(q) ||
+    (ch.parentName && ch.parentName.toLowerCase().includes(q))
+  );
+  const dd = document.getElementById('subChildDropdown');
+  if (!dd) return;
+  if (filtered.length === 0) {
+    dd.innerHTML = '<div style="padding:0.75rem;color:var(--text3);text-align:center;font-size:0.85rem">'+(ar?'لا توجد نتائج':'No results')+'</div>';
+    dd.style.display = 'block';
+    return;
+  }
+  dd.innerHTML = filtered.map(ch =>
+    '<div onclick="selectSubChild('+ch.id+')" style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 1rem;cursor:pointer;border-bottom:1px solid var(--border)" '+
+    'onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='#fff'">'+
+      '<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex-shrink:0">'+ch.name[0]+'</div>'+
+      '<div style="flex:1"><div style="font-weight:600;font-size:0.9rem">'+ch.name+'</div><div style="font-size:0.72rem;color:var(--text3)">'+(ch.ageGroup||'')+(ch.ageGroup&&ch.class?' · ':'')+( ch.class||'')+'</div></div>'+
+      '<div style="font-size:0.75rem;color:var(--text3)">'+ch.parentName+'</div>'+
+    '</div>'
+  ).join('');
+  dd.style.display = 'block';
+}
+
+async function selectSubChild(childId) {
+  const ch = (window._subAllChildren||[]).find(x => x.id === childId);
+  if (!ch) return;
+  window._subSelectedChild = ch;
+  document.getElementById('subChildId').value = ch.id;
+  document.getElementById('subChildName').textContent = ch.name;
+  document.getElementById('subChildInfo').textContent = (ch.ageGroup||'') + (ch.ageGroup&&ch.parentName?' · ':'') + (ch.parentName||'');
+  document.getElementById('subParentName').value = ch.parentName || '';
+  document.getElementById('subChildPickerWrap').style.display = 'none';
+  const sel = document.getElementById('subChildSelected');
+  sel.style.display = 'flex';
+  document.getElementById('subChildDropdown').style.display = 'none';
+  document.getElementById('subChildSearch').value = '';
+  document.getElementById('subActiveWarning').style.display = 'none';
+  // Check for existing active subscription
+  const subs = await api('/api/subscriptions');
+  const active = subs && subs.find(s => s.childId === childId && s.paymentStatus !== 'Cancelled');
+  if (active) {
+    const ar = currentLang === 'ar';
+    document.getElementById('subActiveWarningText').textContent =
+      (ar?'يوجد اشتراك نشط لهذا الطفل (':'This child has an active subscription (') +
+      formatDate(active.startDate) + ' → ' + formatDate(active.endDate) + ')';
+    document.getElementById('subActiveWarning').style.display = 'block';
+  }
+}
+
+function clearSubChild() {
+  window._subSelectedChild = null;
+  document.getElementById('subChildId').value = '';
+  document.getElementById('subChildSelected').style.display = 'none';
+  document.getElementById('subChildPickerWrap').style.display = 'block';
+  document.getElementById('subParentName').value = '';
+  document.getElementById('subActiveWarning').style.display = 'none';
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('subChildPickerWrap');
+  const dd   = document.getElementById('subChildDropdown');
+  if (wrap && dd && !wrap.contains(e.target)) dd.style.display = 'none';
+});
+
+async function loadSubscriptions(){
+  await loadDynamicList('SubscriptionTypes', 'subType');
+  await loadDynamicList('Periods', 'subPeriod');
+  window._subAllChildren = await api('/api/children') || [];
+  const data=await api('/api/subscriptions');const count=Array.isArray(data)?data.length:0;
+  document.getElementById('subs-count').textContent=count+t('subsCount');
+  const ar=currentLang==='ar';
+  const div=document.getElementById('subs-table');
+  if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>'+t('noData')+'</h4></div>';return;}
+  div.innerHTML='<table><thead><tr>'+
+    '<th>#</th>'+
+    '<th>'+(ar?'الطفل':'Child')+'</th>'+
+    '<th>'+(ar?'ولي الأمر':'Parent')+'</th>'+
+    '<th>'+(ar?'النوع':'Type')+'</th>'+
+    '<th>'+(ar?'الفترة':'Period')+'</th>'+
+    '<th>'+(ar?'السعر':'Price')+'</th>'+
+    '<th>'+(ar?'المدة':'Duration')+'</th>'+
+    '<th>'+(ar?'الحالة':'Status')+'</th>'+
+    '<th>'+(ar?'إجراء':'Action')+'</th>'+
+    '</tr></thead><tbody>'+
+    data.map(s=>'<tr>'+
+      '<td style="color:var(--text3)">#'+s.id+'</td>'+
+      '<td><strong>'+s.childName+'</strong></td>'+
+      '<td style="color:var(--text3);font-size:0.85rem">'+(s.parentName||'—')+'</td>'+
+      '<td><span class="badge badge-blue">'+(s.type||'—')+'</span></td>'+
+      '<td style="font-size:0.8rem;color:var(--text3)">'+(s.period||'—')+'</td>'+
+      '<td style="font-weight:700;color:var(--primary2)">'+formatPrice(s.price)+'</td>'+
+      '<td style="font-size:0.8rem">'+formatDate(s.startDate)+' → '+formatDate(s.endDate)+'</td>'+
+      '<td>'+statusBadge(s.paymentStatus)+'</td>'+
+      '<td><button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="openUpdateStatus('+s.id+',''+s.paymentStatus+'')">'+(ar?'تغيير':'Update')+'</button></td>'+
+    '</tr>').join('')+
+    '</tbody></table>';
+}
 async function createSubscription(){
-  const childId=document.getElementById('subChild').value;const type=document.getElementById('subType').value;
-  const price=parseFloat(document.getElementById('subPrice').value);const startDate=document.getElementById('subStart').value;const endDate=document.getElementById('subEnd').value;
-  if(!childId||!price||!startDate||!endDate){showToast(t('err.fill'),'error');return;}
-  const result=await api('/api/subscriptions','POST',{childId:parseInt(childId),type,price,startDate,endDate});
-  if(result){showToast('✅ '+t('succ.sub'),'success');loadSubscriptions();}
-  else showToast(t('err.failed'),'error');
+  const childId=document.getElementById('subChildId').value;
+  const type=document.getElementById('subType').value;
+  const period=document.getElementById('subPeriod')?.value||'';
+  const price=parseFloat(document.getElementById('subPrice').value);
+  const startDate=document.getElementById('subStart').value;
+  const endDate=document.getElementById('subEnd').value;
+  if(!childId){showToast(currentLang==='ar'?'اختر طفلاً':'Select a child','error');return;}
+  if(!price||!startDate||!endDate){showToast(t('err.fill'),'error');return;}
+  const result=await api('/api/subscriptions','POST',{childId:parseInt(childId),type,period,price,startDate,endDate});
+  if(result){
+    showToast('✅ '+t('succ.sub'),'success');
+    clearSubChild();
+    document.getElementById('subPrice').value='500';
+    document.getElementById('subStart').value='';
+    document.getElementById('subEnd').value='';
+    loadSubscriptions();
+  } else showToast(t('err.failed'),'error');
 }
 
 async function openUpdateStatus(subId, currentStatus){
