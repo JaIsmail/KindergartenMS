@@ -2532,7 +2532,7 @@ function filterSubChildren() {
   }
   dd.innerHTML = filtered.map(ch =>
     '<div onclick="selectSubChild('+ch.id+')" style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 1rem;cursor:pointer;border-bottom:1px solid var(--border)" '+
-    'onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='#fff'">'+
+    'onmouseover="this.style.background=var(--surface2)" onmouseout="this.style.background=#fff">'+
       '<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex-shrink:0">'+ch.name[0]+'</div>'+
       '<div style="flex:1"><div style="font-weight:600;font-size:0.9rem">'+ch.name+'</div><div style="font-size:0.72rem;color:var(--text3)">'+(ch.ageGroup||'')+(ch.ageGroup&&ch.class?' · ':'')+( ch.class||'')+'</div></div>'+
       '<div style="font-size:0.75rem;color:var(--text3)">'+ch.parentName+'</div>'+
@@ -2612,7 +2612,7 @@ async function loadSubscriptions(){
       '<td style="font-weight:700;color:var(--primary2)">'+formatPrice(s.price)+'</td>'+
       '<td style="font-size:0.8rem">'+formatDate(s.startDate)+' → '+formatDate(s.endDate)+'</td>'+
       '<td>'+statusBadge(s.paymentStatus)+'</td>'+
-      '<td><button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="openUpdateStatus('+s.id+',''+s.paymentStatus+'')">'+(ar?'تغيير':'Update')+'</button></td>'+
+      '<td><button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="openUpdateStatus('+s.id+',\''+s.paymentStatus+'\')">'+(ar?'تغيير':'Update')+'</button></td>'+
     '</tr>').join('')+
     '</tbody></table>';
 }
