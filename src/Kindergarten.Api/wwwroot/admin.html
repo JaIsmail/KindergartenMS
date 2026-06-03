@@ -1254,8 +1254,9 @@ async function loadDynamicList(category, selectId, selectedValue=''){
   const placeholder = new Option('-- ' + (ar?'اختر':'Select') + ' --', '');
   sel.add(placeholder);
   items.forEach(i => {
-    const opt = new Option(ar?i.nameAr:i.nameEn, i.nameEn);
-    if(i.nameEn===selectedValue) opt.selected = true;
+    const optVal = i.value || i.nameEn;
+    const opt = new Option(ar?i.nameAr:i.nameEn, optVal);
+    if(optVal===selectedValue || i.nameEn===selectedValue) opt.selected = true;
     sel.add(opt);
   });
 }
