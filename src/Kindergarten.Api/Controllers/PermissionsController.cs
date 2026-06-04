@@ -114,6 +114,9 @@ public class PermissionsController : ControllerBase
             new() { Name="UpdateTenant",         Category="Tenants",       DisplayNameAr="تعديل الروضة",            DisplayNameEn="Update Tenant",          DescriptionAr="تعديل بيانات الروضة",             DescriptionEn="Edit kindergarten details" },
             new() { Name="ManageTenants",        Category="Tenants",       DisplayNameAr="إدارة الروضات",           DisplayNameEn="Manage Tenants",         DescriptionAr="إضافة وتعديل وحذف الروضات",       DescriptionEn="Add, edit and delete kindergartens" },
             // Notifications
+            new() { Name="ViewAllChildren",      Category="Users",         DisplayNameAr="عرض جميع الأطفال",        DisplayNameEn="View All Children",      DescriptionAr="مشاهدة جميع الأطفال في النظام",   DescriptionEn="View all children in system" },
+            new() { Name="AssignChildToParent",  Category="Users",         DisplayNameAr="ربط طفل بولي أمر",        DisplayNameEn="Assign Child To Parent",  DescriptionAr="تعيين ولي أمر للطفل",             DescriptionEn="Assign parent to child" },
+            new() { Name="ViewAllSubscriptions", Category="Finance",       DisplayNameAr="عرض جميع الاشتراكات",     DisplayNameEn="View All Subscriptions",  DescriptionAr="مشاهدة جميع اشتراكات النظام",     DescriptionEn="View all subscriptions in system" },
             new() { Name="SendNotifications",    Category="Notifications", DisplayNameAr="إرسال الإشعارات",         DisplayNameEn="Send Notifications",     DescriptionAr="إرسال إشعارات للمستخدمين",        DescriptionEn="Send notifications to users" },
         };
 
