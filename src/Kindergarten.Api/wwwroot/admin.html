@@ -3127,5 +3127,24 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
     </div>
   </div>
 
+
+  <!-- Delete Subscription Confirmation Modal -->
+  <div class="modal-overlay" id="deleteSubModal">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-header" style="background:#fef2f2;border-bottom:1px solid #fecaca">
+        <h3 style="color:#dc2626">&#x1F5D1; حذف الاشتراك</h3>
+        <button class="modal-close" onclick="closeModal('deleteSubModal')">&#x2715;</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem;text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:1rem">&#x26A0;&#xFE0F;</div>
+        <p id="deleteSubModalMsg" style="color:var(--text1);font-size:0.95rem;margin-bottom:1.5rem"></p>
+        <div style="display:flex;gap:0.75rem">
+          <button class="btn btn-ghost" style="flex:1" onclick="closeModal('deleteSubModal')">&#x625;&#x644;&#x63A;&#x627;&#x621;</button>
+          <button class="btn" style="flex:1;background:#dc2626;color:#fff" onclick="confirmDeleteSubscription()">&#x1F5D1; &#x62D;&#x630;&#x641;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
