@@ -1535,7 +1535,7 @@ function calcChildAge() {
   let years = now.getFullYear() - birth.getFullYear();
   let months = now.getMonth() - birth.getMonth();
   if (months < 0) { years--; months += 12; }
-  ageEl.value = years > 0 ? `${years} سنة ${months} شهر` : `${months} شهر`;
+  ageEl.value = years > 0 ? `${years} سنة و${months} شهر` : `${months} شهر`;
 }
 
 
@@ -1667,7 +1667,7 @@ async function viewChildDetails(childId) {
     let years = now.getFullYear() - birth.getFullYear();
     let months = now.getMonth() - birth.getMonth();
     if (months < 0) { years--; months += 12; }
-    ageStr = years > 0 ? `${years} ${ar?'سنة':'yr'} ${months} ${ar?'شهر':'mo'}` : `${months} ${ar?'شهر':'mo'}`;
+    ageStr = years > 0 ? (ar ? `${years} سنة و${months} شهر` : `${years}y ${months}m`) : (ar ? `${months} شهر` : `${months}m`);
   }
 
   const html = `
