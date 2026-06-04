@@ -268,7 +268,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <span class="group-arrow">◀</span>
     </div>
     <div class="nav-group-items">
-      <button class="nav-item" onclick="showPage('subscriptions')"><span class="icon">💳</span><span data-ar="الاشتراكات" data-en="Subscriptions">الاشتراكات</span></button>
+      <button class="nav-item" onclick="showPage('subscriptions')"><span class="icon">💳</span><span data-ar="الاشتراكات" data-en="Subscriptions">الاشتراكات</span><span class="nav-badge" id="subsBadge">0</span></button>
       <button class="nav-item" onclick="showPage('payments')"><span class="icon">💰</span><span data-ar="المدفوعات" data-en="Payments">المدفوعات</span></button>
     </div>
   </div>
@@ -2587,6 +2587,30 @@ document.addEventListener('click', function(e) {
 
 async function deleteSubscription(id) {
   const ar = currentLang === 'ar';
+  window._pendingDeleteSubId = id;
+  document.getElementById('deleteSubModalMsg').textContent =
+    ar ? 'هل أنت متأكد من حذف هذا الاشتراك؟ لا يمكن التراجع عن هذا الإجراء.' :
+         'Are you sure you want to delete this subscription? This cannot be undone.';
+  document.getElementById('deleteSubModal').classList.add('open');
+}
+
+async function confirmDeleteSubscription() {
+  const ar = currentLang === 'ar';
+  const id = window._pendingDeleteSubId;
+  closeModal('deleteSubModal');
+  const r = await fetch('/api/subscriptions/'+id, {
+    method: 'DELETE',
+    headers: {'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+  });
+  if (r.status === 204 || r.ok) {
+    showToast('✅ '+(ar?'تم حذف الاشتراك':'Subscription deleted'),'success');
+    loadSubscriptions();
+  } else {
+    showToast(ar?'فشل الحذف':'Delete failed','error');
+  }
+}
+async function deleteSubscription_OLD(id) {
+  const ar = currentLang === 'ar';
   if (!confirm(ar?'هل أنت متأكد من حذف هذا الاشتراك؟':'Are you sure you want to delete this subscription?')) return;
   const r = await fetch('/api/subscriptions/'+id, {
     method:'DELETE',
@@ -2608,6 +2632,7 @@ async function loadSubscriptions(){
   window._subAllChildren = await api('/api/children') || [];
   const data=await api('/api/subscriptions');const count=Array.isArray(data)?data.length:0;
   document.getElementById('subs-count').textContent=count+t('subsCount');
+  const subsBadgeEl=document.getElementById('subsBadge'); if(subsBadgeEl) subsBadgeEl.textContent=count;
   const ar=currentLang==='ar';
   const div=document.getElementById('subs-table');
   if(!data||data.length===0){div.innerHTML='<div class="empty"><div class="emoji">💳</div><h4>'+t('noData')+'</h4></div>';return;}
@@ -2640,7 +2665,7 @@ async function loadSubscriptions(){
       '<td>'+statusBadge(s.paymentStatus)+'</td>'+
       '<td style="display:flex;gap:0.3rem">'+
       '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.5rem" onclick="openUpdateStatus('+s.id+',\''+s.paymentStatus+'\')">'+(ar?'تغيير':'Status')+'</button>'+
-      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.5rem;color:#dc2626" onclick="deleteSubscription('+s.id+')">'+(ar?'حذف':'Delete')+'</button>'+
+      '<button class="icon-btn icon-btn-delete" onclick="deleteSubscription('+s.id+')" title="'+(ar?'حذف':'Delete')+'">🗑️</button>'+
       '</td>'+
     '</tr>').join('')+
     '</tbody></table>';
