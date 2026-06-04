@@ -39,7 +39,6 @@ public class SubscriptionsController : ControllerBase
         return Ok(sub);
     }
 
-
     [HttpPatch("{id}/status")]
     [RequirePermission("ManageSubscriptions")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
@@ -56,19 +55,18 @@ public class SubscriptionsController : ControllerBase
         var sub = await _subscriptionService.CreateAsync(dto, GetUserId());
         return CreatedAtAction(nameof(GetById), new { id = sub.Id }, sub);
     }
-}
-
-public class UpdateStatusDto
-{
-    public string Status { get; set; } = string.Empty;
 
     [HttpDelete("{id}")]
     [RequirePermission("ManageSubscriptions")]
     public async Task<IActionResult> Delete(int id)
     {
-        var sub = await _subscriptionService.DeleteAsync(id);
-        if (!sub) return NotFound();
+        var result = await _subscriptionService.DeleteAsync(id);
+        if (!result) return NotFound();
         return NoContent();
     }
+}
 
+public class UpdateStatusDto
+{
+    public string Status { get; set; } = string.Empty;
 }
