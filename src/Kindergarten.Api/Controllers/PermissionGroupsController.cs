@@ -256,26 +256,34 @@ public async Task<IActionResult> GetById(int id)
     {
         var tenantId = GetTenantId();
 
-        // Delete existing groups for this tenant
+        // Only add missing groups — never delete existing ones
         var existing = await _db.PermissionGroups.IgnoreQueryFilters()
-            .Where(g => g.TenantId == tenantId).ToListAsync();
-        _db.PermissionGroups.RemoveRange(existing);
-        await _db.SaveChangesAsync();
+            .Where(g => g.TenantId == tenantId)
+            .Select(g => g.NameEn)
+            .ToListAsync();
 
-        var groups = new List<PermissionGroup>
+        var defaults = new List<(string NameAr, string NameEn, string Desc)>
         {
-            new() { NameAr="مدير النظام", NameEn="Admin",      Description="مدير الروضة",   TenantId=tenantId },
-            new() { NameAr="سائق",        NameEn="Driver",     Description="سائق الحافلة",  TenantId=tenantId },
-            new() { NameAr="ولي أمر",     NameEn="Parent",     Description="ولي أمر الطفل", TenantId=tenantId },
-            new() { NameAr="موظف",        NameEn="Employee",   Description="موظف الروضة",   TenantId=tenantId },
-            new() { NameAr="محاسب",       NameEn="Accountant", Description="المحاسب",       TenantId=tenantId },
-            new() { NameAr="مشرف",        NameEn="Supervisor", Description="المشرف",        TenantId=tenantId },
+            ("مدير النظام", "Admin",      "مدير الروضة"),
+            ("سائق",        "Driver",     "سائق الحافلة"),
+            ("ولي أمر",     "Parent",     "ولي أمر الطفل"),
+            ("موظف",        "Employee",   "موظف الروضة"),
+            ("محاسب",       "Accountant", "المحاسب"),
+            ("مشرف",        "Supervisor", "المشرف"),
         };
 
-        _db.PermissionGroups.AddRange(groups);
-        await _db.SaveChangesAsync();
+        var toAdd = defaults
+            .Where(d => !existing.Contains(d.NameEn))
+            .Select(d => new PermissionGroup { NameAr=d.NameAr, NameEn=d.NameEn, Description=d.Desc, TenantId=tenantId })
+            .ToList();
 
-        return Ok(new { message = "Seeded", count = groups.Count });
+        if (toAdd.Any())
+        {
+            _db.PermissionGroups.AddRange(toAdd);
+            await _db.SaveChangesAsync();
+        }
+
+        return Ok(new { message = "Seeded", added = toAdd.Count, existing = existing.Count });
     }
 
     // Internal seed helper — called when new tenant is created
