@@ -95,8 +95,12 @@ public class DynamicListsController : ControllerBase
     public async Task<IActionResult> Seed()
     {
         var tenantId = GetTenantId();
-        var existing = await _db.DynamicLists.ToListAsync();
-        if (existing.Any()) return Ok(new { message = "Already seeded" });
+        // Check existing items for THIS tenant only
+        var existingItems = await _db.DynamicLists
+            .Where(x => x.TenantId == tenantId)
+            .Select(x => x.Category + "|" + x.NameAr)
+            .ToListAsync();
+        var existingSet = new HashSet<string>(existingItems);
 
         var items = new List<DynamicList>
         {
@@ -146,8 +150,12 @@ public class DynamicListsController : ControllerBase
             new() { Category="Periods", NameAr="نصف يوم مسائي",    NameEn="Evening Half Day",    Value="evening",  Order=5, TenantId=tenantId },
         };
 
-        _db.DynamicLists.AddRange(items);
-        await _db.SaveChangesAsync();
-        return Ok(new { message = "Seeded", count = items.Count });
+        var toAdd = items.Where(i => !existingSet.Contains(i.Category + "|" + i.NameAr)).ToList();
+        if (toAdd.Any())
+        {
+            _db.DynamicLists.AddRange(toAdd);
+            await _db.SaveChangesAsync();
+        }
+        return Ok(new { message = "Seeded", added = toAdd.Count, existing = existingSet.Count });
     }
 }
