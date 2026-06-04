@@ -252,13 +252,16 @@ public async Task<IActionResult> GetById(int id)
 
     // Seed default permission groups
     [HttpPost("seed")]
-    public async Task<IActionResult> Seed()
+    public async Task<IActionResult> Seed([FromQuery] int? tenantId = null)
     {
-        var tenantId = GetTenantId();
+        // Use provided tenantId or fall back to JWT tenantId
+        // SuperAdmin can seed for any tenant by passing ?tenantId=X
+        var tid = tenantId ?? GetTenantId();
+        if (tid == 0) return BadRequest(new { error = "Please provide tenantId parameter, e.g. /seed?tenantId=1" });
 
         // Only add missing groups — never delete existing ones
         var existing = await _db.PermissionGroups.IgnoreQueryFilters()
-            .Where(g => g.TenantId == tenantId)
+            .Where(g => g.TenantId == tid)
             .Select(g => g.NameEn)
             .ToListAsync();
 
@@ -274,7 +277,7 @@ public async Task<IActionResult> GetById(int id)
 
         var toAdd = defaults
             .Where(d => !existing.Contains(d.NameEn))
-            .Select(d => new PermissionGroup { NameAr=d.NameAr, NameEn=d.NameEn, Description=d.Desc, TenantId=tenantId })
+            .Select(d => new PermissionGroup { NameAr=d.NameAr, NameEn=d.NameEn, Description=d.Desc, TenantId=tid })
             .ToList();
 
         if (toAdd.Any())
@@ -283,7 +286,7 @@ public async Task<IActionResult> GetById(int id)
             await _db.SaveChangesAsync();
         }
 
-        return Ok(new { message = "Seeded", added = toAdd.Count, existing = existing.Count });
+        return Ok(new { message = "Seeded", tenantId = tid, added = toAdd.Count, existing = existing.Count });
     }
 
     // Internal seed helper — called when new tenant is created
