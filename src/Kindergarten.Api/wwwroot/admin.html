@@ -2584,6 +2584,22 @@ document.addEventListener('click', function(e) {
   if (wrap && dd && !wrap.contains(e.target)) dd.style.display = 'none';
 });
 
+
+async function deleteSubscription(id) {
+  const ar = currentLang === 'ar';
+  if (!confirm(ar?'هل أنت متأكد من حذف هذا الاشتراك؟':'Are you sure you want to delete this subscription?')) return;
+  const r = await fetch('/api/subscriptions/'+id, {
+    method:'DELETE',
+    headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+  });
+  if (r.status === 204 || r.ok) {
+    showToast('ok '+(ar?'تم حذف الاشتراك':'Subscription deleted'),'success');
+    loadSubscriptions();
+  } else {
+    showToast(ar?'فشل الحذف':'Delete failed','error');
+  }
+}
+
 async function loadSubscriptions(){
   await loadDynamicList('SubscriptionTypes', 'subType');
   await loadDynamicList('Periods', 'subPeriod');
