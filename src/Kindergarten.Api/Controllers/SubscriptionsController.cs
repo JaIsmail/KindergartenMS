@@ -61,4 +61,14 @@ public class SubscriptionsController : ControllerBase
 public class UpdateStatusDto
 {
     public string Status { get; set; } = string.Empty;
+
+    [HttpDelete("{id}")]
+    [RequirePermission("ManageSubscriptions")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var sub = await _subscriptionService.DeleteAsync(id);
+        if (!sub) return NotFound();
+        return NoContent();
+    }
+
 }

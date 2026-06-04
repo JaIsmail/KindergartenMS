@@ -133,4 +133,13 @@ public class SubscriptionService : ISubscriptionService
         };
     }
 
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var sub = await _db.Subscriptions.FirstOrDefaultAsync(s => s.Id == id);
+        if (sub == null) return false;
+        _db.Subscriptions.Remove(sub);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
 }

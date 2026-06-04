@@ -2622,7 +2622,10 @@ async function loadSubscriptions(){
       '<td style="font-weight:700;color:var(--primary2)">'+formatPrice(s.price)+'</td>'+
       '<td style="font-size:0.8rem">'+formatDate(s.startDate)+' → '+formatDate(s.endDate)+'</td>'+
       '<td>'+statusBadge(s.paymentStatus)+'</td>'+
-      '<td><button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="openUpdateStatus('+s.id+',\''+s.paymentStatus+'\')">'+(ar?'تغيير':'Update')+'</button></td>'+
+      '<td style="display:flex;gap:0.3rem">'+
+      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.5rem" onclick="openUpdateStatus('+s.id+',\''+s.paymentStatus+'\')">'+(ar?'تغيير':'Status')+'</button>'+
+      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.5rem;color:#dc2626" onclick="deleteSubscription('+s.id+')">\'+(ar?\'حذف\':\'Delete\')+\'</button>'+
+      '</td>'+
     '</tr>').join('')+
     '</tbody></table>';
 }
