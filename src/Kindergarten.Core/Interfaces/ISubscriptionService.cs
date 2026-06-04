@@ -6,4 +6,5 @@ public interface ISubscriptionService
     Task<SubscriptionResponseDto?>             GetByIdAsync(int id);
     Task<SubscriptionResponseDto>              CreateAsync(CreateSubscriptionDto dto, string parentId);
     Task<SubscriptionResponseDto?>             UpdateStatusAsync(int id, string status);
+    Task<bool>                                 DeleteAsync(int id);
 }
