@@ -67,6 +67,11 @@ public class ChildService : IChildService
 
     public async Task<ChildResponseDto> CreateAsync(CreateChildDto dto, string parentId)
     {
+        // Use dto.ParentId if admin specified one, otherwise fall back to logged-in user
+        var resolvedParentId = !string.IsNullOrEmpty(dto.ParentId)
+            ? dto.ParentId
+            : parentId;
+
         var child = new Child
         {
             Name         = dto.Name,
@@ -78,7 +83,7 @@ public class ChildService : IChildService
             Neighborhood = dto.Neighborhood,
             HealthNotes  = dto.HealthNotes,
             IsActive     = dto.IsActive,
-            ParentId     = parentId,
+            ParentId     = resolvedParentId,
             TenantId     = _tenantService.GetTenantId()
         };
 
