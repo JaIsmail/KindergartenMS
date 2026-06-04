@@ -162,11 +162,15 @@ public async Task<IActionResult> GetById(int id)
             .AnyAsync(x => x.GroupId == id && x.UserId == userId);
         if (exists) return BadRequest(new { message = "Group already assigned to user" });
 
+        // Use the target user's actual TenantId, not the caller's
+        var targetUser = await _db.Users.FindAsync(userId);
+        var targetTenantId = targetUser?.TenantId ?? GetTenantId();
+
         var assignment = new UserPermissionGroup
         {
             GroupId    = id,
             UserId     = userId,
-            TenantId   = GetTenantId(),
+            TenantId   = targetTenantId,
             AssignedAt = DateTime.UtcNow,
             AssignedBy = GetUserId()
         };
@@ -193,7 +197,7 @@ public async Task<IActionResult> GetById(int id)
                         PermissionId = gp.PermissionId,
                         GrantedBy    = GetUserId(),
                         GrantedAt    = DateTime.UtcNow,
-                        TenantId     = GetTenantId()
+                        TenantId     = targetTenantId
                     });
                 }
             }
