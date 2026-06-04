@@ -426,3 +426,22 @@ Notes completed: 2, 3, 6, 8, 18, 19, 20, 21, 27, 31
   - EF Core migration to remove Value column from DynamicLists table
   - Update API response — remove value from JSON
   - Update MAUI — switch from item.value to item.nameEn
+
+---
+
+## Note 52: Permission Groups Seed — Critical Fix ✅ DONE
+- **Problem:** Seed endpoint was destructive — deleted all existing groups then recreated from scratch
+- **Impact:** All user-group assignments lost when seed was called
+- **Fix:** Seed endpoint now additive only — never deletes existing groups
+- **Fix:** Seed endpoint accepts `?tenantId=X` parameter for SuperAdmin use
+- **Fix:** SuperAdmin calling seed without tenantId now returns 400 (prevented accidental TenantId=0 seeding)
+- **Lesson:** Never call `/api/permission-groups/seed` on a live tenant — only for new tenants
+- **Recovery procedure:** See recovery commands in this session
+
+## Note 53: Permission Groups Cleanup 🟡
+- Multiple duplicate groups exist in DB (from repeated seed calls):
+  - Groups 19,27,33,45 all named "Admin" with different TenantIds
+  - Groups 20,28,34,46 all named "Driver" etc.
+- Need to clean up duplicates — keep only latest set per tenant
+- Before cleanup: ensure all users are assigned to the correct latest group
+- This is non-urgent but should be done before production launch
