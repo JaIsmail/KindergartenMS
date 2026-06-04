@@ -345,6 +345,8 @@ let page = 'home';
 let permissions = [];
 let groupNamesEn = [];
 let groupNamesAr = [];
+let groupNamesEn = [];
+let groupNamesAr = [];
 let gpsTimer = null;
 let dMap = null, pMap = null, dMarker = null, pMarker = null;
 let signalrConn = null;
@@ -457,6 +459,8 @@ function setLang(l) {
   if(btnOut) btnOut.textContent = '🚪 ' + t('logout');
   buildNav();
   if(typeof buildDrawer === 'function') buildDrawer();
+  var pRoleEl = document.getElementById('pRole');
+  if(pRoleEl) pRoleEl.innerHTML = '<span class="badge bb">'+groupBadgeLabel()+'</span>';
   var pRoleEl = document.getElementById('pRole');
   if(pRoleEl) pRoleEl.innerHTML = '<span class="badge bb">'+groupBadgeLabel()+'</span>';
   var pRoleEl = document.getElementById('pRole');
