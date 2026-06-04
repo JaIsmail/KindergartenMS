@@ -445,3 +445,17 @@ Notes completed: 2, 3, 6, 8, 18, 19, 20, 21, 27, 31
 - Need to clean up duplicates — keep only latest set per tenant
 - Before cleanup: ensure all users are assigned to the correct latest group
 - This is non-urgent but should be done before production launch
+
+---
+
+## Note 50 Phase 2: Subscription Registration ✅ DONE
+- Child picker (search by name/parent) replaces manual ChildId input
+- Auto-set ParentId from selected child's parent
+- Warning if child already has active subscription
+- Period dropdown from Dynamic Lists (Periods category)
+- Subscriptions table shows: Child, Parent, Type, Period, Price, Duration, Status
+- Delete subscription with styled confirmation modal
+- Subscription count badge in sidebar
+- Period display uses name lookup (AR/EN) instead of raw stored value
+- Fixed: ChildService.CreateAsync uses dto.ParentId not caller's userId
+- Fixed: AssignToUser uses target user's TenantId
