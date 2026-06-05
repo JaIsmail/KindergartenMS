@@ -1223,6 +1223,7 @@ async function doLogin(){
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginPage').style.display!=='none')doLogin();});
 
 async function initDashboard(){
+  applyPagePermissions();
   document.getElementById('loginPage').style.display='none';
   document.getElementById('mainContent').style.display='flex';
   const user=JSON.parse(localStorage.getItem('kms_user')||'{}');
@@ -1323,6 +1324,7 @@ function showPage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
+  applyPagePermissions();
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(item=>{if(item.getAttribute('onclick')?.includes("'"+page+"'"))item.classList.add('active');});
   document.getElementById('pageTitle').textContent=t('pages.'+page);
@@ -1552,8 +1554,8 @@ async function loadLists(){
 
       '<td>'+i.order+'</td>'+
       '<td style="display:flex;gap:0.4rem">'+
-        '<button class="icon-btn icon-btn-edit" onclick="editListItem('+i.id+')" title="تعديل">✏️</button>'+
-        '<button class="icon-btn icon-btn-delete" onclick="deleteListItem('+i.id+')" title="حذف">🗑️</button>'+
+        (window._perms?.canManageLists ? '<button class="icon-btn icon-btn-edit" onclick="editListItem('+i.id+')" title="تعديل">✏️</button>' : '')+
+        (window._perms?.canManageLists ? '<button class="icon-btn icon-btn-delete" onclick="deleteListItem('+i.id+')" title="حذف">🗑️</button>' : '')+
       '</td>'+
     '</tr>').join('')+'</tbody></table>';
 }
@@ -1871,6 +1873,90 @@ async function saveEditChild() {
     loadChildren();
   } else showToast(currentLang==='ar'?'فشل التحديث':'Update failed','error');
 }
+
+// ── Permission-based UI enforcement ──────────────────────────────
+function applyPagePermissions() {
+  // ── Children ──────────────────────────────────────────────────
+  const canAddChild    = hasAdminPermission('Children.Add');
+  const canEditChild   = hasAdminPermission('Children.Edit');
+  const canDelChild    = hasAdminPermission('Children.Delete');
+
+  // Hide Add Child form-card if no Add permission
+  const addChildForm = document.querySelector('#page-children .form-card');
+  if(addChildForm) addChildForm.style.display = canAddChild ? '' : 'none';
+
+  // Hide Add Child button in header
+  const btnAddChild = document.getElementById('btnAddChild');
+  if(btnAddChild) btnAddChild.style.display = canAddChild ? '' : 'none';
+
+  // ── Subscriptions ─────────────────────────────────────────────
+  const canAddSub    = hasAdminPermission('Subscriptions.Add');
+  const canEditSub   = hasAdminPermission('Subscriptions.Edit');
+  const canDelSub    = hasAdminPermission('Subscriptions.Delete');
+  const addSubForm   = document.querySelector('#page-subscriptions .form-card');
+  if(addSubForm) addSubForm.style.display = canAddSub ? '' : 'none';
+
+  // ── Payments ──────────────────────────────────────────────────
+  const canAddPay  = hasAdminPermission('Payments.Add');
+  const canDelPay  = hasAdminPermission('Payments.Delete');
+  const addPayForm = document.querySelector('#page-payments .form-card');
+  if(addPayForm) addPayForm.style.display = canAddPay ? '' : 'none';
+
+  // ── Users ─────────────────────────────────────────────────────
+  const canAddUser  = hasAdminPermission('Users.Add');
+  const canEditUser = hasAdminPermission('Users.Edit');
+  const canDelUser  = hasAdminPermission('Users.Delete');
+  const addUserForm = document.querySelector('#page-users .form-card');
+  if(addUserForm) addUserForm.style.display = canAddUser ? '' : 'none';
+
+  // ── Lists ─────────────────────────────────────────────────────
+  const canManageLists = hasAdminPermission('Lists.Manage');
+  const addListBtn = document.querySelector('#page-lists .btn-primary');
+  if(addListBtn) addListBtn.style.display = canManageLists ? '' : 'none';
+
+  // ── Permissions/Groups ────────────────────────────────────────
+  const canEditPerms  = hasAdminPermission('Permissions.Edit');
+  const canAddGroup   = hasAdminPermission('Groups.Add');
+  const canEditGroup  = hasAdminPermission('Groups.Edit');
+  const canDelGroup   = hasAdminPermission('Groups.Delete');
+  const canAssign     = hasAdminPermission('Groups.Assign');
+
+  // ── Settings ──────────────────────────────────────────────────
+  const canEditSettings = hasAdminPermission('Settings.Edit');
+  var settingsInputs = ['settingsRadius','alertTagInput'];
+  settingsInputs.forEach(function(id) {
+    var el = document.getElementById(id);
+    if(el) {
+      el.disabled = !canEditSettings;
+      el.style.opacity = canEditSettings ? '1' : '0.5';
+      el.style.pointerEvents = canEditSettings ? '' : 'none';
+    }
+  });
+  var alertTagBox = document.getElementById('alertTagBox');
+  if(alertTagBox) alertTagBox.style.pointerEvents = canEditSettings ? '' : 'none';
+  var saveSettingsBtn = document.querySelector('[onclick="saveSettings()"]');
+  if(saveSettingsBtn) saveSettingsBtn.style.display = canEditSettings ? '' : 'none';
+
+  // ── Leave ─────────────────────────────────────────────────────
+  const canApproveLv = hasAdminPermission('Leave.Approve');
+
+  // ── Trips ─────────────────────────────────────────────────────
+  const canManageTrips = hasAdminPermission('Trips.Manage');
+  const addTripBtn = document.querySelector('[onclick*="openCreateTripModal"]');
+  if(addTripBtn) addTripBtn.style.display = canManageTrips ? '' : 'none';
+
+  // Store permission flags globally for use in dynamic table renders
+  window._perms = {
+    canAddChild, canEditChild, canDelChild,
+    canAddSub, canEditSub, canDelSub,
+    canAddPay, canDelPay,
+    canAddUser, canEditUser, canDelUser,
+    canManageLists, canEditPerms,
+    canAddGroup, canEditGroup, canDelGroup, canAssign,
+    canEditSettings, canApproveLv, canManageTrips
+  };
+}
+
 async function loadChildren(){
   // Load parents for dropdown — only if user has Users.View permission
   if(hasAdminPermission('Users.View')) {
@@ -1913,9 +1999,10 @@ async function loadChildren(){
       '<td style="color:var(--text3);font-size:0.8rem">'+(ch.neighborhood||'—')+'</td>'+
       '<td>'+ch.parentName+'</td>'+
       '<td>'+(ch.isActive!==false?'<span class="badge badge-green">'+(ar?'نشط':'Active')+'</span>':'<span class="badge badge-red">'+(ar?'غير نشط':'Inactive')+'</span>')+'</td>'+
-      '<td>'+
-      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="viewChildDetails('+ch.id+')">'+(ar?'عرض':'View')+'</button> '+
-      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem;background:var(--primary2);color:#fff" onclick="openEditChild('+ch.id+')">'+(ar?'تعديل':'Edit')+'</button>'+
+      '<td style="display:flex;gap:0.3rem">'+
+      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="viewChildDetails('+ch.id+')">'+(ar?'عرض':'View')+'</button>'+
+      (window._perms?.canEditChild ? '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem;background:var(--primary2);color:#fff" onclick="openEditChild('+ch.id+')">'+(ar?'تعديل':'Edit')+'</button>' : '')+
+      (window._perms?.canDelChild ? '<button class="icon-btn icon-btn-delete" onclick="deleteChild('+ch.id+')" title="'+(ar?'حذف':'Delete')+'">🗑️</button>' : '')+
       '</td>'+
     '</tr>').join('')+
     '</tbody></table>';
