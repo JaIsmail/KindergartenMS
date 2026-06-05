@@ -358,13 +358,12 @@ public class TenantsController : ControllerBase
         // Disable FK checks and delete in correct order
         var tables = new[]
         {
-            "UserPermissionGroups", "UserPermissions", "UserRoleGroups",
+            "UserPermissionGroups", "UserPermissions",
             "PermissionGroupPermissions", "PermissionGroups",
-            "RoleGroupPermissions", "RoleGroups",
             "Permissions",
             "Payments", "Subscriptions",
             "TripChildren", "TripLocations", "Trips",
-            "AttendancePeriods", "Attendances",
+            "AttendancePeriods", "Attendance",
             "LeaveRequests", "UserDevices", "Children",
             "DynamicLists",
             "AspNetUserRoles", "AspNetUserClaims",
