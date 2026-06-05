@@ -355,31 +355,27 @@ public class TenantsController : ControllerBase
         var superAdmin = await _db.Users.FirstOrDefaultAsync(u => u.Email == "superadmin@kms-platform.com");
         var saId = superAdmin?.Id;
 
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM UserPermissionGroups");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM PermissionGroupPermissions");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM PermissionGroups");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM UserPermissions");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Permissions");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM DynamicLists");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Payments");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Subscriptions");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM TripChildren");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM TripLocations");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Trips");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM AttendancePeriods");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Attendances");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM LeaveRequests");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM UserDevices");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Children");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM UserRoleGroups");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM RoleGroupPermissions");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM RoleGroups");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserRoles");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserClaims");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserLogins");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserTokens");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM AspNetRoleClaims");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM AspNetRoles");
+        // Disable FK checks and delete in correct order
+        var tables = new[]
+        {
+            "UserPermissionGroups", "UserPermissions", "UserRoleGroups",
+            "PermissionGroupPermissions", "PermissionGroups",
+            "RoleGroupPermissions", "RoleGroups",
+            "Permissions",
+            "Payments", "Subscriptions",
+            "TripChildren", "TripLocations", "Trips",
+            "AttendancePeriods", "Attendances",
+            "LeaveRequests", "UserDevices", "Children",
+            "DynamicLists",
+            "AspNetUserRoles", "AspNetUserClaims",
+            "AspNetUserLogins", "AspNetUserTokens",
+            "AspNetRoleClaims", "AspNetRoles"
+        };
+        foreach (var table in tables)
+        {
+            try { await _db.Database.ExecuteSqlRawAsync($"DELETE FROM {table}"); }
+            catch { /* ignore if table doesn't exist or already empty */ }
+        }
 
         if (!string.IsNullOrEmpty(saId))
             await _db.Database.ExecuteSqlRawAsync($"DELETE FROM AspNetUsers WHERE Id != '{saId}'");
