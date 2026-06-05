@@ -352,8 +352,11 @@ public class TenantsController : ControllerBase
         var tenantId = int.TryParse(User.FindFirstValue("TenantId"), out var tid) ? tid : -1;
         if (tenantId != 0) return Forbid();
 
-        var superAdmin = await _db.Users.FirstOrDefaultAsync(u => u.Email == "superadmin@kms-platform.com");
+        var superAdmin = await _db.Users.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Email == "superadmin@kms-platform.com");
         var saId = superAdmin?.Id;
+        if (string.IsNullOrEmpty(saId))
+            return BadRequest(new { error = "SuperAdmin user not found" });
 
         // Disable FK checks and delete in correct order
         var tables = new[]
