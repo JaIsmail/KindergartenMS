@@ -370,10 +370,11 @@ public class TenantsController : ControllerBase
             "AspNetUserLogins", "AspNetUserTokens",
             "AspNetRoleClaims", "AspNetRoles"
         };
+        var errors = new List<string>();
         foreach (var table in tables)
         {
             try { await _db.Database.ExecuteSqlRawAsync($"DELETE FROM {table}"); }
-            catch { /* ignore if table doesn't exist or already empty */ }
+            catch (Exception ex) { errors.Add($"{table}: {ex.Message}"); }
         }
 
         if (!string.IsNullOrEmpty(saId))
@@ -384,6 +385,7 @@ public class TenantsController : ControllerBase
         return Ok(new {
             message = "Platform reset complete",
             keptUser = superAdmin?.Email,
+            errors = errors,
             warning = "All tenants, users, permissions, and data deleted"
         });
     }
