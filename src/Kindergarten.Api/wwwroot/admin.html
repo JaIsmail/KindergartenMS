@@ -256,8 +256,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="nav-group-items">
       <button class="nav-item" onclick="showPage('children')" data-requires-permission="Children.View"><span class="icon">👶</span><span data-ar="الأطفال" data-en="Children">الأطفال</span><span class="nav-badge" id="childrenBadge">0</span></button>
       <button class="nav-item" onclick="showPage('trips')" data-requires-permission="Trips.View"><span class="icon">🚌</span><span data-ar="الرحلات" data-en="Trips">الرحلات</span></button>
-      <button class="nav-item" onclick="showPage('attendance')" data-requires-permission="Attendance.ViewAll"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
-      <button class="nav-item" onclick="showPage('leave')" data-requires-permission="Leave.ViewAll"><span class="icon">📋</span><span data-ar="طلبات الإذن" data-en="Leave Requests">طلبات الإذن</span></button>
+      <button class="nav-item" onclick="showPage('attendance')" data-requires-permission="Attendance.CheckIn"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
+      <button class="nav-item" onclick="showPage('leave')" data-requires-permission="Leave.Submit"><span class="icon">📋</span><span data-ar="طلبات الإذن" data-en="Leave Requests">طلبات الإذن</span></button>
     </div>
   </div>
 
@@ -1168,22 +1168,18 @@ async function api(path,method='GET',body=null){
 
 
 function getFirstAccessiblePage() {
-  if(_adminPermissions.length >= 20) return 'dashboard';
-  var pagePerms = [
-    {page:'children',     perm:'Children.View'},
-    {page:'attendance',   perm:'Attendance.ViewAll'},
-    {page:'leave',        perm:'Leave.ViewAll'},
-    {page:'trips',        perm:'Trips.View'},
-    {page:'subscriptions',perm:'Subscriptions.View'},
-    {page:'payments',     perm:'Payments.View'},
-    {page:'users',        perm:'Users.View'},
-    {page:'permissions',  perm:'Permissions.View'},
-    {page:'lists',        perm:'Lists.View'},
-    {page:'settings',     perm:'Settings.View'},
-  ];
-  for(var i=0;i<pagePerms.length;i++){
-    if(hasAdminPermission(pagePerms[i].perm)) return pagePerms[i].page;
-  }
+  if(_adminPermissions.length >= 10) return 'dashboard';
+  // Check each page — use the most permissive check per page
+  if(hasAdminPermission('Children.View')) return 'children';
+  if(hasAdminPermission('Attendance.ViewAll') || hasAdminPermission('Attendance.CheckIn') || hasAdminPermission('Attendance.ViewOwn')) return 'attendance';
+  if(hasAdminPermission('Leave.ViewAll') || hasAdminPermission('Leave.Submit')) return 'leave';
+  if(hasAdminPermission('Trips.View') || hasAdminPermission('Trips.Manage') || hasAdminPermission('Trips.Track')) return 'trips';
+  if(hasAdminPermission('Subscriptions.View')) return 'subscriptions';
+  if(hasAdminPermission('Payments.View')) return 'payments';
+  if(hasAdminPermission('Users.View')) return 'users';
+  if(hasAdminPermission('Permissions.View')) return 'permissions';
+  if(hasAdminPermission('Lists.View')) return 'lists';
+  if(hasAdminPermission('Settings.View')) return 'settings';
   return 'dashboard';
 }
 
@@ -1269,24 +1265,29 @@ function hasAdminPermission(name) {
 
 
 function updateNavVisibility() {
-  // Hide dashboard for non-admins (less than 20 permissions)
-  const dashBtn = document.querySelector('.nav-item[onclick*="dashboard"]');
-  if(dashBtn) dashBtn.style.display = _adminPermissions.length >= 20 ? '' : 'none';
-
   // Hide nav items the user doesn't have permission for
   document.querySelectorAll('[data-requires-permission]').forEach(function(el) {
-    const perm = el.getAttribute('data-requires-permission');
-    const hasIt = hasAdminPermission(perm);
-    el.style.display = hasIt ? '' : 'none';
+    var perm = el.getAttribute('data-requires-permission');
+    el.style.display = hasAdminPermission(perm) ? '' : 'none';
   });
 
-  // Hide section headers if all items in section are hidden
-  document.querySelectorAll('.nav-section').forEach(function(section) {
-    const visibleItems = section.querySelectorAll('.nav-item:not([style*="display: none"]):not([style*="display:none"])');
-    const header = section.previousElementSibling;
-    if (header && header.classList.contains('nav-section-title')) {
-      header.style.display = visibleItems.length === 0 ? 'none' : '';
+  // Hide dashboard for non-admins
+  var dashBtn = document.querySelector('[onclick*="showPage('dashboard')"]');
+  if(dashBtn) dashBtn.style.display = _adminPermissions.length >= 10 ? '' : 'none';
+
+  // Hide section title if ALL nav items below it are hidden
+  var sections = document.querySelectorAll('.nav-section-title');
+  sections.forEach(function(title) {
+    var next = title.nextElementSibling;
+    var hasVisible = false;
+    while(next && !next.classList.contains('nav-section-title')) {
+      if(next.classList.contains('nav-item') && next.style.display !== 'none') {
+        hasVisible = true;
+        break;
+      }
+      next = next.nextElementSibling;
     }
+    title.style.display = hasVisible ? '' : 'none';
   });
 }
 
