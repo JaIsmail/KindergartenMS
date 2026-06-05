@@ -2299,8 +2299,8 @@ async function loadGroups(){
       '<td><div style="font-weight:700">'+(ar?g.nameAr:g.nameEn)+'</div><div style="font-size:0.72rem;color:var(--text-muted)">'+g.description+'</div></td>'+
       '<td><span style="font-weight:700;color:var(--primary)">'+g.permissions.length+' '+(ar?'صلاحية':'perms')+'</span></td>'+
       '<td style="display:flex;gap:0.4rem">'+
-        '<button class="icon-btn" onclick="openEditGroup('+g.id+')" title="'+(ar?'تعديل':'Edit')+'">✏️</button>'+
-        '<button class="icon-btn icon-btn-delete" onclick="deleteGroup('+g.id+')" title="'+(ar?'حذف':'Delete')+'">🗑️</button>'+
+        (window._perms?.canEditGroup ? '<button class="icon-btn" onclick="openEditGroup('+g.id+')" title="'+(ar?'تعديل':'Edit')+'">✏️</button>' : '')+
+        (window._perms?.canDelGroup ? '<button class="icon-btn icon-btn-delete" onclick="deleteGroup('+g.id+')" title="'+(ar?'حذف':'Delete')+'">🗑️</button>' : '')+
       '</td>'+
     '</tr>'
   ).join('')+
@@ -2586,8 +2586,8 @@ function renderLeaveTable(data){
       '<td><div style="display:flex;gap:0.4rem">'+
         '<button onclick="viewLeaveDetails('+r.id+')" class="icon-btn icon-btn-view" title="'+(ar?'تفاصيل':'Details')+'">👁️</button>'+
         (r.status==='Pending'?
-          '<button onclick="reviewLeave('+r.id+',\'Approved\')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>'+
-          '<button onclick="reviewLeave('+r.id+',\'Rejected\')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>':
+          (window._perms?.canApproveLv ? '<button onclick="reviewLeave('+r.id+',\'Approved\')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>' : '')+
+          (window._perms?.canApproveLv ? '<button onclick="reviewLeave('+r.id+',\'Rejected\')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>' : '')+
           '')+
       '</div></td>'+
     '</tr>';
@@ -2864,8 +2864,8 @@ async function loadSubscriptions(){
       '<td style="font-size:0.8rem">'+formatDate(s.startDate)+' → '+formatDate(s.endDate)+'</td>'+
       '<td>'+statusBadge(s.paymentStatus)+'</td>'+
       '<td style="display:flex;gap:0.3rem">'+
-      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.5rem" onclick="openUpdateStatus('+s.id+',\''+s.paymentStatus+'\')">'+(ar?'تغيير':'Status')+'</button>'+
-      '<button class="icon-btn icon-btn-delete" onclick="deleteSubscription('+s.id+')" title="'+(ar?'حذف':'Delete')+'">🗑️</button>'+
+      (window._perms?.canEditSub ? '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.5rem" onclick="openUpdateStatus('+s.id+',\''+s.paymentStatus+'\')">'+(ar?'تغيير':'Status')+'</button>' : '')+
+      (window._perms?.canDelSub ? '<button class="icon-btn icon-btn-delete" onclick="deleteSubscription('+s.id+')" title="'+(ar?'حذف':'Delete')+'">🗑️</button>' : '')+
       '</td>'+
     '</tr>').join('')+
     '</tbody></table>';
@@ -3000,8 +3000,8 @@ async function loadUsers(){
       '<td>'+roleBadge(u.groupName||u.roleType)+'</td>'+
       '<td><div style="display:flex;gap:0.4rem">'+
         '<button data-id="'+u.id+'" data-action="view" class="user-action-btn icon-btn icon-btn-view" title="'+(currentLang==='ar'?'عرض':'View')+'">👁️</button>'+
-        '<button data-id="'+u.id+'" data-action="edit" class="user-action-btn icon-btn icon-btn-edit" title="'+(currentLang==='ar'?'تعديل':'Edit')+'">✏️</button>'+
-        '<button data-id="'+u.id+'" data-name="'+u.fullName+'" data-action="delete" class="user-action-btn icon-btn icon-btn-delete" title="'+(currentLang==='ar'?'حذف':'Delete')+'">🗑️</button>'+
+        (window._perms?.canEditUser ? '<button data-id="'+u.id+'" data-action="edit" class="user-action-btn icon-btn icon-btn-edit" title="'+(currentLang==='ar'?'تعديل':'Edit')+'">✏️</button>' : '')+
+        (window._perms?.canDelUser ? '<button data-id="'+u.id+'" data-name="'+u.fullName+'" data-action="delete" class="user-action-btn icon-btn icon-btn-delete" title="'+(currentLang==='ar'?'حذف':'Delete')+'">🗑️</button>' : '')+
         '<button class="icon-btn" onclick="openAssignGroup(\''+u.id+'\',\''+u.fullName+'\')" title="'+(currentLang==='ar'?'تعيين مجموعة':'Assign Group')+'">👥</button>'+
       '</div></td>'+
     '</tr>').join('')+
