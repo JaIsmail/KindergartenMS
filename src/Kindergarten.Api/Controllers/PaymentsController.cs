@@ -16,7 +16,7 @@ public class PaymentsController : ControllerBase
         _paymentService = paymentService;
 
     [HttpGet("subscription/{subscriptionId}")]
-    [RequirePermission("ViewFinancials")]
+    [RequirePermission("Payments.View")]
     public async Task<IActionResult> GetBySubscription(int subscriptionId)
     {
         var payments = await _paymentService.GetBySubscriptionAsync(subscriptionId);
@@ -24,7 +24,7 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost]
-    [RequirePermission("ManagePayments")]
+    [RequirePermission("Payments.Add")]
     public async Task<IActionResult> Create([FromBody] CreatePaymentDto dto)
     {
         var payment = await _paymentService.CreateAsync(dto);
@@ -32,7 +32,7 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpGet]
-    [RequirePermission("ViewFinancials")]
+    [RequirePermission("Payments.View")]
     public async Task<IActionResult> GetAll()
     {
         var payments = await _paymentService.GetAllAsync();
@@ -40,7 +40,7 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpGet("overdue")]
-    [RequirePermission("ViewFinancials")]
+    [RequirePermission("Payments.View")]
     public async Task<IActionResult> GetOverdue()
     {
         var overdue = await _paymentService.GetOverdueAsync();

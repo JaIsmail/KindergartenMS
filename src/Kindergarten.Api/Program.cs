@@ -72,22 +72,39 @@ builder.Services.AddAuthorization(options =>
 {
     var permissions = new[]
     {
-        "ManageUsers", "ViewUsers",
-        "ManageChildren", "ViewChildren",
-        "ManageTrips", "TrackTrips",
-        "ManageSubscriptions", "ViewSubscriptions",
-        "ManagePayments", "ViewFinancials",
-        "ManageAttendance", "ViewOwnAttendance",
-        "SubmitLeaveRequest", "ManageLeaveRequests",
-        "ManagePermissions", "ManageRoleGroups",
-        "ManageTenants", "UpdateTenant",
-        "SendNotifications", "ViewReports"
+        // Children
+        "Children.View","Children.Add","Children.Edit","Children.Delete",
+        // Subscriptions
+        "Subscriptions.View","Subscriptions.Add","Subscriptions.Edit","Subscriptions.Delete",
+        // Payments
+        "Payments.View","Payments.Add","Payments.Delete",
+        // Users
+        "Users.View","Users.Add","Users.Edit","Users.Delete",
+        // Attendance
+        "Attendance.CheckIn","Attendance.ViewOwn","Attendance.ViewAll",
+        // Leave
+        "Leave.Submit","Leave.ViewAll","Leave.Approve",
+        // Trips
+        "Trips.View","Trips.Manage","Trips.Track",
+        // Lists
+        "Lists.View","Lists.Manage",
+        // Permissions
+        "Permissions.View","Permissions.Edit",
+        "Groups.View","Groups.Add","Groups.Edit","Groups.Delete","Groups.Assign",
+        // Tenants
+        "Tenants.View","Tenants.Add","Tenants.Edit","Tenants.Update",
+        // Reports
+        "Reports.View","Reports.Export",
+        // Settings
+        "Settings.View","Settings.Edit",
+        // Discounts
+        "Discounts.View","Discounts.Manage","Discounts.Apply",
+        // Notifications & Finance
+        "Notifications.Send","Finance.ViewAll"
     };
-    foreach (var perm in permissions)
-    {
-        options.AddPolicy(perm, policy =>
-            policy.Requirements.Add(new PermissionRequirement(perm)));
-    }
+    foreach (var permission in permissions)
+        options.AddPolicy(permission,
+            policy => policy.Requirements.Add(new PermissionRequirement(permission)));
 });
 
 // ── Services

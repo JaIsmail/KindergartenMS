@@ -20,10 +20,10 @@ public class SubscriptionsController : ControllerBase
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     [HttpGet]
-    [RequirePermission("ViewSubscriptions")]
+    [RequirePermission("Subscriptions.View")]
     public async Task<IActionResult> GetAll()
     {
-        var canViewAll = User.HasClaim("Permission", "ViewAllSubscriptions");
+        var canViewAll = User.HasClaim("Permission", "Finance.ViewAll");
         var subs = canViewAll
             ? await _subscriptionService.GetAllAsync(null)
             : await _subscriptionService.GetAllAsync(GetUserId());
@@ -31,7 +31,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [RequirePermission("ViewSubscriptions")]
+    [RequirePermission("Subscriptions.View")]
     public async Task<IActionResult> GetById(int id)
     {
         var sub = await _subscriptionService.GetByIdAsync(id);
@@ -40,7 +40,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpPatch("{id}/status")]
-    [RequirePermission("ManageSubscriptions")]
+    [RequirePermission("Subscriptions.Edit")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
     {
         var sub = await _subscriptionService.UpdateStatusAsync(id, dto.Status);
@@ -49,7 +49,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpPost]
-    [RequirePermission("ManageSubscriptions")]
+    [RequirePermission("Subscriptions.Add")]
     public async Task<IActionResult> Create([FromBody] CreateSubscriptionDto dto)
     {
         var sub = await _subscriptionService.CreateAsync(dto, GetUserId());
@@ -57,7 +57,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [RequirePermission("ManageSubscriptions")]
+    [RequirePermission("Subscriptions.Delete")]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _subscriptionService.DeleteAsync(id);

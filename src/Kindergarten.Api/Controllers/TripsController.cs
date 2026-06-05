@@ -52,7 +52,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [RequirePermission("TrackTrips")]
+    [RequirePermission("Trips.View")]
     public async Task<IActionResult> GetById(int id)
     {
         var trip = await _tripService.GetByIdAsync(id);

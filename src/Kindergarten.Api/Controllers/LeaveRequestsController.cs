@@ -20,7 +20,7 @@ public class LeaveRequestsController : ControllerBase
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     [HttpPost]
-    [RequirePermission("SubmitLeaveRequest")]
+    [RequirePermission("Leave.Submit")]
     public async Task<IActionResult> Create([FromBody] CreateLeaveRequestDto dto)
     {
         var result = await _service.CreateAsync(dto, GetUserId());
@@ -28,7 +28,7 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpGet("my")]
-    [RequirePermission("SubmitLeaveRequest")]
+    [RequirePermission("Leave.Submit")]
     public async Task<IActionResult> GetMy()
     {
         var result = await _service.GetByUserAsync(GetUserId());
@@ -36,7 +36,7 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpGet("my-hours")]
-    [RequirePermission("SubmitLeaveRequest")]
+    [RequirePermission("Leave.Submit")]
     public async Task<IActionResult> GetMyHours()
     {
         var hours = await _service.GetMonthlyHoursAsync(GetUserId());
@@ -44,7 +44,7 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpGet]
-    [RequirePermission("ManageLeaveRequests")]
+    [RequirePermission("Leave.ViewAll")]
     public async Task<IActionResult> GetAll()
     {
         var result = await _service.GetAllAsync();
@@ -52,7 +52,7 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpPut("{id}/review")]
-    [RequirePermission("ManageLeaveRequests")]
+    [RequirePermission("Leave.Approve")]
     public async Task<IActionResult> Review(int id, [FromBody] ReviewLeaveRequestDto dto)
     {
         var result = await _service.ReviewAsync(id, dto, GetUserId());

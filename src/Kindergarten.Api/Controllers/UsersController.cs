@@ -29,7 +29,7 @@ public class UsersController : ControllerBase
 
     // GET all users
     [HttpGet]
-    [RequirePermission("ViewUsers")]
+    [RequirePermission("Users.View")]
     public async Task<IActionResult> GetAll()
     {
         var query = IsSuperAdmin()
@@ -53,7 +53,7 @@ public class UsersController : ControllerBase
 
     // GET single user
     [HttpGet("{id}")]
-    [RequirePermission("ViewUsers")]
+    [RequirePermission("Users.View")]
     public async Task<IActionResult> GetById(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -67,7 +67,7 @@ public class UsersController : ControllerBase
 
     // PUT update user
     [HttpPut("{id}")]
-    [RequirePermission("ManageUsers")]
+    [RequirePermission("Users.Edit")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateUserDto dto)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -96,7 +96,7 @@ public class UsersController : ControllerBase
 
     // DELETE user
     [HttpDelete("{id}")]
-    [RequirePermission("ManageUsers")]
+    [RequirePermission("Users.Delete")]
     public async Task<IActionResult> Delete(string id)
     {
         var user = await _userManager.FindByIdAsync(id);

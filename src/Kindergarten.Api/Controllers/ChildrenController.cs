@@ -19,17 +19,17 @@ public class ChildrenController : ControllerBase
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     [HttpGet]
-    [RequirePermission("ViewChildren")]
+    [RequirePermission("Children.View")]
     public async Task<IActionResult> GetAll()
     {
-        var canViewAll = User.HasClaim("Permission", "ViewAllChildren");
+        var canViewAll = User.HasClaim("Permission", "Children.View") && User.HasClaim("Permission", "Users.View");
         var parentId = canViewAll ? null : GetUserId();
         var children = await _childService.GetAllAsync(parentId);
         return Ok(children);
     }
 
     [HttpGet("{id}")]
-    [RequirePermission("ViewChildren")]
+    [RequirePermission("Children.View")]
     public async Task<IActionResult> GetById(int id)
     {
         var child = await _childService.GetByIdAsync(id, GetUserId());
@@ -38,10 +38,10 @@ public class ChildrenController : ControllerBase
     }
 
     [HttpPost]
-    [RequirePermission("ManageChildren")]
+    [RequirePermission("Children.Add")]
     public async Task<IActionResult> Create([FromBody] CreateChildDto dto)
     {
-        var canAssign = User.HasClaim("Permission", "AssignChildToParent");
+        var canAssign = User.HasClaim("Permission", "Children.Edit");
         var parentId  = (canAssign && !string.IsNullOrEmpty(dto.ParentId))
                         ? dto.ParentId
                         : GetUserId();
@@ -50,7 +50,7 @@ public class ChildrenController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [RequirePermission("ManageChildren")]
+    [RequirePermission("Children.Delete")]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _childService.DeleteAsync(id, GetUserId());
@@ -59,7 +59,7 @@ public class ChildrenController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [RequirePermission("ManageChildren")]
+    [RequirePermission("Children.Edit")]
     public async Task<IActionResult> Update(int id, [FromBody] CreateChildDto dto)
     {
         var child = await _childService.UpdateAsync(id, dto, GetUserId());

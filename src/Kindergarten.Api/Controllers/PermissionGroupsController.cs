@@ -80,7 +80,7 @@ public async Task<IActionResult> GetById(int id)
 
 // Create group
     [HttpPost]
-    [RequirePermission("ManageRoleGroups")]
+    [RequirePermission("Groups.Add")]
     public async Task<IActionResult> Create([FromBody] CreatePermissionGroupDto dto)
     {
         var group = new PermissionGroup
@@ -112,7 +112,7 @@ public async Task<IActionResult> GetById(int id)
 
 // Update group permissions
     [HttpPut("{id}")]
-    [RequirePermission("ManageRoleGroups")]
+    [RequirePermission("Groups.Edit")]
     public async Task<IActionResult> Update(int id, [FromBody] CreatePermissionGroupDto dto)
     {
         var group = await _db.PermissionGroups.IgnoreQueryFilters().FirstOrDefaultAsync(g => g.Id == id);
@@ -142,7 +142,7 @@ public async Task<IActionResult> GetById(int id)
     }
 // Delete group
     [HttpDelete("{id}")]
-    [RequirePermission("ManageRoleGroups")]
+    [RequirePermission("Groups.Delete")]
     public async Task<IActionResult> Delete(int id)
     {
         var group = await _db.PermissionGroups.IgnoreQueryFilters().FirstOrDefaultAsync(g => g.Id == id);
@@ -154,7 +154,7 @@ public async Task<IActionResult> GetById(int id)
 
     // Assign group to user
     [HttpPost("{id}/assign/{userId}")]
-    [RequirePermission("ManageRoleGroups")]
+    [RequirePermission("Groups.Assign")]
     public async Task<IActionResult> AssignToUser(int id, string userId)
     {
         // Check if already assigned
@@ -217,7 +217,7 @@ public async Task<IActionResult> GetById(int id)
 
     // Remove group from user
     [HttpDelete("{id}/unassign/{userId}")]
-    [RequirePermission("ManageRoleGroups")]
+    [RequirePermission("Groups.Assign")]
     public async Task<IActionResult> UnassignFromUser(int id, string userId)
     {
         var assignment = await _db.UserPermissionGroups
@@ -304,15 +304,15 @@ public async Task<IActionResult> GetById(int id)
             (new() { NameAr="مدير النظام", NameEn="Admin",      Description="مدير الروضة",   TenantId=tenantId },
              allPerms.Select(x => x.Name).ToList()),
             (new() { NameAr="سائق",        NameEn="Driver",     Description="سائق الحافلة",  TenantId=tenantId },
-             new List<string> { "ManageTrips","TrackTrips","ViewChildren","SubmitLeaveRequest","ViewOwnAttendance" }),
+             new List<string> { "Trips.Manage","Trips.Track","Children.View","Leave.Submit","Attendance.CheckIn","Attendance.ViewOwn" }),
             (new() { NameAr="ولي أمر",     NameEn="Parent",     Description="ولي أمر الطفل", TenantId=tenantId },
-             new List<string> { "ViewChildren","ViewSubscriptions","TrackTrips" }),
+             new List<string> { "Children.View","Subscriptions.View","Trips.View" }),
             (new() { NameAr="معلم",        NameEn="Teacher",    Description="معلم الروضة",   TenantId=tenantId },
-             new List<string> { "ManageAttendance","ViewOwnAttendance","SubmitLeaveRequest","ViewChildren" }),
+             new List<string> { "Attendance.CheckIn","Attendance.ViewOwn","Leave.Submit","Children.View" }),
             (new() { NameAr="محاسب",       NameEn="Accountant", Description="المحاسب",       TenantId=tenantId },
-             new List<string> { "ViewFinancials","ManagePayments","ViewSubscriptions","ManageSubscriptions","ViewReports" }),
+             new List<string> { "Payments.View","Payments.Add","Subscriptions.View","Finance.ViewAll","Discounts.View","Reports.View","Reports.Export" }),
             (new() { NameAr="مشرف",        NameEn="Supervisor", Description="المشرف",        TenantId=tenantId },
-             new List<string> { "ViewUsers","ViewChildren","ManageAttendance","ViewOwnAttendance","ManageLeaveRequests","ViewReports" }),
+             new List<string> { "Users.View","Children.View","Attendance.ViewAll","Leave.ViewAll","Leave.Approve","Reports.View" }),
         };
 
         foreach (var (group, permNames) in groups)
