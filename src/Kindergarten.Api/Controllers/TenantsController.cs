@@ -362,7 +362,7 @@ public class TenantsController : ControllerBase
                 .Select(u => u.Id)
                 .FirstOrDefaultAsync();
 
-            if (string.IsNullOrEmpty(saId))
+            if (saId == null)
                 return BadRequest(new { error = "SuperAdmin not found" });
 
             var deleted = new List<string>();
@@ -391,7 +391,7 @@ public class TenantsController : ControllerBase
 
             // Delete non-SuperAdmin users
             try {
-                await _db.Database.ExecuteSqlRawAsync($"DELETE FROM [AspNetUsers] WHERE [Id] <> '{saId}'");
+                await _db.Database.ExecuteSqlRawAsync("DELETE FROM [AspNetUsers] WHERE [Id] <> {0}", saId);
                 deleted.Add("AspNetUsers (non-SA)");
             } catch (Exception ex) { errors.Add($"AspNetUsers: {ex.Message.Split('\n')[0]}"); }
 

@@ -1168,7 +1168,7 @@ async function api(path,method='GET',body=null){
 
 
 function getFirstAccessiblePage() {
-  if(_adminPermissions.length >= 10) return 'dashboard';
+  if(_adminPermissions.includes('__superadmin__') || _adminPermissions.length >= 10) return 'dashboard';
   // Check each page — use the most permissive check per page
   if(hasAdminPermission('Children.View')) return 'children';
   if(hasAdminPermission('Attendance.ViewAll') || hasAdminPermission('Attendance.CheckIn') || hasAdminPermission('Attendance.ViewOwn')) return 'attendance';
@@ -1254,12 +1254,18 @@ function loadAdminPermissions() {
     const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c){
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join('')));
+    // SuperAdmin (TenantId=0) — grant all permissions
+    if (payload['TenantId'] === '0' || payload['TenantId'] === 0) {
+      _adminPermissions = ['__superadmin__'];
+      return;
+    }
     const raw = payload['Permission'];
     _adminPermissions = Array.isArray(raw) ? raw : (raw ? [raw] : []);
   } catch(e) { _adminPermissions = []; }
 }
 
 function hasAdminPermission(name) {
+  if (_adminPermissions.includes('__superadmin__')) return true;
   return _adminPermissions.includes(name);
 }
 
