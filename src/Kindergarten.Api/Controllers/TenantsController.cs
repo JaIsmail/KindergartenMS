@@ -7,6 +7,7 @@ using Kindergarten.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -349,48 +350,75 @@ public class TenantsController : ControllerBase
     [HttpPost("reset-platform")]
     public async Task<IActionResult> ResetPlatform()
     {
-        var tenantId = int.TryParse(User.FindFirstValue("TenantId"), out var tid) ? tid : -1;
-        if (tenantId != 0) return Forbid();
-
-        var superAdmin = await _db.Users.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(u => u.Email == "superadmin@kms-platform.com");
-        var saId = superAdmin?.Id;
-        if (string.IsNullOrEmpty(saId))
-            return BadRequest(new { error = "SuperAdmin user not found" });
-
-        // Disable FK checks and delete in correct order
-        var tables = new[]
+        try
         {
-            "UserPermissionGroups", "UserPermissions",
-            "PermissionGroupPermissions", "PermissionGroups",
-            "Permissions",
-            "Payments", "Subscriptions",
-            "TripChildren", "TripLocations", "Trips",
-            "AttendancePeriods", "Attendance",
-            "LeaveRequests", "UserDevices", "Children",
-            "DynamicLists",
-            "AspNetUserRoles", "AspNetUserClaims",
-            "AspNetUserLogins", "AspNetUserTokens",
-            "AspNetRoleClaims", "AspNetRoles"
-        };
-        var errors = new List<string>();
-        foreach (var table in tables)
-        {
-            try { await _db.Database.ExecuteSqlRawAsync($"DELETE FROM {table}"); }
-            catch (Exception ex) { errors.Add($"{table}: {ex.Message}"); }
+            var tenantId = int.TryParse(User.FindFirstValue("TenantId"), out var tid) ? tid : -1;
+            if (tenantId != 0)
+                return Forbid();
+
+            var saId = await _db.Users
+                .IgnoreQueryFilters()
+                .Where(u => u.Email == "superadmin@kms-platform.com")
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(saId))
+                return BadRequest(new { error = "SuperAdmin not found" });
+
+            var deleted = new List<string>();
+            var errors  = new List<string>();
+
+            // Disable FK constraints
+            try {
+                await _db.Database.ExecuteSqlRawAsync("EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'");
+                deleted.Add("FK constraints disabled");
+            } catch (Exception ex) { errors.Add($"Disable FKs: {ex.Message.Split('\n')[0]}"); }
+
+            // Clear tables
+            var tables = new[] {
+                "UserPermissionGroups","UserPermissions",
+                "PermissionGroupPermissions","PermissionGroups","Permissions",
+                "Payments","Subscriptions",
+                "TripChildren","TripLocations","Trips",
+                "AttendancePeriods","Attendance",
+                "LeaveRequests","UserDevices","Children",
+                "DynamicLists",
+                "AspNetUserRoles","AspNetUserClaims",
+                "AspNetUserLogins","AspNetUserTokens",
+                "AspNetRoleClaims","AspNetRoles"
+            };
+            foreach (var t in tables)
+            {
+                try {
+                    await _db.Database.ExecuteSqlRawAsync($"DELETE FROM [{t}]");
+                    deleted.Add(t);
+                } catch (Exception ex) { errors.Add($"{t}: {ex.Message.Split('\n')[0]}"); }
+            }
+
+            // Delete non-SuperAdmin users
+            try {
+                await _db.Database.ExecuteSqlRawAsync($"DELETE FROM [AspNetUsers] WHERE [Id] <> '{saId}'");
+                deleted.Add("AspNetUsers (non-SA)");
+            } catch (Exception ex) { errors.Add($"AspNetUsers: {ex.Message.Split('\n')[0]}"); }
+
+            // Delete tenants
+            try {
+                await _db.Database.ExecuteSqlRawAsync("DELETE FROM [Tenants]");
+                deleted.Add("Tenants");
+            } catch (Exception ex) { errors.Add($"Tenants: {ex.Message.Split('\n')[0]}"); }
+
+            // Re-enable FK constraints
+            try {
+                await _db.Database.ExecuteSqlRawAsync("EXEC sp_msforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL'");
+                deleted.Add("FK constraints re-enabled");
+            } catch (Exception ex) { errors.Add($"Enable FKs: {ex.Message.Split('\n')[0]}"); }
+
+            return Ok(new { message = "Platform reset completed", keptUser = saId, deleted, errors });
         }
-
-        if (!string.IsNullOrEmpty(saId))
-            await _db.Database.ExecuteSqlRawAsync($"DELETE FROM AspNetUsers WHERE Id != '{saId}'");
-
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Tenants");
-
-        return Ok(new {
-            message = "Platform reset complete",
-            keptUser = superAdmin?.Email,
-            errors = errors,
-            warning = "All tenants, users, permissions, and data deleted"
-        });
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message, stack = ex.StackTrace?.Split('\n')[0] });
+        }
     }
 
 }
