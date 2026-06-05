@@ -1287,21 +1287,15 @@ function updateNavVisibility() {
   var dashBtn = document.querySelector('[onclick*="dashboard"]');
   if(dashBtn) dashBtn.style.display = (_adminPermissions.includes('__superadmin__') || _adminPermissions.length >= 10) ? '' : 'none';
 
-  // Hide section title if ALL nav items below it are hidden
-  document.querySelectorAll('.nav-section-title').forEach(function(title) {
-    var sibling = title.nextElementSibling;
+  // Hide nav-group if ALL nav-items inside are hidden
+  document.querySelectorAll('.nav-group').forEach(function(group) {
+    // Skip superadmin-only groups visibility logic
+    var items = group.querySelectorAll('.nav-item');
     var hasVisible = false;
-    while(sibling) {
-      if(sibling.classList.contains('nav-section-title')) break;
-      if(sibling.classList.contains('nav-item') &&
-         sibling.style.display !== 'none' &&
-         !sibling.classList.contains('nav-superadmin-only')) {
-        hasVisible = true;
-        break;
-      }
-      sibling = sibling.nextElementSibling;
-    }
-    title.style.display = hasVisible ? '' : 'none';
+    items.forEach(function(item) {
+      if(item.style.display !== 'none') hasVisible = true;
+    });
+    group.style.display = hasVisible ? '' : 'none';
   });
   
   // Also hide/show action buttons based on permissions
@@ -1399,6 +1393,24 @@ function updateToggle(){
   if(sl) sl.style.background=cb?.checked?'var(--primary)':'var(--border)';
 }
 async function loadSettings(){
+  // Show/hide edit controls based on Settings.Edit permission
+  const canEdit = hasAdminPermission('Settings.Edit');
+  const editEls = ['settingsRadius','alertTagInput','alertTagBox'];
+  editEls.forEach(function(id) {
+    var el = document.getElementById(id);
+    if(el) {
+      el.disabled = !canEdit;
+      el.style.opacity = canEdit ? '1' : '0.5';
+      el.style.pointerEvents = canEdit ? '' : 'none';
+    }
+  });
+  // Hide save button
+  var saveBtn = document.querySelector('[onclick="saveSettings()"]');
+  if(saveBtn) saveBtn.style.display = canEdit ? '' : 'none';
+  // Hide map click (location setting)
+  if(!canEdit && window._map) {
+    window._map.off('click');
+  }
   const ar = currentLang === 'ar';
   // Get current tenant settings
   const tenants = await api('/api/tenants') || [];
