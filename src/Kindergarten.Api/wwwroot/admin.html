@@ -1269,6 +1269,10 @@ function hasAdminPermission(name) {
 
 
 function updateNavVisibility() {
+  // Hide dashboard for non-admins (less than 20 permissions)
+  const dashBtn = document.querySelector('.nav-item[onclick*="dashboard"]');
+  if(dashBtn) dashBtn.style.display = _adminPermissions.length >= 20 ? '' : 'none';
+
   // Hide nav items the user doesn't have permission for
   document.querySelectorAll('[data-requires-permission]').forEach(function(el) {
     const perm = el.getAttribute('data-requires-permission');
@@ -1833,14 +1837,15 @@ async function saveEditChild() {
   } else showToast(currentLang==='ar'?'فشل التحديث':'Update failed','error');
 }
 async function loadChildren(){
-  // already cleared in table section below — skip duplicate load here
-  // Load parents for dropdown
-  const users=await api('/api/users');
-  const parentSel=document.getElementById('childParent');
-  if(users&&parentSel){
-    const parents=users.filter(u=>u.roleType==='Parent');
-    parentSel.innerHTML='<option value="">-- '+(currentLang==='ar'?'اختر ولي الأمر':'Select Parent')+' --</option>'+
-      parents.map(p=>'<option value="'+p.id+'">'+p.fullName+'</option>').join('');
+  // Load parents for dropdown — only if user has Users.View permission
+  if(hasAdminPermission('Users.View')) {
+    const users=await api('/api/users');
+    const parentSel=document.getElementById('childParent');
+    if(users&&parentSel){
+      const parents=users.filter(u=>u.roleType==='Parent');
+      parentSel.innerHTML='<option value="">-- '+(currentLang==='ar'?'اختر ولي الأمر':'Select Parent')+' --</option>'+
+        parents.map(p=>'<option value="'+p.id+'">'+p.fullName+'</option>').join('');
+    }
   }
   const data=await api('/api/children');const count=Array.isArray(data)?data.length:0;
   document.getElementById('children-count').textContent=count+t('childrenCount');
