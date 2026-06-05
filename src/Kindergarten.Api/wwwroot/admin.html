@@ -1271,6 +1271,12 @@ function hasAdminPermission(name) {
 
 
 function updateNavVisibility() {
+  // Show/hide SuperAdmin-only items
+  var isSA = _adminPermissions.includes('__superadmin__');
+  document.querySelectorAll('.nav-superadmin-only').forEach(function(el) {
+    el.style.display = isSA ? 'flex' : 'none';
+  });
+
   // Hide nav items the user doesn't have permission for
   document.querySelectorAll('[data-requires-permission]').forEach(function(el) {
     var perm = el.getAttribute('data-requires-permission');
@@ -1279,7 +1285,7 @@ function updateNavVisibility() {
 
   // Hide dashboard for non-admins
   var dashBtn = document.querySelector('[onclick*="dashboard"]');
-  if(dashBtn) dashBtn.style.display = _adminPermissions.length >= 10 ? '' : 'none';
+  if(dashBtn) dashBtn.style.display = (_adminPermissions.includes('__superadmin__') || _adminPermissions.length >= 10) ? '' : 'none';
 
   // Hide section title if ALL nav items below it are hidden
   var sections = document.querySelectorAll('.nav-section-title');
