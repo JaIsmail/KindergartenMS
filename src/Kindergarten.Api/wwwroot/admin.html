@@ -1166,6 +1166,27 @@ async function api(path,method='GET',body=null){
   try{const res=await fetch(API+path,opts);if(res.status===401){doLogout();return null;}if(res.status===204)return{};return await res.json();}catch{return null;}
 }
 
+
+function getFirstAccessiblePage() {
+  if(_adminPermissions.length >= 20) return 'dashboard';
+  var pagePerms = [
+    {page:'children',     perm:'Children.View'},
+    {page:'attendance',   perm:'Attendance.ViewAll'},
+    {page:'leave',        perm:'Leave.ViewAll'},
+    {page:'trips',        perm:'Trips.View'},
+    {page:'subscriptions',perm:'Subscriptions.View'},
+    {page:'payments',     perm:'Payments.View'},
+    {page:'users',        perm:'Users.View'},
+    {page:'permissions',  perm:'Permissions.View'},
+    {page:'lists',        perm:'Lists.View'},
+    {page:'settings',     perm:'Settings.View'},
+  ];
+  for(var i=0;i<pagePerms.length;i++){
+    if(hasAdminPermission(pagePerms[i].perm)) return pagePerms[i].page;
+  }
+  return 'dashboard';
+}
+
 window.onload=async()=>{
   setLang(currentLang);
   if(token){
