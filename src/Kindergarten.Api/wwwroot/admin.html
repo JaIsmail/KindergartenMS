@@ -254,10 +254,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <span class="group-arrow">◀</span>
     </div>
     <div class="nav-group-items">
-      <button class="nav-item" onclick="showPage('children')"><span class="icon">👶</span><span data-ar="الأطفال" data-en="Children">الأطفال</span><span class="nav-badge" id="childrenBadge">0</span></button>
-      <button class="nav-item" onclick="showPage('trips')"><span class="icon">🚌</span><span data-ar="الرحلات" data-en="Trips">الرحلات</span></button>
-      <button class="nav-item" onclick="showPage('attendance')"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
-      <button class="nav-item" onclick="showPage('leave')"><span class="icon">📋</span><span data-ar="طلبات الإذن" data-en="Leave Requests">طلبات الإذن</span></button>
+      <button class="nav-item" onclick="showPage('children')" data-requires-permission="Children.View"><span class="icon">👶</span><span data-ar="الأطفال" data-en="Children">الأطفال</span><span class="nav-badge" id="childrenBadge">0</span></button>
+      <button class="nav-item" onclick="showPage('trips')" data-requires-permission="Trips.View"><span class="icon">🚌</span><span data-ar="الرحلات" data-en="Trips">الرحلات</span></button>
+      <button class="nav-item" onclick="showPage('attendance')" data-requires-permission="Attendance.ViewAll"><span class="icon">⏰</span><span data-ar="الحضور" data-en="Attendance">الحضور</span></button>
+      <button class="nav-item" onclick="showPage('leave')" data-requires-permission="Leave.ViewAll"><span class="icon">📋</span><span data-ar="طلبات الإذن" data-en="Leave Requests">طلبات الإذن</span></button>
     </div>
   </div>
 
@@ -268,8 +268,8 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <span class="group-arrow">◀</span>
     </div>
     <div class="nav-group-items">
-      <button class="nav-item" onclick="showPage('subscriptions')"><span class="icon">💳</span><span data-ar="الاشتراكات" data-en="Subscriptions">الاشتراكات</span><span class="nav-badge" id="subsBadge">0</span></button>
-      <button class="nav-item" onclick="showPage('payments')"><span class="icon">💰</span><span data-ar="المدفوعات" data-en="Payments">المدفوعات</span></button>
+      <button class="nav-item" onclick="showPage('subscriptions')" data-requires-permission="Subscriptions.View"><span class="icon">💳</span><span data-ar="الاشتراكات" data-en="Subscriptions">الاشتراكات</span><span class="nav-badge" id="subsBadge">0</span></button>
+      <button class="nav-item" onclick="showPage('payments')" data-requires-permission="Payments.View"><span class="icon">💰</span><span data-ar="المدفوعات" data-en="Payments">المدفوعات</span></button>
     </div>
   </div>
 
@@ -280,11 +280,11 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <span class="group-arrow">◀</span>
     </div>
     <div class="nav-group-items">
-      <button class="nav-item" onclick="showPage('permissions')"><span class="icon">🔐</span><span data-ar="الصلاحيات" data-en="Permissions">الصلاحيات</span></button>
-      <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
-      <button class="nav-item" onclick="showPage('lists')"><span class="icon">📋</span><span data-ar="القوائم الديناميكية" data-en="Dynamic Lists">القوائم الديناميكية</span></button>
-      <button class="nav-item" onclick="showPage('notifications')"><span class="icon">🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></button>
-      <button class="nav-item" onclick="showPage('signalr')"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
+      <button class="nav-item" onclick="showPage('permissions')" data-requires-permission="Permissions.View"><span class="icon">🔐</span><span data-ar="الصلاحيات" data-en="Permissions">الصلاحيات</span></button>
+      <button class="nav-item" onclick="showPage('users')" data-requires-permission="Users.View"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
+      <button class="nav-item" onclick="showPage('lists')" data-requires-permission="Lists.View"><span class="icon">📋</span><span data-ar="القوائم الديناميكية" data-en="Dynamic Lists">القوائم الديناميكية</span></button>
+      <button class="nav-item" onclick="showPage('notifications')" data-requires-permission="Notifications.Send"><span class="icon">🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></button>
+      <button class="nav-item" onclick="showPage('signalr')" data-requires-permission="Users.View"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
     </div>
   </div>
 
@@ -295,7 +295,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <span class="group-arrow">◀</span>
     </div>
     <div class="nav-group-items">
-      <button class="nav-item" onclick="showPage('settings')"><span class="icon">⚙️</span><span data-ar="إعدادات الروضة" data-en="KG Settings">إعدادات الروضة</span></button>
+      <button class="nav-item" onclick="showPage('settings')" data-requires-permission="Settings.View"><span class="icon">⚙️</span><span data-ar="إعدادات الروضة" data-en="KG Settings">إعدادات الروضة</span></button>
     </div>
   </div>
 
@@ -308,7 +308,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="topbar-right">
       <div class="lang-toggle"><button class="lang-btn active" id="langArBtn" onclick="setLang('ar')">AR</button><button class="lang-btn" id="langEnBtn" onclick="setLang('en')">EN</button></div>
       <button class="btn btn-ghost btn-sm" id="btnRefresh" onclick="refreshCurrentPage()">🔄 تحديث</button>
-      <button class="btn btn-primary btn-sm" id="btnAddChild" onclick="showPage('children')">+ إضافة طفل</button>
+      <button class="btn btn-primary btn-sm" id="btnAddChild" onclick="showPage('children')" data-requires-permission="Children.Add" data-requires-permission="Children.View">+ إضافة طفل</button>
       <div class="avatar" id="userAvatar" onclick="doLogout()">A</div>
     </div>
   </div>
@@ -1213,7 +1213,46 @@ function toggleNavGroup(id){
   g.classList.toggle('collapsed');
 }
 
-function updateNavVisibility(){
+
+let _adminPermissions = [];
+
+function loadAdminPermissions() {
+  try {
+    const t = localStorage.getItem('kms_token');
+    if (!t) return;
+    const base64 = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c){
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join('')));
+    const raw = payload['Permission'];
+    _adminPermissions = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+  } catch(e) { _adminPermissions = []; }
+}
+
+function hasAdminPermission(name) {
+  return _adminPermissions.includes(name);
+}
+
+
+function updateNavVisibility() {
+  // Hide nav items the user doesn't have permission for
+  document.querySelectorAll('[data-requires-permission]').forEach(function(el) {
+    const perm = el.getAttribute('data-requires-permission');
+    const hasIt = hasAdminPermission(perm);
+    el.style.display = hasIt ? '' : 'none';
+  });
+
+  // Hide section headers if all items in section are hidden
+  document.querySelectorAll('.nav-section').forEach(function(section) {
+    const visibleItems = section.querySelectorAll('.nav-item:not([style*="display: none"]):not([style*="display:none"])');
+    const header = section.previousElementSibling;
+    if (header && header.classList.contains('nav-section-title')) {
+      header.style.display = visibleItems.length === 0 ? 'none' : '';
+    }
+  });
+}
+
+function updateNavVisibility_old(){
   try {
     const token = localStorage.getItem('kms_token');
     if(!token) return;
