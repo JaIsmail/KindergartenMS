@@ -368,12 +368,6 @@ public class TenantsController : ControllerBase
             var deleted = new List<string>();
             var errors  = new List<string>();
 
-            // Disable FK constraints
-            try {
-                await _db.Database.ExecuteSqlRawAsync("EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'");
-                deleted.Add("FK constraints disabled");
-            } catch (Exception ex) { errors.Add($"Disable FKs: {ex.Message.Split('\n')[0]}"); }
-
             // Clear tables
             var tables = new[] {
                 "UserPermissionGroups","UserPermissions",
@@ -381,7 +375,7 @@ public class TenantsController : ControllerBase
                 "Payments","Subscriptions",
                 "TripChildren","TripLocations","Trips",
                 "AttendancePeriods","Attendance",
-                "LeaveRequests","UserDevices","Children",
+                "LeaveRequests","UserDevices","Children","Employees",
                 "DynamicLists",
                 "AspNetUserRoles","AspNetUserClaims",
                 "AspNetUserLogins","AspNetUserTokens",
@@ -406,12 +400,6 @@ public class TenantsController : ControllerBase
                 await _db.Database.ExecuteSqlRawAsync("DELETE FROM [Tenants]");
                 deleted.Add("Tenants");
             } catch (Exception ex) { errors.Add($"Tenants: {ex.Message.Split('\n')[0]}"); }
-
-            // Re-enable FK constraints
-            try {
-                await _db.Database.ExecuteSqlRawAsync("EXEC sp_msforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL'");
-                deleted.Add("FK constraints re-enabled");
-            } catch (Exception ex) { errors.Add($"Enable FKs: {ex.Message.Split('\n')[0]}"); }
 
             return Ok(new { message = "Platform reset completed", keptUser = saId, deleted, errors });
         }
