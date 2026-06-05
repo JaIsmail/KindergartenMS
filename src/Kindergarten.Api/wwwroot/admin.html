@@ -308,7 +308,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
     <div class="topbar-right">
       <div class="lang-toggle"><button class="lang-btn active" id="langArBtn" onclick="setLang('ar')">AR</button><button class="lang-btn" id="langEnBtn" onclick="setLang('en')">EN</button></div>
       <button class="btn btn-ghost btn-sm" id="btnRefresh" onclick="refreshCurrentPage()">🔄 تحديث</button>
-      <button class="btn btn-primary btn-sm" id="btnAddChild" onclick="showPage('children')" data-requires-permission="Children.Add" data-requires-permission="Children.View">+ إضافة طفل</button>
+      <button class="btn btn-primary btn-sm" id="btnAddChild" onclick="showPage('children')" data-requires-permission="Children.Add">+ إضافة طفل</button>
       <div class="avatar" id="userAvatar" onclick="doLogout()">A</div>
     </div>
   </div>
@@ -1288,18 +1288,28 @@ function updateNavVisibility() {
   if(dashBtn) dashBtn.style.display = (_adminPermissions.includes('__superadmin__') || _adminPermissions.length >= 10) ? '' : 'none';
 
   // Hide section title if ALL nav items below it are hidden
-  var sections = document.querySelectorAll('.nav-section-title');
-  sections.forEach(function(title) {
-    var next = title.nextElementSibling;
+  document.querySelectorAll('.nav-section-title').forEach(function(title) {
+    var sibling = title.nextElementSibling;
     var hasVisible = false;
-    while(next && !next.classList.contains('nav-section-title')) {
-      if(next.classList.contains('nav-item') && next.style.display !== 'none') {
+    while(sibling) {
+      if(sibling.classList.contains('nav-section-title')) break;
+      if(sibling.classList.contains('nav-item') &&
+         sibling.style.display !== 'none' &&
+         !sibling.classList.contains('nav-superadmin-only')) {
         hasVisible = true;
         break;
       }
-      next = next.nextElementSibling;
+      sibling = sibling.nextElementSibling;
     }
     title.style.display = hasVisible ? '' : 'none';
+  });
+  
+  // Also hide/show action buttons based on permissions
+  document.querySelectorAll('[data-requires-permission]').forEach(function(el) {
+    var perm = el.getAttribute('data-requires-permission');
+    if(!el.classList.contains('nav-item')) {
+      el.style.display = hasAdminPermission(perm) ? '' : 'none';
+    }
   });
 }
 
@@ -1606,7 +1616,7 @@ async function loadDashboard(){
   document.getElementById('stat-subscriptions').textContent=sCount;
   document.getElementById('childrenBadge').textContent=cCount;
   document.getElementById('stat-trips').textContent='—';
-  try{const r=await fetch(API+'/dbtest');const d=await r.json();document.getElementById('stat-users').textContent=d.userCount;}catch{}
+  try{const users=await api('/api/users');document.getElementById('stat-users').textContent=Array.isArray(users)?users.length:0;}catch{}
   const childDiv=document.getElementById('dash-children-list');
   if(!children||children.length===0){childDiv.innerHTML='<div class="empty"><div class="emoji">👶</div><h4>'+t('noData')+'</h4></div>';}
   else{childDiv.innerHTML='<table><thead><tr><th>'+t('cols.name')+'</th><th>'+t('cols.class')+'</th><th>'+t('cols.parent')+'</th></tr></thead><tbody>'+children.slice(0,5).map(c=>'<tr><td><strong>'+c.name+'</strong></td><td><span class="badge badge-blue">'+c.class+'</span></td><td>'+c.parentName+'</td></tr>').join('')+'</tbody></table>';}
