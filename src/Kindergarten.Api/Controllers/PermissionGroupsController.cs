@@ -233,6 +233,7 @@ public async Task<IActionResult> GetById(int id)
     public async Task<IActionResult> GetUserGroups(string userId)
     {
         var groups = await _db.UserPermissionGroups
+            .IgnoreQueryFilters()
             .Include(x => x.Group)
                 .ThenInclude(g => g.GroupPermissions)
                     .ThenInclude(gp => gp.Permission)
