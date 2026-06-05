@@ -1272,7 +1272,7 @@ function updateNavVisibility() {
   });
 
   // Hide dashboard for non-admins
-  var dashBtn = document.querySelector('[onclick*="showPage('dashboard')"]');
+  var dashBtn = document.querySelector('[onclick*="dashboard"]');
   if(dashBtn) dashBtn.style.display = _adminPermissions.length >= 10 ? '' : 'none';
 
   // Hide section title if ALL nav items below it are hidden
