@@ -2586,9 +2586,10 @@ function renderLeaveTable(data){
       '<td><div style="display:flex;gap:0.4rem">'+
         '<button onclick="viewLeaveDetails('+r.id+')" class="icon-btn icon-btn-view" title="'+(ar?'تفاصيل':'Details')+'">👁️</button>'+
         (r.status==='Pending'?
-          (window._perms?.canApproveLv ? '<button onclick="reviewLeave('+r.id+',\'Approved\')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>' : '')+
-          (window._perms?.canApproveLv ? '<button onclick="reviewLeave('+r.id+',\'Rejected\')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>' : '')+
-          '')+
+          (window._perms?.canApproveLv ?
+            '<button onclick="reviewLeave('+r.id+',\'Approved\')" class="icon-btn icon-btn-edit" title="'+(ar?'موافقة':'Approve')+'">✅</button>'+
+            '<button onclick="reviewLeave('+r.id+',\'Rejected\')" class="icon-btn icon-btn-delete" title="'+(ar?'رفض':'Reject')+'">❌</button>'
+          : '')+
       '</div></td>'+
     '</tr>';
   }).join('')+
