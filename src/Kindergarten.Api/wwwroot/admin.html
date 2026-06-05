@@ -1184,9 +1184,9 @@ function getFirstAccessiblePage() {
 }
 
 window.onload=async()=>{
+  loadAdminPermissions();
   setLang(currentLang);
   if(token){
-    loadAdminPermissions();
     updateNavVisibility();
     // Redirect to first accessible page if user can't see dashboard data
     const firstPage = getFirstAccessiblePage();
