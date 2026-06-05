@@ -230,6 +230,7 @@ public async Task<IActionResult> GetById(int id)
 
     // Get user's groups
     [HttpGet("user/{userId}")]
+    [RequirePermission("Groups.View")]
     public async Task<IActionResult> GetUserGroups(string userId)
     {
         var groups = await _db.UserPermissionGroups
