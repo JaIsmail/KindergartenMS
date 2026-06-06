@@ -58,7 +58,8 @@ public class PermissionGroupsController : ControllerBase
 
     // Get single group
     [HttpGet("{id}")]
-public async Task<IActionResult> GetById(int id)
+    [RequirePermission("Groups.View")]
+    public async Task<IActionResult> GetById(int id)
     {
         var isSuperAdmin = User.FindFirstValue("TenantId") == "0";
         var group = await _db.PermissionGroups
