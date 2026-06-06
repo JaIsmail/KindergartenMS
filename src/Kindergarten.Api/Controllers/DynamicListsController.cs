@@ -21,6 +21,7 @@ public class DynamicListsController : ControllerBase
 
     // Get all items by category
     [HttpGet("{category}")]
+    [RequirePermission("Lists.View")]
     public async Task<IActionResult> GetByCategory(string category)
     {
         var items = await _db.DynamicLists
@@ -32,6 +33,7 @@ public class DynamicListsController : ControllerBase
 
     // Get all categories
     [HttpGet]
+    [RequirePermission("Lists.View")]
     public async Task<IActionResult> GetAll()
     {
         var items = await _db.DynamicLists
