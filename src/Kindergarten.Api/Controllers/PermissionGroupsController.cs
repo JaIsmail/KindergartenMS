@@ -31,7 +31,8 @@ public class PermissionGroupsController : ControllerBase
 
     // Get all groups with their permissions
     [HttpGet]
- public async Task<IActionResult> GetAll()
+    [RequirePermission("Groups.View")]
+    public async Task<IActionResult> GetAll()
     {
         var isSuperAdmin = User.FindFirstValue("TenantId") == "0";
         var query = isSuperAdmin
