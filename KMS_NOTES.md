@@ -459,3 +459,18 @@ Notes completed: 2, 3, 6, 8, 18, 19, 20, 21, 27, 31
 - Period display uses name lookup (AR/EN) instead of raw stored value
 - Fixed: ChildService.CreateAsync uses dto.ParentId not caller's userId
 - Fixed: AssignToUser uses target user's TenantId
+
+---
+
+## Note 26 (Complete): Granular CRUD Permissions — FULLY DONE ✅
+### Frontend enforcement:
+- Nav items hidden based on permissions
+- Section headers hidden when all child items hidden  
+- Action buttons (Add/Edit/Delete) hidden based on permissions
+- applyPagePermissions() called on every page load
+- window._perms object stores permission flags for dynamic table renders
+
+### Backend enforcement:
+- All 46 permissions mapped to endpoints
+- 0 unprotected endpoints (except AuthController login/register)
+- Double-layer security: UI hides + API blocks
