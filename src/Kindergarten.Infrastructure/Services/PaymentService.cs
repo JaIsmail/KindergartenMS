@@ -41,6 +41,7 @@ public class PaymentService : IPaymentService
             SubscriptionId = dto.SubscriptionId,
             Amount         = dto.Amount,
             Method         = dto.Method,
+            Notes          = dto.Notes,
             PaymentDate    = DateTime.UtcNow,
             TenantId       = _tenantService.GetTenantId()
         };
@@ -81,7 +82,59 @@ public class PaymentService : IPaymentService
             SubscriptionId = payment.SubscriptionId,
             Amount         = payment.Amount,
             Method         = payment.Method,
+            Notes          = payment.Notes,
             PaymentDate    = payment.PaymentDate
+        };
+    }
+
+    public async Task<ChildPaymentHistoryDto?> GetByChildAsync(int childId)
+    {
+        var child = await _db.Children.Include(c => c.Parent).FirstOrDefaultAsync(c => c.Id == childId);
+        if (child == null) return null;
+
+        var subscriptions = await _db.Subscriptions
+            .Where(s => s.ChildId == childId)
+            .OrderByDescending(s => s.StartDate)
+            .ToListAsync();
+
+        var subIds = subscriptions.Select(s => s.Id).ToList();
+        var payments = await _db.Payments
+            .Where(p => subIds.Contains(p.SubscriptionId))
+            .OrderByDescending(p => p.PaymentDate)
+            .ToListAsync();
+
+        var totalPrice = subscriptions.Sum(s => s.Price);
+        var totalPaid  = payments.Sum(p => p.Amount);
+
+        return new ChildPaymentHistoryDto
+        {
+            ChildId       = child.Id,
+            ChildName     = child.Name,
+            ParentName    = child.Parent?.FullName ?? string.Empty,
+            ParentEmail   = child.Parent?.Email ?? string.Empty,
+            TotalPrice    = totalPrice,
+            TotalPaid     = totalPaid,
+            Balance       = totalPrice - totalPaid,
+            PaymentStatus = subscriptions.Any() ? subscriptions.First().PaymentStatus : "None",
+            Subscriptions = subscriptions.Select(s => new SubscriptionSummaryDto
+            {
+                Id            = s.Id,
+                Type          = s.Type,
+                Period        = s.Period,
+                Price         = s.Price,
+                StartDate     = s.StartDate,
+                EndDate       = s.EndDate,
+                PaymentStatus = s.PaymentStatus
+            }).ToList(),
+            Payments = payments.Select(p => new PaymentResponseDto
+            {
+                Id             = p.Id,
+                SubscriptionId = p.SubscriptionId,
+                Amount         = p.Amount,
+                Method         = p.Method,
+                Notes          = p.Notes,
+                PaymentDate    = p.PaymentDate
+            }).ToList()
         };
     }
 

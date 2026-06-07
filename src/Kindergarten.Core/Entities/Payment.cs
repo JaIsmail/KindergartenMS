@@ -8,5 +8,6 @@ public class Payment
     public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
     public int TenantId { get; set; } = 1;
     public string Method { get; set; } = string.Empty;
+    public string Notes  { get; set; } = string.Empty;
     public Subscription Subscription { get; set; } = null!;
 }
