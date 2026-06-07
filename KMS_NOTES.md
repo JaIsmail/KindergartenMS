@@ -496,3 +496,48 @@ Notes completed: 2, 3, 6, 8, 18, 19, 20, 21, 27, 31
 - Step 5: Remove AddIdentity() from Program.cs
 - Step 6: Verify all endpoints work
 - Step 7: Create cleanup migration to drop AspNetRoles, AspNetUserRoles etc.
+
+---
+
+## Note 26: Granular CRUD Permissions ✅ FULLY DONE (2026-06-07)
+### 46 permissions in Object.Action format
+- Children(4), Subscriptions(4), Payments(3), Users(4), Attendance(3), Leave(3)
+- Trips(3), Lists(2), Permissions(7), Tenants(4), Reports(2), Settings(2)
+- Discounts(3), Notifications(1), Finance(1)
+### Backend enforcement:
+- All controllers updated with specific [RequirePermission] per endpoint
+- 0 unprotected endpoints (except AuthController login/register)
+### Frontend enforcement:
+- applyPagePermissions() called on every page load via showPage()
+- window._perms flags for dynamic table renders
+- Nav items hidden by data-requires-permission attributes
+- Section headers hidden when all child items hidden
+- Action buttons (Add/Edit/Delete) hidden per permission
+- SuperAdmin bypasses all checks via __superadmin__ flag
+- getFirstAccessiblePage() redirects non-admins to first accessible page
+### Permission Groups seeded (TenantId=6):
+- Admin(57): 46 perms, Driver(59): 6, Parent(60): 3, Teacher(61): 4
+- Accountant(62): 7, Supervisor(63): 6
+- Employee group removed (dead code from old Identity system)
+
+---
+
+## Note 49: Identity Removal — Abandoned 🔴 (2026-06-07)
+- Attempted full removal of ASP.NET Identity
+- Failed: existing AspNetUsers rows have NULL fields mapped as non-null in entity
+- Reverted to commit 1e3a4a8 (last stable state)
+- System restored and working
+
+## Note 50: Identity Removal — Proper Plan 🟡
+Pre-conditions before retry:
+1. Migration: ADD IsActive bit NOT NULL DEFAULT 1 to AspNetUsers
+2. Backfill: UPDATE AspNetUsers SET NormalizedEmail=UPPER(Email), SecurityStamp=NEWID(), ConcurrencyStamp=NEWID() WHERE NormalizedEmail IS NULL
+3. Strip IdentityUser from ApplicationUser entity (make nullable fields: NormalizedEmail?, SecurityStamp?, ConcurrencyStamp?)
+4. Update AuthService, UsersController, TenantsController to remove UserManager
+5. Remove AddIdentity() from Program.cs
+6. Verify all endpoints work
+7. Cleanup migration: drop AspNetRoles, AspNetUserRoles, AspNetUserClaims etc.
+
+## Current Test Accounts (TenantId=6 — مركز رواد العلم)
+- SuperAdmin: superadmin@kms-platform.com / SuperAdmin@123456 (TenantId=0)
+- Tenant Admin: AdminT1@rawad-center.com / AdminT1@123456 (TenantId=6)
