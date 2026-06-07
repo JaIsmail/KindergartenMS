@@ -474,3 +474,25 @@ Notes completed: 2, 3, 6, 8, 18, 19, 20, 21, 27, 31
 - All 46 permissions mapped to endpoints
 - 0 unprotected endpoints (except AuthController login/register)
 - Double-layer security: UI hides + API blocks
+
+---
+
+## Note 49: Identity Removal — Abandoned (2026-06-07) 🔴
+- Attempted full removal of ASP.NET Identity (UserManager, IdentityUser, AspNetUsers)
+- Root cause of failure: existing AspNetUsers rows have NULL values for fields we mapped as non-null
+- Solution requires: proper migration + data backfill before removing Identity
+- **Decision: Revert to commit 1e3a4a8 (last stable) and plan removal properly**
+- Pre-conditions for retry:
+  1. Add migration to add IsActive + new fields to AspNetUsers with proper defaults
+  2. Update existing rows to fill NULL fields
+  3. Only then switch ApplicationUser to plain class
+  4. Remove AddIdentity() from Program.cs last
+
+## Note 50: Identity Removal — Proper Plan 🟡
+- Step 1: Migration to add IsActive bit NOT NULL DEFAULT 1 to AspNetUsers
+- Step 2: Backfill NULL NormalizedEmail, SecurityStamp, ConcurrencyStamp in existing rows
+- Step 3: Strip IdentityUser from ApplicationUser entity
+- Step 4: Update AuthService, UsersController, TenantsController to remove UserManager
+- Step 5: Remove AddIdentity() from Program.cs
+- Step 6: Verify all endpoints work
+- Step 7: Create cleanup migration to drop AspNetRoles, AspNetUserRoles etc.
