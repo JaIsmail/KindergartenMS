@@ -147,6 +147,9 @@ public class PermissionsController : ControllerBase
             new() { Name="Discounts.Apply",       Category="Discounts",    DisplayNameAr="تطبيق الخصم",               DisplayNameEn="Apply Discount",          DescriptionAr="تطبيق خصم على اشتراك طفل",            DescriptionEn="Apply discount to child subscription" },
             // ── Notifications ─────────────────────────────────────
             new() { Name="Notifications.Send",    Category="Notifications",DisplayNameAr="إرسال الإشعارات",           DisplayNameEn="Send Notifications",      DescriptionAr="إرسال إشعارات للمستخدمين",            DescriptionEn="Send notifications to users" },
+            // ── Portal Access ────────────────────────────────────
+            new() { Name="Portal.Web", Category="Portal", DisplayNameAr="الوصول للبوابة الإدارية", DisplayNameEn="Web Portal Access", DescriptionAr="وصول لبوابة الإدارة", DescriptionEn="Access the admin web portal" },
+            new() { Name="Portal.Mobile", Category="Portal", DisplayNameAr="الوصول للتطبيق", DisplayNameEn="Mobile App Access", DescriptionAr="وصول لتطبيق الجوال", DescriptionEn="Access the mobile PWA app" },
             // ── Finance ───────────────────────────────────────────
             new() { Name="Finance.ViewAll",       Category="Finance",      DisplayNameAr="عرض كامل المالية",          DisplayNameEn="View All Finance",        DescriptionAr="مشاهدة جميع البيانات المالية للروضة", DescriptionEn="View all financial data across tenant" },
         };
