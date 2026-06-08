@@ -1957,6 +1957,77 @@ function applyPagePermissions() {
   };
 }
 
+
+async function viewChildPaymentHistory(childId, childName) {
+  const ar = currentLang === 'ar';
+  document.getElementById('childHistoryTitle').textContent = (ar?'سجل مدفوعات: ':'Payment History: ') + childName;
+  document.getElementById('childHistoryContent').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  document.getElementById('childPaymentHistoryModal').style.display = 'flex';
+
+  const data = await api('/api/payments/child/' + childId);
+  if (!data) {
+    document.getElementById('childHistoryContent').innerHTML = '<p style="padding:1rem">'+(ar?'لا توجد بيانات':'No data found')+'</p>';
+    return;
+  }
+
+  const balanceColor = data.balance <= 0 ? '#16a34a' : '#dc2626';
+  document.getElementById('childHistoryContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1rem;background:#f8fafc;border-radius:8px;margin:1rem">
+      <div style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:700;color:#f97316">${data.totalPrice} ر.س</div>
+        <div style="color:#666;font-size:0.8rem">${ar?'إجمالي الاشتراكات':'Total Subscriptions'}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:700;color:#16a34a">${data.totalPaid} ر.س</div>
+        <div style="color:#666;font-size:0.8rem">${ar?'إجمالي المدفوع':'Total Paid'}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:700;color:${balanceColor}">${data.balance} ر.س</div>
+        <div style="color:#666;font-size:0.8rem">${ar?'الرصيد المتبقي':'Remaining Balance'}</div>
+      </div>
+    </div>
+
+    <div style="padding:0 1rem 1rem">
+      <h4 style="margin-bottom:0.5rem">${ar?'الاشتراكات':'Subscriptions'}</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+        <thead><tr style="background:#f1f5f9">
+          <th style="padding:0.5rem;text-align:${ar?'right':'left'}">${ar?'النوع':'Type'}</th>
+          <th style="padding:0.5rem;text-align:${ar?'right':'left'}">${ar?'الفترة':'Period'}</th>
+          <th style="padding:0.5rem;text-align:${ar?'right':'left'}">${ar?'المبلغ':'Price'}</th>
+          <th style="padding:0.5rem;text-align:${ar?'right':'left'}">${ar?'الحالة':'Status'}</th>
+        </tr></thead>
+        <tbody>${(data.subscriptions||[]).map(s=>`
+          <tr style="border-bottom:1px solid #e2e8f0">
+            <td style="padding:0.5rem">${s.type}</td>
+            <td style="padding:0.5rem">${s.period||'-'}</td>
+            <td style="padding:0.5rem">${s.price} ر.س</td>
+            <td style="padding:0.5rem">${statusBadge(s.paymentStatus)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+
+      <h4 style="margin:1rem 0 0.5rem">${ar?'سجل الدفعات':'Payment Records'}</h4>
+      ${data.payments?.length ? `
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+        <thead><tr style="background:#f1f5f9">
+          <th style="padding:0.5rem">${ar?'المبلغ':'Amount'}</th>
+          <th style="padding:0.5rem">${ar?'الطريقة':'Method'}</th>
+          <th style="padding:0.5rem">${ar?'التاريخ':'Date'}</th>
+          <th style="padding:0.5rem">${ar?'ملاحظات':'Notes'}</th>
+        </tr></thead>
+        <tbody>${data.payments.map(p=>`
+          <tr style="border-bottom:1px solid #e2e8f0">
+            <td style="padding:0.5rem;font-weight:600;color:#16a34a">${p.amount} ر.س</td>
+            <td style="padding:0.5rem">${p.method}</td>
+            <td style="padding:0.5rem">${new Date(p.paymentDate).toLocaleDateString(ar?'ar-SA':'en-US')}</td>
+            <td style="padding:0.5rem;color:#666">${p.notes||'-'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>` : `<p style="color:#666;font-size:0.85rem">${ar?'لا توجد دفعات مسجلة':'No payments recorded'}</p>`}
+    </div>
+  `;
+}
+
 async function loadChildren(){
   // Load parents for dropdown — only if user has Users.View permission
   if(hasAdminPermission('Users.View')) {
@@ -2002,6 +2073,7 @@ async function loadChildren(){
       '<td style="display:flex;gap:0.3rem">'+
       '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem" onclick="viewChildDetails('+ch.id+')">'+(ar?'عرض':'View')+'</button>'+
       (window._perms?.canEditChild ? '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem;background:var(--primary2);color:#fff" onclick="openEditChild('+ch.id+')">'+(ar?'تعديل':'Edit')+'</button>' : '')+
+      '<button class="btn btn-xs btn-ghost" style="font-size:0.72rem;padding:0.2rem 0.6rem;background:#3b82f6;color:#fff" onclick="viewChildPaymentHistory('+ch.id+',\''+ch.name+'\')">'+(ar?'💰 المدفوعات':'💰 Payments')+'</button>'+
       (window._perms?.canDelChild ? '<button class="icon-btn icon-btn-delete" onclick="deleteChild('+ch.id+')" title="'+(ar?'حذف':'Delete')+'">🗑️</button>' : '')+
       '</td>'+
     '</tr>').join('')+
@@ -3347,6 +3419,18 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
       </div>
     </div>
   </div>
+
+
+<!-- Child Payment History Modal -->
+<div id="childPaymentHistoryModal" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:700px">
+    <div class="modal-header">
+      <h3 id="childHistoryTitle">سجل المدفوعات</h3>
+      <button onclick="closeModal('childPaymentHistoryModal')" class="btn btn-ghost">✕</button>
+    </div>
+    <div id="childHistoryContent"></div>
+  </div>
+</div>
 
 </body>
 </html>
