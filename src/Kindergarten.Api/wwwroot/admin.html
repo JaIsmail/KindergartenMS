@@ -1187,9 +1187,12 @@ window.onload=async()=>{
   loadAdminPermissions();
   setLang(currentLang);
   if(token){
-    // Redirect to app.html if user only has mobile access
-    if(_adminPermissions.length>0 && !_adminPermissions.includes('__superadmin__') && !_adminPermissions.includes('Portal.Web') && _adminPermissions.includes('Portal.Mobile')){
-      window.location.href='/app.html'; return;
+    // Check portal access
+    if(_adminPermissions.length>0 && !_adminPermissions.includes('__superadmin__') && !_adminPermissions.includes('Portal.Web')){
+      document.getElementById('loginPage').style.display='none';
+      document.getElementById('mainLayout').style.display='none';
+      document.body.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:Cairo,sans-serif;background:#f0f4f8"><div style="background:#fff;padding:2rem;border-radius:16px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.1);max-width:400px"><div style="font-size:3rem">🚫</div><h2 style="color:#0f172a;margin:1rem 0">لا يمكنك الوصول لهذه الصفحة</h2><p style="color:#64748b;margin-bottom:1.5rem">ليس لديك صلاحية الوصول للبوابة الإدارية</p>'+ (_adminPermissions.includes('Portal.Mobile')?'<a href="/app.html" style="background:#f97316;color:#fff;padding:0.75rem 2rem;border-radius:10px;text-decoration:none;font-weight:700">الانتقال للتطبيق →</a>':'')+'<br><br><button onclick="localStorage.clear();location.reload()" style="background:none;border:none;color:#94a3b8;cursor:pointer;margin-top:1rem">تسجيل الخروج</button></div></div>';
+      return;
     }
     updateNavVisibility();
     // Redirect to first accessible page if user can't see dashboard data
