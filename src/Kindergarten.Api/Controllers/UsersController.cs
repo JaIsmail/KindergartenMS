@@ -3,7 +3,8 @@ using Kindergarten.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Kindergarten.Api.Authorization;
 using Kindergarten.Core.Entities;
-using Kindergarten.Core.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Kindergarten.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,12 +16,11 @@ namespace Kindergarten.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
-    private readonly IPasswordHasher _hasher;
+    private readonly IPasswordHasher<ApplicationUser> _hasher = new PasswordHasher<ApplicationUser>();
 
-    public UsersController(ApplicationDbContext db, IPasswordHasher hasher)
+    public UsersController(ApplicationDbContext db)
     {
-        _db     = db;
-        _hasher = hasher;
+        _db = db;
     }
 
     private int GetTenantId() =>
@@ -75,7 +75,7 @@ public class UsersController : ControllerBase
         user.RoleType    = dto.RoleType    ?? user.RoleType;
 
         if (!string.IsNullOrEmpty(dto.NewPassword))
-            user.PasswordHash = _hasher.Hash(dto.NewPassword);
+            user.PasswordHash = _hasher.HashPassword(user, dto.NewPassword);
 
         await _db.SaveChangesAsync();
         return Ok(new { message = "User updated successfully", id = user.Id, user.FullName });
