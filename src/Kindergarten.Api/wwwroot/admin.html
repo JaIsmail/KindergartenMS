@@ -1846,7 +1846,7 @@ async function openEditChild(childId) {
   const users=await api('/api/users');
   const parentSel=document.getElementById('editChildParent');
   if(users&&parentSel){
-    const parents=users.filter(function(u){return u.roleType==='Parent';});
+    const parents=users.filter(function(u){return u.roleType==='Parent'||u.groupName?.toLowerCase().includes('parent');});
     parentSel.innerHTML='<option value="">-- '+(ar?'اختر ولي الأمر':'Select Parent')+' --</option>'+
       parents.map(function(p){return '<option value="'+p.id+'"'+(p.id===ch.parentId?' selected':'')+'>'+p.fullName+'</option>';}).join('');
   }
@@ -2029,12 +2029,16 @@ async function viewChildPaymentHistory(childId, childName) {
 }
 
 async function loadChildren(){
+  // Load dynamic lists for Add Child form dropdowns
+  await loadDynamicList('Classes','childClass');
+  await loadDynamicList('AgeGroups','childAgeGroup');
+  await loadDynamicList('Neighborhoods','childNeighborhood');
   // Load parents for dropdown — only if user has Users.View permission
   if(hasAdminPermission('Users.View')) {
     const users=await api('/api/users');
     const parentSel=document.getElementById('childParent');
     if(users&&parentSel){
-      const parents=users.filter(u=>u.roleType==='Parent');
+      const parents=users.filter(u=>(u.roleType==='Parent'||u.groupName?.toLowerCase().includes('parent')));
       parentSel.innerHTML='<option value="">-- '+(currentLang==='ar'?'اختر ولي الأمر':'Select Parent')+' --</option>'+
         parents.map(p=>'<option value="'+p.id+'">'+p.fullName+'</option>').join('');
     }
@@ -2128,7 +2132,7 @@ async function openCreateTripModal(){
 
   // Load drivers
   const users = await api('/api/users');
-  const drivers = users ? users.filter(u=>u.roleType==='Driver') : [];
+  const drivers = users ? users.filter(u=>(u.roleType==='Driver'||u.groupName?.toLowerCase().includes('driver'))) : [];
   document.getElementById('tripDriver').innerHTML =
     '<option value="">-- '+(ar?'اختر السائق':'Select Driver')+' --</option>'+
     drivers.map(d=>'<option value="'+d.id+'">'+d.fullName+'</option>').join('');
