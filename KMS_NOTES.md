@@ -541,3 +541,20 @@ Pre-conditions before retry:
 ## Current Test Accounts (TenantId=6 — مركز رواد العلم)
 - SuperAdmin: superadmin@kms-platform.com / SuperAdmin@123456 (TenantId=0)
 - Tenant Admin: AdminT1@rawad-center.com / AdminT1@123456 (TenantId=6)
+
+---
+
+## Note 51: Parent Web Portal 🟡
+- Dedicated parent-facing web portal at /parent.html
+- Desktop-optimized layout (also mobile responsive)
+- Login with parent credentials (same JWT auth)
+- Pages:
+  - Dashboard: children overview + summary cards
+  - Children: child details, health notes, class
+  - Subscriptions: subscription status + payment history + balance
+  - Trips: live trip tracking (Leaflet map)
+  - Attendance: child attendance records
+  - Notifications: notification history
+  - Profile: parent profile + password change
+- Share URL with parents: https://kms-api-staging-kg01.azurewebsites.net/parent.html
+- Permissions enforced: Children.View, Subscriptions.View, Trips.View
