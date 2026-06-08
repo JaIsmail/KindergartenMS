@@ -53,13 +53,7 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Run EF Migrations Staging
-        run: |
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet tool install --global dotnet-ef
-          dotnet ef database update --project src/Kindergarten.Infrastructure/Kindergarten.Infrastructure.csproj --startup-project src/Kindergarten.Api/Kindergarten.Api.csproj
-        env:
-          ConnectionStrings__DefaultConnection: ${{ secrets.SQL_CONNECTION_STAGING }}
+      # Migrations run on app startup via db.Database.Migrate()
       - name: Deploy to Staging
         uses: azure/webapps-deploy@v3
         with:
@@ -86,13 +80,7 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Run EF Migrations Production
-        run: |
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet tool install --global dotnet-ef
-          dotnet ef database update --project src/Kindergarten.Infrastructure/Kindergarten.Infrastructure.csproj --startup-project src/Kindergarten.Api/Kindergarten.Api.csproj
-        env:
-          ConnectionStrings__DefaultConnection: ${{ secrets.SQL_CONNECTION_PROD }}
+      # Migrations run on app startup via db.Database.Migrate()
       - name: Deploy to Production
         uses: azure/webapps-deploy@v3
         with:
