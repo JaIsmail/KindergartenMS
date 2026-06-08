@@ -45,6 +45,11 @@ public class UsersController : ControllerBase
                     .IgnoreQueryFilters()
                     .Where(g => g.UserId == u.Id)
                     .Select(g => g.Group.NameEn)
+                    .FirstOrDefault(),
+                GroupNameAr = _db.UserPermissionGroups
+                    .IgnoreQueryFilters()
+                    .Where(g => g.UserId == u.Id)
+                    .Select(g => g.Group.NameAr)
                     .FirstOrDefault()
             })
             .ToListAsync();
