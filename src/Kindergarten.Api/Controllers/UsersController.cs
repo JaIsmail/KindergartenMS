@@ -3,8 +3,8 @@ using Kindergarten.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Kindergarten.Api.Authorization;
 using Kindergarten.Core.Entities;
+using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kindergarten.Api.Controllers;
@@ -14,13 +14,13 @@ namespace Kindergarten.Api.Controllers;
 [Authorize]
 public class UsersController : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _db;
+    private readonly IPasswordHasher _hasher;
 
-    public UsersController(UserManager<ApplicationUser> userManager, ApplicationDbContext db)
+    public UsersController(ApplicationDbContext db, IPasswordHasher hasher)
     {
-        _userManager = userManager;
-        _db = db;
+        _db     = db;
+        _hasher = hasher;
     }
 
     private int GetTenantId() =>
@@ -33,8 +33,8 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var query = IsSuperAdmin()
-            ? _userManager.Users
-            : _userManager.Users.Where(u => u.TenantId == GetTenantId());
+            ? _db.Users.IgnoreQueryFilters()
+            : _db.Users.IgnoreQueryFilters().Where(u => u.TenantId == GetTenantId());
 
         var users = await query
             .OrderByDescending(u => u.Id)
@@ -56,13 +56,9 @@ public class UsersController : ControllerBase
     [RequirePermission("Users.View")]
     public async Task<IActionResult> GetById(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == id);
         if (user == null) return NotFound();
-        return Ok(new {
-            user.Id, user.FullName, user.Email,
-            user.PhoneNumber, user.RoleType,
-            user.Address, Role = user.RoleType
-        });
+        return Ok(user);
     }
 
     // PUT update user
@@ -70,28 +66,19 @@ public class UsersController : ControllerBase
     [RequirePermission("Users.Edit")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateUserDto dto)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == id);
         if (user == null) return NotFound();
 
         user.FullName    = dto.FullName    ?? user.FullName;
         user.PhoneNumber = dto.PhoneNumber ?? user.PhoneNumber;
         user.Address     = dto.Address     ?? user.Address;
+        user.RoleType    = dto.RoleType    ?? user.RoleType;
 
-        // Update roleType directly — no Identity role assignment
-        if (!string.IsNullOrEmpty(dto.RoleType) && dto.RoleType != user.RoleType)
-            user.RoleType = dto.RoleType;
-
-        // Update password if provided
         if (!string.IsNullOrEmpty(dto.NewPassword))
-        {
-            var token  = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
-            if (!result.Succeeded)
-                return BadRequest(new { message = "Password update failed", errors = result.Errors });
-        }
+            user.PasswordHash = _hasher.Hash(dto.NewPassword);
 
-        await _userManager.UpdateAsync(user);
-        return Ok(new { message = "User updated successfully", user.Id, user.FullName });
+        await _db.SaveChangesAsync();
+        return Ok(new { message = "User updated successfully", id = user.Id, user.FullName });
     }
 
     // DELETE user
@@ -99,13 +86,10 @@ public class UsersController : ControllerBase
     [RequirePermission("Users.Delete")]
     public async Task<IActionResult> Delete(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == id);
         if (user == null) return NotFound();
-
-        var result = await _userManager.DeleteAsync(user);
-        if (!result.Succeeded)
-            return BadRequest(new { message = "Failed to delete user" });
-
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
         return Ok(new { message = "User deleted successfully" });
     }
 }
