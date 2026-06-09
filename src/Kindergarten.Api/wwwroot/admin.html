@@ -1219,8 +1219,8 @@ async function doLogin(){
     const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json','Accept-Language':currentLang},body:JSON.stringify({email,password:pass})});
     const data=await res.json();
     if(data.token){token=data.token;tenantId=data.tenantId||'1';localStorage.setItem('kms_token',token);localStorage.setItem('kms_tenantId',tenantId);localStorage.setItem('kms_user',JSON.stringify(data));loadAdminPermissions();
-      if(_adminPermissions.length>0 && !_adminPermissions.includes('__superadmin__') && !_adminPermissions.includes('Portal.Web') && _adminPermissions.includes('Portal.Mobile')){
-        window.location.href='/app.html'; return;
+      if(_adminPermissions.length>0 && !_adminPermissions.includes('__superadmin__') && !_adminPermissions.includes('Portal.Web') ){
+        document.getElementById('loginPage').style.display='none';document.body.innerHTML='<div style="text-align:center;padding:2rem">🚫 لا يمكنك الوصول<br><button onclick="localStorage.clear();location.reload()">خروج</button></div>';return;
       }
       updateNavVisibility();
       const fp = getFirstAccessiblePage();
