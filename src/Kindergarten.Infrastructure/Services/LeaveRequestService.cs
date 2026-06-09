@@ -50,14 +50,16 @@ public class LeaveRequestService : ILeaveRequestService
         _db.LeaveRequests.Add(request);
         await _db.SaveChangesAsync();
 
-        // Notify admin
-        var user = await _db.Users.FindAsync(userId);
-        await _notify.SendToAllParentsAsync(
-            titleAr: "طلب إذن جديد",
-            titleEn: "New Leave Request",
-            bodyAr:  $"{user?.FullName ?? "موظف"} طلب إذناً لمدة {request.Hours:F1} ساعة",
-            bodyEn:  $"{user?.FullName ?? "Employee"} requested {request.Hours:F1}h leave",
-            data: new Dictionary<string, string> { { "type", "leave_request" }, { "id", request.Id.ToString() } }
+        // Notify admin (best effort - don't fail if notification fails)
+        try
+        {
+            var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
+            await _notify.SendToAllParentsAsync(
+                titleAr: "طلب إذن جديد",
+                titleEn: "New Leave Request",
+                bodyAr:  $"{user?.FullName ?? "موظف"} طلب إذناً لمدة {request.Hours:F1} ساعة",
+                bodyEn:  $"{user?.FullName ?? "Employee"} requested {request.Hours:F1}h leave",
+                data: new Dictionary<string, string> { { "type", "leave_request" }, { "id", request.Id.ToString() } }
         );
 
         return await MapAsync(request.Id);
