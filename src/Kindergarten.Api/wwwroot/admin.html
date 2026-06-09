@@ -1222,6 +1222,8 @@ async function doLogin(){
       if(_adminPermissions.length>0 && !_adminPermissions.includes('__superadmin__') && !_adminPermissions.includes('Portal.Web') ){
         document.getElementById('loginPage').style.display='none';document.body.innerHTML='<div style="text-align:center;padding:2rem">🚫 لا يمكنك الوصول<br><button onclick="localStorage.clear();location.reload()">خروج</button></div>';return;
       }
+      document.getElementById('loginPage').style.display='none';
+      document.getElementById('mainContent').style.display='block';
       updateNavVisibility();
       const fp = getFirstAccessiblePage();
       if(fp && fp !== 'dashboard') { await showPage(fp); } else { await initDashboard(); }}
