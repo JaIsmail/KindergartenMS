@@ -102,6 +102,7 @@ public class LeaveRequestService : ILeaveRequestService
     private async Task<LeaveRequestResponseDto> MapAsync(int id)
     {
         var r = await _db.LeaveRequests
+            .IgnoreQueryFilters()
             .Include(x => x.User)
             .FirstAsync(x => x.Id == id);
         return new LeaveRequestResponseDto
