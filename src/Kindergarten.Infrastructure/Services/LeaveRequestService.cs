@@ -49,8 +49,7 @@ public class LeaveRequestService : ILeaveRequestService
         };
         _db.LeaveRequests.Add(request);
         await _db.SaveChangesAsync();
-
-        // Notify admin (best effort - don't fail if notification fails)
+        // Notify admin (best effort)
         try
         {
             var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
@@ -60,8 +59,9 @@ public class LeaveRequestService : ILeaveRequestService
                 bodyAr:  $"{user?.FullName ?? "موظف"} طلب إذناً لمدة {request.Hours:F1} ساعة",
                 bodyEn:  $"{user?.FullName ?? "Employee"} requested {request.Hours:F1}h leave",
                 data: new Dictionary<string, string> { { "type", "leave_request" }, { "id", request.Id.ToString() } }
-        );
-
+            );
+        }
+        catch { /* notification failed */ }
         return await MapAsync(request.Id);
     }
 
