@@ -232,4 +232,29 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Create AuditLogs table if not exists
+using (var scope2 = app.Services.CreateScope())
+{
+    var db2 = scope2.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    try
+    {
+        db2.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'AuditLogs')
+            CREATE TABLE AuditLogs (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                TenantId INT NOT NULL DEFAULT 0,
+                UserId NVARCHAR(450) NOT NULL DEFAULT '',
+                UserEmail NVARCHAR(256) NOT NULL DEFAULT '',
+                UserName NVARCHAR(256) NOT NULL DEFAULT '',
+                Action NVARCHAR(100) NOT NULL DEFAULT '',
+                EntityType NVARCHAR(100) NOT NULL DEFAULT '',
+                EntityId NVARCHAR(100) NOT NULL DEFAULT '',
+                Details NVARCHAR(MAX) NOT NULL DEFAULT '',
+                IpAddress NVARCHAR(50) NOT NULL DEFAULT '',
+                CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+            )
+        ");
+    }
+    catch { }
+}
 app.Run();
