@@ -1,4 +1,5 @@
 using Kindergarten.Api.Authorization;
+using Kindergarten.Core.Interfaces;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +13,8 @@ namespace Kindergarten.Api.Controllers;
 public class PaymentsController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
-    public PaymentsController(IPaymentService paymentService) =>
+    private readonly IAuditService _audit;
+    public PaymentsController(IPaymentService paymentService, IAuditService audit) =>
         _paymentService = paymentService;
 
     [HttpGet("subscription/{subscriptionId}")]

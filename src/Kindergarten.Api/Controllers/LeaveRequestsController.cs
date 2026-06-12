@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Kindergarten.Api.Authorization;
+using Kindergarten.Core.Interfaces;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,8 +14,9 @@ namespace Kindergarten.Api.Controllers;
 public class LeaveRequestsController : ControllerBase
 {
     private readonly ILeaveRequestService _service;
+    private readonly IAuditService _audit;
 
-    public LeaveRequestsController(ILeaveRequestService service) => _service = service;
+    public LeaveRequestsController(ILeaveRequestService service, IAuditService audit) => _service = service;
 
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -57,6 +59,7 @@ public class LeaveRequestsController : ControllerBase
     {
         var result = await _service.ReviewAsync(id, dto, GetUserId());
         if (result == null) return NotFound();
+        await _audit.LogAsync("Review", "LeaveRequest", id.ToString(), $"Status: {dto.Status}");
         return Ok(result);
     }
 }

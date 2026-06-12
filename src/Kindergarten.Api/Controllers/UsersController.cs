@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Kindergarten.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Kindergarten.Api.Authorization;
+using Kindergarten.Core.Interfaces;
 using Kindergarten.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using Kindergarten.Infrastructure.Services;
@@ -16,11 +17,13 @@ namespace Kindergarten.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
+    private readonly IAuditService _audit;
     private readonly IPasswordHasher<ApplicationUser> _hasher = new PasswordHasher<ApplicationUser>();
 
-    public UsersController(ApplicationDbContext db)
+    public UsersController(ApplicationDbContext db, IAuditService audit)
     {
         _db = db;
+        _audit = audit;
     }
 
     private int GetTenantId() =>
@@ -83,6 +86,8 @@ public class UsersController : ControllerBase
             user.PasswordHash = _hasher.HashPassword(user, dto.NewPassword);
 
         await _db.SaveChangesAsync();
+        
+        await _audit.LogAsync("Update", "User", id.ToString(), "Updated user");
         return Ok(new { message = "User updated successfully", id = user.Id, user.FullName });
     }
 
@@ -95,6 +100,8 @@ public class UsersController : ControllerBase
         if (user == null) return NotFound();
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
+        
+        await _audit.LogAsync("Delete", "User", id.ToString(), "Deleted user");
         return Ok(new { message = "User deleted successfully" });
     }
 }

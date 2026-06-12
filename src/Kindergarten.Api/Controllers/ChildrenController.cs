@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Kindergarten.Api.Authorization;
+using Kindergarten.Core.Interfaces;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +14,8 @@ namespace Kindergarten.Api.Controllers;
 public class ChildrenController : ControllerBase
 {
     private readonly IChildService _childService;
-    public ChildrenController(IChildService childService) => _childService = childService;
+    private readonly IAuditService _audit;
+    public ChildrenController(IChildService childService, IAuditService audit) => _childService = childService;
 
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
