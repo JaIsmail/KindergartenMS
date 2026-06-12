@@ -15,7 +15,7 @@ public class ChildrenController : ControllerBase
 {
     private readonly IChildService _childService;
     private readonly IAuditService _audit;
-    public ChildrenController(IChildService childService, IAuditService audit) => _childService = childService;
+    public ChildrenController(IChildService childService, IAuditService audit) { _childService = childService; _audit = audit; }
 
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
