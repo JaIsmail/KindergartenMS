@@ -1343,6 +1343,33 @@ function showPage(page){
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
   async function loadUsersPage(){await loadUsers();await loadTenantsDropdown();}
+
+var auditPage=1;
+async function loadAuditLogs(page){
+  if(page)auditPage=page;
+  var ar=currentLang==='ar';
+  var entity=document.getElementById('auditEntityFilter')?document.getElementById('auditEntityFilter').value:'';
+  var action=document.getElementById('auditActionFilter')?document.getElementById('auditActionFilter').value:'';
+  var div=document.getElementById('audit-table');
+  if(!div)return;
+  div.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  var url='/api/audit?page='+auditPage+'&pageSize=20';
+  if(entity)url+='&entityType='+entity;
+  if(action)url+='&action='+action;
+  var data=await api(url);
+  if(!data){div.innerHTML='<p>Error</p>';return;}
+  if(!data.logs||!data.logs.length){div.innerHTML='<div class="empty-state"><p>'+(ar?'لا توجد سجلات':'No logs')+'</p></div>';document.getElementById('audit-pagination').innerHTML='';return;}
+  var ac={Create:'badge-green',Add:'badge-green',Update:'badge-blue',Delete:'badge-red',Review:'badge-orange'};
+  div.innerHTML='<div class="table-wrap"><table><thead><tr><th>'+(ar?'الوقت':'Time')+'</th><th>'+(ar?'الإجراء':'Action')+'</th><th>'+(ar?'الكيان':'Entity')+'</th><th>#</th><th>'+(ar?'المستخدم':'User')+'</th><th>'+(ar?'التفاصيل':'Details')+'</th></tr></thead><tbody>'+data.logs.map(function(l){return'<tr><td style="font-size:0.75rem;color:#64748b">'+new Date(l.createdAt).toLocaleString()+'</td><td><span class="badge '+(ac[l.action]||'badge-gray')+'">'+l.action+'</span></td><td>'+l.entityType+'</td><td>'+l.entityId+'</td><td style="font-size:0.8rem">'+l.userName+'<br><span style="color:#94a3b8">'+l.userEmail+'</span></td><td style="font-size:0.8rem;color:#64748b">'+l.details+'</td></tr>';}).join('')+'</tbody></table></div>';
+  var tp=Math.ceil(data.total/20);
+  var pg='';
+  if(tp>1){
+    if(auditPage>1)pg+='<button class="btn btn-ghost btn-sm" onclick="loadAuditLogs('+(auditPage-1)+')">&#9664;</button>';
+    pg+='<span style="padding:0.4rem">'+auditPage+'/'+tp+'</span>';
+    if(auditPage<tp)pg+='<button class="btn btn-ghost btn-sm" onclick="loadAuditLogs('+(auditPage+1)+')">&#9654;</button>';
+  }
+  document.getElementById('audit-pagination').innerHTML=pg;
+}
 const loaders={dashboard:loadDashboard,lists:loadLists,settings:loadSettings,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsersPage,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants,audit:loadAuditLogs};
   if(loaders[page])loaders[page]();
 }
