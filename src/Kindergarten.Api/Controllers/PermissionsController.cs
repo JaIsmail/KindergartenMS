@@ -81,10 +81,7 @@ public class PermissionsController : ControllerBase
     [HttpPost("seed")]
     public async Task<IActionResult> Seed()
     {
-        // Delete existing and re-seed with new granular permissions
-        var existing = await _db.Permissions.ToListAsync();
-        _db.Permissions.RemoveRange(existing);
-        await _db.SaveChangesAsync();
+        // Upsert permissions — add missing, update existing, keep IDs stable
 
         var permissions = new List<Permission>
         {
@@ -156,8 +153,25 @@ public class PermissionsController : ControllerBase
             new() { Name="Finance.ViewAll",       Category="Finance",      DisplayNameAr="عرض كامل المالية",          DisplayNameEn="View All Finance",        DescriptionAr="مشاهدة جميع البيانات المالية للروضة", DescriptionEn="View all financial data across tenant" },
         };
 
-        _db.Permissions.AddRange(permissions);
+        // Get existing permissions by name
+        var existingPerms = await _db.Permissions.ToListAsync();
+        var existingNames = existingPerms.Select(p => p.Name).ToHashSet();
+        
+        // Only add new permissions (don't delete existing to preserve group assignments)
+        var toAdd = permissions.Where(p => !existingNames.Contains(p.Name)).ToList();
+        
+        // Update existing permissions display names
+        foreach(var p in permissions) {
+            var ex = existingPerms.FirstOrDefault(e => e.Name == p.Name);
+            if(ex != null) {
+                ex.DisplayNameAr = p.DisplayNameAr;
+                ex.DisplayNameEn = p.DisplayNameEn;
+                ex.Category = p.Category;
+            }
+        }
+        
+        if(toAdd.Any()) _db.Permissions.AddRange(toAdd);
         await _db.SaveChangesAsync();
-        return Ok(new { message = "Seeded", count = permissions.Count });
+        return Ok(new { message = "Seeded", count = existingPerms.Count + toAdd.Count, added = toAdd.Count });
     }
 }
