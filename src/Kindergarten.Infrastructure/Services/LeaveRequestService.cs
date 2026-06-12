@@ -68,6 +68,7 @@ public class LeaveRequestService : ILeaveRequestService
     public async Task<IEnumerable<LeaveRequestResponseDto>> GetByUserAsync(string userId)
     {
         var list = await _db.LeaveRequests
+            .IgnoreQueryFilters()
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
@@ -79,6 +80,7 @@ public class LeaveRequestService : ILeaveRequestService
     public async Task<IEnumerable<LeaveRequestResponseDto>> GetAllAsync()
     {
         var list = await _db.LeaveRequests
+            .IgnoreQueryFilters()
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
         var result = new List<LeaveRequestResponseDto>();
