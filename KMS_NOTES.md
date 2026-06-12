@@ -558,3 +558,14 @@ Pre-conditions before retry:
   - Profile: parent profile + password change
 - Share URL with parents: https://kms-api-staging-kg01.azurewebsites.net/parent.html
 - Permissions enforced: Children.View, Subscriptions.View, Trips.View
+
+---
+
+## Note 29: Audit Log ✅ DONE (2026-06-12)
+- AuditLog entity: Id, TenantId, UserId, UserEmail, UserName, Action, EntityType, EntityId, Details, IpAddress, CreatedAt
+- IAuditService + AuditService (uses new scope to avoid DbContext conflicts)
+- AuditController: GET /api/audit with filters (entityType, action, userId, page, pageSize)
+- AuditLogs table created via direct SQL on startup
+- Audit calls added to: Children (Create), Payments (Add), Users (Update/Delete), LeaveRequests (Review)
+- Permission required: Reports.View
+- Tenant-filtered: admins see only their tenant's logs, SuperAdmin sees all
