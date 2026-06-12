@@ -47,7 +47,7 @@ public class TripService : ITripService
     public async Task<TripResponseDto?> GetByIdAsync(int id)
     {
         var trip = await _db.Trips
-            .Include(t => t.Driver)
+            .IgnoreQueryFilters().Include(t => t.Driver)
             .Include(t => t.TripChildren).ThenInclude(tc => tc.Child)
             .FirstOrDefaultAsync(t => t.Id == id);
         if (trip == null) return null;
@@ -57,7 +57,7 @@ public class TripService : ITripService
     public async Task<IEnumerable<TripResponseDto>> GetByDriverAsync(string driverId)
     {
         var trips = await _db.Trips
-            .Include(t => t.Driver)
+            .IgnoreQueryFilters().Include(t => t.Driver)
             .Include(t => t.TripChildren).ThenInclude(tc => tc.Child)
             .Where(t => t.DriverId == driverId)
             .OrderByDescending(t => t.Date)
@@ -67,7 +67,7 @@ public class TripService : ITripService
 
     public async Task<TripResponseDto?> StartTripAsync(int id)
     {
-        var trip = await _db.Trips.FindAsync(id);
+        var trip = await _db.Trips.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id);
         if (trip == null) return null;
         trip.Status    = "InProgress";
         trip.StartTime = DateTime.UtcNow;
@@ -77,7 +77,7 @@ public class TripService : ITripService
 
     public async Task<TripResponseDto?> EndTripAsync(int id)
     {
-        var trip = await _db.Trips.FindAsync(id);
+        var trip = await _db.Trips.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id);
         if (trip == null) return null;
         trip.Status  = "Completed";
         trip.EndTime = DateTime.UtcNow;
@@ -115,7 +115,7 @@ public class TripService : ITripService
     public async Task<IEnumerable<TripResponseDto>> GetAllTripsAsync()
     {
         var trips = await _db.Trips
-            .Include(t => t.Driver)
+            .IgnoreQueryFilters().Include(t => t.Driver)
             .Include(t => t.TripChildren).ThenInclude(tc => tc.Child)
             .OrderByDescending(t => t.Date)
             .ToListAsync();
@@ -124,7 +124,7 @@ public class TripService : ITripService
 
     public async Task<string?> GetChildParentIdAsync(int childId)
     {
-        var child = await _db.Children.FindAsync(childId);
+        var child = await _db.Children.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == childId);
         return child?.ParentId;
     }
 

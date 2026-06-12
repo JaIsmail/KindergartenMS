@@ -19,7 +19,7 @@ public class SubscriptionService : ISubscriptionService
     public async Task<IEnumerable<SubscriptionResponseDto>> GetAllAsync(string? parentId)
     {
         return await _db.Subscriptions
-            .Include(s => s.Child)
+            .IgnoreQueryFilters().Include(s => s.Child)
             .Include(s => s.Parent)
             .Where(s => parentId == null || s.ParentId == parentId)
             .Select(s => new SubscriptionResponseDto
@@ -42,7 +42,7 @@ public class SubscriptionService : ISubscriptionService
     public async Task<SubscriptionResponseDto?> GetByIdAsync(int id)
     {
         var s = await _db.Subscriptions
-            .Include(s => s.Child)
+            .IgnoreQueryFilters().Include(s => s.Child)
             .Include(s => s.Parent)
             .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -68,7 +68,7 @@ public class SubscriptionService : ISubscriptionService
     {
         // Auto-set ParentId from child if not provided
         var child = await _db.Children
-            .Include(c => c.Parent)
+            .IgnoreQueryFilters().Include(c => c.Parent)
             .FirstOrDefaultAsync(c => c.Id == dto.ChildId);
         var resolvedParentId = !string.IsNullOrEmpty(dto.ParentId)
             ? dto.ParentId
@@ -109,7 +109,7 @@ public class SubscriptionService : ISubscriptionService
     public async Task<SubscriptionResponseDto?> UpdateStatusAsync(int id, string status)
     {
         var sub = await _db.Subscriptions
-            .Include(s => s.Child)
+            .IgnoreQueryFilters().Include(s => s.Child)
             .Include(s => s.Parent)
             .FirstOrDefaultAsync(s => s.Id == id);
         if (sub == null) return null;
@@ -135,7 +135,7 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var sub = await _db.Subscriptions.FirstOrDefaultAsync(s => s.Id == id);
+        var sub = await _db.Subscriptions.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == id);
         if (sub == null) return false;
         _db.Subscriptions.Remove(sub);
         await _db.SaveChangesAsync();

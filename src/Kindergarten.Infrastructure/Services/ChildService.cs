@@ -18,7 +18,7 @@ public class ChildService : IChildService
 
     public async Task<IEnumerable<ChildResponseDto>> GetAllAsync(string? parentId)
     {
-        var query = _db.Children.Include(c => c.Parent).AsQueryable();
+        var query = _db.Children.IgnoreQueryFilters().Include(c => c.Parent).AsQueryable();
         if(!string.IsNullOrEmpty(parentId))
             query = query.Where(c => c.ParentId == parentId);
         return await query
@@ -43,7 +43,7 @@ public class ChildService : IChildService
     public async Task<ChildResponseDto?> GetByIdAsync(int id, string parentId)
     {
         var c = await _db.Children
-            .Include(c => c.Parent)
+            .IgnoreQueryFilters().Include(c => c.Parent)
             .FirstOrDefaultAsync(c => c.Id == id && c.ParentId == parentId);
 
         if (c == null) return null;
@@ -90,7 +90,7 @@ public class ChildService : IChildService
         _db.Children.Add(child);
         await _db.SaveChangesAsync();
 
-        var parent = await _db.Users.FindAsync(parentId);
+        var parent = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == parentId);
 
         return new ChildResponseDto
         {
@@ -125,7 +125,7 @@ public class ChildService : IChildService
     {
         var canViewAll = true; // called from admin context
         var child = await _db.Children
-            .Include(c => c.Parent)
+            .IgnoreQueryFilters().Include(c => c.Parent)
             .FirstOrDefaultAsync(c => c.Id == id);
         if (child == null) return null;
 

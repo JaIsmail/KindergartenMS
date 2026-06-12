@@ -124,7 +124,7 @@ public class NotificationService : INotificationService
         Dictionary<string, string>? data = null)
     {
         var devices = await _db.UserDevices
-            .Where(d => d.UserId == parentId)
+            .IgnoreQueryFilters().Where(d => d.UserId == parentId)
             .ToListAsync();
 
         if (!devices.Any()) return false;
@@ -151,7 +151,7 @@ public class NotificationService : INotificationService
         Dictionary<string, string>? data = null)
     {
         var devices = await _db.UserDevices
-            .Where(d => d.UserId == userId)
+            .IgnoreQueryFilters().Where(d => d.UserId == userId)
             .ToListAsync();
 
         if (!devices.Any()) return false;
@@ -177,7 +177,7 @@ public class NotificationService : INotificationService
         Dictionary<string, string>? data = null)
     {
         var devices = await _db.UserDevices
-            .Include(d => d.User)
+            .IgnoreQueryFilters().Include(d => d.User)
             .Where(d => d.User.RoleType == "Parent")
             .ToListAsync();
 

@@ -24,7 +24,7 @@ public class LeaveRequestService : ILeaveRequestService
         var start = new DateTime(now.Year, now.Month, 1);
         var end   = start.AddMonths(1);
         return await _db.LeaveRequests
-            .Where(r => r.UserId == userId
+            .IgnoreQueryFilters().Where(r => r.UserId == userId
                      && r.Status == "Approved"
                      && r.StartTime >= start
                      && r.StartTime < end)

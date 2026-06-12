@@ -22,7 +22,7 @@ public class PaymentService : IPaymentService
     public async Task<IEnumerable<PaymentResponseDto>> GetBySubscriptionAsync(int subscriptionId)
     {
         return await _db.Payments
-            .Where(p => p.SubscriptionId == subscriptionId)
+            .IgnoreQueryFilters().Where(p => p.SubscriptionId == subscriptionId)
             .Select(p => new PaymentResponseDto
             {
                 Id             = p.Id,
@@ -49,7 +49,7 @@ public class PaymentService : IPaymentService
         _db.Payments.Add(payment);
 
         // Update subscription status to Paid
-        var subscription = await _db.Subscriptions.FindAsync(dto.SubscriptionId);
+        var subscription = await _db.Subscriptions.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == dto.SubscriptionId);
         if (subscription != null)
             subscription.PaymentStatus = "Paid";
 
@@ -58,8 +58,8 @@ public class PaymentService : IPaymentService
         // Notify parent
         if (subscription != null)
         {
-            var parent = await _db.Users.FindAsync(subscription.ParentId);
-            var child  = await _db.Children.FindAsync(subscription.ChildId);
+            var parent = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == subscription.ParentId);
+            var child  = await _db.Children.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == subscription.ChildId);
             if (parent != null && child != null)
             {
                 await _notify.SendToUserAsync(
@@ -89,17 +89,17 @@ public class PaymentService : IPaymentService
 
     public async Task<ChildPaymentHistoryDto?> GetByChildAsync(int childId)
     {
-        var child = await _db.Children.Include(c => c.Parent).FirstOrDefaultAsync(c => c.Id == childId);
+        var child = await _db.Children.IgnoreQueryFilters().Include(c => c.Parent).IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Id == childId);
         if (child == null) return null;
 
         var subscriptions = await _db.Subscriptions
-            .Where(s => s.ChildId == childId)
+            .IgnoreQueryFilters().Where(s => s.ChildId == childId)
             .OrderByDescending(s => s.StartDate)
             .ToListAsync();
 
         var subIds = subscriptions.Select(s => s.Id).ToList();
         var payments = await _db.Payments
-            .Where(p => subIds.Contains(p.SubscriptionId))
+            .IgnoreQueryFilters().Where(p => subIds.Contains(p.SubscriptionId))
             .OrderByDescending(p => p.PaymentDate)
             .ToListAsync();
 
@@ -141,7 +141,7 @@ public class PaymentService : IPaymentService
     public async Task<IEnumerable<PaymentResponseDto>> GetAllAsync()
     {
         return await _db.Payments
-            .OrderByDescending(p => p.PaymentDate)
+            .IgnoreQueryFilters().OrderByDescending(p => p.PaymentDate)
             .Select(p => new PaymentResponseDto
             {
                 Id             = p.Id,
@@ -157,7 +157,7 @@ public class PaymentService : IPaymentService
     {
         var today = DateTime.UtcNow.Date;
         return await _db.Subscriptions
-            .Include(s => s.Child)
+            .IgnoreQueryFilters().Include(s => s.Child)
             .Include(s => s.Parent)
             .Where(s => s.EndDate.Date < today && s.PaymentStatus != "Paid")
             .OrderBy(s => s.EndDate)

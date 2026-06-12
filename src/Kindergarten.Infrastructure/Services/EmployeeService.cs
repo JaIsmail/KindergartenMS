@@ -41,7 +41,7 @@ public class EmployeeService : IEmployeeService
     {
         var today = DateTime.UtcNow.Date;
         var att = await _db.Attendance
-            .Include(a => a.Periods)
+            .IgnoreQueryFilters().Include(a => a.Periods)
             .Include(a => a.User)
             .FirstOrDefaultAsync(a => a.UserId == userId && a.Date == today);
 
@@ -63,7 +63,7 @@ public class EmployeeService : IEmployeeService
     // Reload attendance with all includes
     private async Task<Attendance> ReloadAsync(int id) =>
         await _db.Attendance
-            .Include(a => a.User)
+            .IgnoreQueryFilters().Include(a => a.User)
             .Include(a => a.Periods)
             .FirstAsync(a => a.Id == id);
 
@@ -72,7 +72,7 @@ public class EmployeeService : IEmployeeService
         var tenantId = _tenantService.GetTenantId();
 
         // Geo restriction
-        var tenant = await _db.Tenants.FindAsync(tenantId);
+        var tenant = await _db.Tenants.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == tenantId);
         if (tenant?.Settings != null)
         {
             try
@@ -119,7 +119,7 @@ public class EmployeeService : IEmployeeService
     {
         var today = DateTime.UtcNow.Date;
         var attendance = await _db.Attendance
-            .Include(a => a.Periods)
+            .IgnoreQueryFilters().Include(a => a.Periods)
             .Include(a => a.User)
             .FirstOrDefaultAsync(a => a.UserId == userId && a.Date == today);
 
@@ -153,7 +153,7 @@ public class EmployeeService : IEmployeeService
     public async Task<IEnumerable<AttendanceResponseDto>> GetMyAttendanceAsync(string userId)
     {
         var list = await _db.Attendance
-            .Include(a => a.User)
+            .IgnoreQueryFilters().Include(a => a.User)
             .Include(a => a.Periods)
             .Where(a => a.UserId == userId)
             .OrderByDescending(a => a.Date)
@@ -188,19 +188,19 @@ public class EmployeeService : IEmployeeService
     // Legacy employee methods
     public async Task<IEnumerable<EmployeeResponseDto>> GetAllAsync()
     {
-        var emps = await _db.Employees.Include(e => e.User).ToListAsync();
+        var emps = await _db.Employees.IgnoreQueryFilters().Include(e => e.User).IgnoreQueryFilters().ToListAsync();
         return emps.Select(MapEmployee);
     }
 
     public async Task<EmployeeResponseDto?> GetByIdAsync(int id)
     {
-        var e = await _db.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.Id == id);
+        var e = await _db.Employees.IgnoreQueryFilters().Include(e => e.User).IgnoreQueryFilters().FirstOrDefaultAsync(e => e.Id == id);
         return e == null ? null : MapEmployee(e);
     }
 
     public async Task<EmployeeResponseDto?> GetByUserIdAsync(string userId)
     {
-        var e = await _db.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.UserId == userId);
+        var e = await _db.Employees.IgnoreQueryFilters().Include(e => e.User).IgnoreQueryFilters().FirstOrDefaultAsync(e => e.UserId == userId);
         return e == null ? null : MapEmployee(e);
     }
 
@@ -226,7 +226,7 @@ public class EmployeeService : IEmployeeService
 
     public async Task EnsureDriverExistsAsync(string userId)
     {
-        var exists = await _db.Employees.AnyAsync(e => e.UserId == userId);
+        var exists = await _db.Employees.IgnoreQueryFilters().AnyAsync(e => e.UserId == userId);
         if (!exists)
         {
             _db.Employees.Add(new Employee { UserId = userId, Position = "", TenantId = _tenantService.GetTenantId() });
