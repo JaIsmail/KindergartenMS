@@ -100,7 +100,7 @@ builder.Services.AddAuthorization(options =>
         // Discounts
         "Discounts.View","Discounts.Manage","Discounts.Apply",
         // Notifications & Finance
-        "Notifications.Send","Finance.ViewAll"
+        "Notifications.Send","Finance.ViewAll","AuditLog.View"
     };
     foreach (var permission in permissions)
         options.AddPolicy(permission,
