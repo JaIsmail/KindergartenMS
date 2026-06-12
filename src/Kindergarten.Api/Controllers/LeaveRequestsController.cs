@@ -16,7 +16,7 @@ public class LeaveRequestsController : ControllerBase
     private readonly ILeaveRequestService _service;
     private readonly IAuditService _audit;
 
-    public LeaveRequestsController(ILeaveRequestService service, IAuditService audit) => _service = service;
+    public LeaveRequestsController(ILeaveRequestService service, IAuditService audit) { _service = service; _audit = audit; }
 
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
