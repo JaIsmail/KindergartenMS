@@ -27,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             return int.TryParse(claim, out var id) ? id : 1;
         }
     }
+    public DbSet<Kindergarten.Core.Entities.AuditLog> AuditLogs { get; set; }
 public DbSet<Child>        Children      { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<Payment>      Payments      { get; set; }

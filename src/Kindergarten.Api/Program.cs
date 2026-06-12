@@ -111,6 +111,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<Kindergarten.Core.Interfaces.IAuditService, Kindergarten.Infrastructure.Services.AuditService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
