@@ -20,7 +20,7 @@ public class AuditController : ControllerBase
     private int GetTenantId() => int.TryParse(User.FindFirstValue("TenantId"), out var id) ? id : 1;
 
     [HttpGet]
-    [RequirePermission("Reports.View")]
+    [RequirePermission("AuditLog.View")]
     public async Task<IActionResult> GetLogs(
         [FromQuery] string? entityType = null,
         [FromQuery] string? action = null,

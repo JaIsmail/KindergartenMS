@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
 using Kindergarten.Core.DTOs;
+using Kindergarten.Core.Interfaces;
+using Kindergarten.Core.Interfaces;
 using Kindergarten.Core.Entities;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -18,17 +20,20 @@ public class AuthService : IAuthService
     private readonly RoleManager<IdentityRole>   _roleManager;
     private readonly IConfiguration              _config;
     private readonly ApplicationDbContext        _db;
+    private readonly IAuditService               _audit;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole>    roleManager,
         IConfiguration               config,
-        ApplicationDbContext         db)
+        ApplicationDbContext         db,
+        IAuditService               audit)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _config      = config;
         _db          = db;
+        _audit       = audit;
     }
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
@@ -49,6 +54,7 @@ public class AuthService : IAuthService
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded) return null;
 
+        await _audit.LogAsync("Login", "User", user.Id, $"Login: {user.Email}");
         return await GenerateTokenAsync(user);
     }
 
@@ -60,6 +66,7 @@ public class AuthService : IAuthService
         var valid = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!valid) return null;
 
+        await _audit.LogAsync("Login", "User", user.Id, $"Login: {user.Email}");
         return await GenerateTokenAsync(user);
     }
 
