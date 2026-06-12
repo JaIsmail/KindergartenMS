@@ -284,6 +284,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <button class="nav-item" onclick="showPage('users')" data-requires-permission="Users.View"><span class="icon">👥</span><span data-ar="المستخدمون" data-en="Users">المستخدمون</span></button>
       <button class="nav-item" onclick="showPage('lists')" data-requires-permission="Lists.View"><span class="icon">📋</span><span data-ar="القوائم الديناميكية" data-en="Dynamic Lists">القوائم الديناميكية</span></button>
       <button class="nav-item" onclick="showPage('notifications')" data-requires-permission="Notifications.Send"><span class="icon">🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></button>
+      <button class="nav-item" onclick="showPage('audit')" data-requires-permission="Reports.View"><span class="icon">📋</span><span data-ar="سجل النشاط" data-en="Audit Log">سجل النشاط</span></button>
       <button class="nav-item" onclick="showPage('signalr')" data-requires-permission="Users.View"><span class="icon">📡</span><span data-ar="الوقت الفعلي" data-en="Real-Time">الوقت الفعلي</span></button>
     </div>
   </div>
@@ -1342,7 +1343,7 @@ function showPage(page){
   document.getElementById('pageTitle').textContent=t('pages.'+page);
   document.getElementById('pageSubtitle').textContent=t('subs.'+page);
   async function loadUsersPage(){await loadUsers();await loadTenantsDropdown();}
-const loaders={dashboard:loadDashboard,lists:loadLists,settings:loadSettings,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsersPage,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants};
+const loaders={dashboard:loadDashboard,lists:loadLists,settings:loadSettings,children:loadChildren,trips:loadTrips,subscriptions:loadSubscriptions,payments:loadPayments,users:loadUsersPage,attendance:loadAttendance,notifications:loadDevices,leave:loadLeaveRequests,permissions:loadPermissions,tenants:loadTenants,audit:loadAuditLogs};
   if(loaders[page])loaders[page]();
 }
 function refreshCurrentPage(){showPage(currentPage);}
@@ -3446,6 +3447,50 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
     </div>
     <div id="childHistoryContent"></div>
   </div>
+</div>
+
+
+<!-- Audit Log Page -->
+<div class="page" id="page-audit">
+  <div class="section-header">
+    <div><h3 data-ar="سجل النشاط" data-en="Audit Log">سجل النشاط</h3><p data-ar="تتبع جميع العمليات المنفذة" data-en="Track all system actions">تتبع جميع العمليات المنفذة</p></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="form-card" style="margin-bottom:1rem">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.75rem;align-items:end">
+      <div class="form-group">
+        <label data-ar="نوع الكيان" data-en="Entity Type">نوع الكيان</label>
+        <select id="auditEntityFilter" onchange="loadAuditLogs()">
+          <option value="">-- الكل --</option>
+          <option value="Child">Child</option>
+          <option value="Payment">Payment</option>
+          <option value="User">User</option>
+          <option value="LeaveRequest">LeaveRequest</option>
+          <option value="Subscription">Subscription</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-ar="الإجراء" data-en="Action">الإجراء</label>
+        <select id="auditActionFilter" onchange="loadAuditLogs()">
+          <option value="">-- الكل --</option>
+          <option value="Create">Create</option>
+          <option value="Update">Update</option>
+          <option value="Delete">Delete</option>
+          <option value="Review">Review</option>
+          <option value="Add">Add</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-ar="بحث بالمستخدم" data-en="Search by user">بحث</label>
+        <input type="text" id="auditUserFilter" placeholder="Email..." oninput="loadAuditLogs()">
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="loadAuditLogs()" style="align-self:end">🔄</button>
+    </div>
+  </div>
+
+  <div id="audit-table"></div>
+  <div id="audit-pagination" style="display:flex;gap:0.5rem;margin-top:1rem;justify-content:center"></div>
 </div>
 
 </body>
