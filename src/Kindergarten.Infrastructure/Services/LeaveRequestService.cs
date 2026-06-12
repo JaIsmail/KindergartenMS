@@ -90,7 +90,7 @@ public class LeaveRequestService : ILeaveRequestService
 
     public async Task<LeaveRequestResponseDto?> ReviewAsync(int id, ReviewLeaveRequestDto dto, string reviewerId)
     {
-        var request = await _db.LeaveRequests.FindAsync(id);
+        var request = await _db.LeaveRequests.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Id == id);
         if (request == null) return null;
 
         request.Status     = dto.Status;
