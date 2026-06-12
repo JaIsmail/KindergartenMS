@@ -569,3 +569,15 @@ Pre-conditions before retry:
 - Audit calls added to: Children (Create), Payments (Add), Users (Update/Delete), LeaveRequests (Review)
 - Permission required: Reports.View
 - Tenant-filtered: admins see only their tenant's logs, SuperAdmin sees all
+
+---
+
+## Session Updates (2026-06-12)
+- Permissions seed changed to UPSERT — no longer deletes existing, preserves group assignments
+- AuditLog.View permission added (ID=530) — separate from Reports.View
+- Login events added to audit log via AuthService
+- Admin group has all 49 permissions
+- Portal permissions: Admin(Web+Mobile), Accountant(Web), Supervisor(Web+Mobile), Teacher(Web+Mobile), Driver(Mobile), Parent(Web+Mobile)
+- IgnoreQueryFilters added to ALL service queries (was causing widespread data visibility issues)
+- Leave request system fully working — submit, approve, reject, monthly hours
+- app.html duplicate variable declarations fixed
