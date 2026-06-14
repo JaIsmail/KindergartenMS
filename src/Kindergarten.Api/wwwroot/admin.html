@@ -571,9 +571,10 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-top:1px solid var(--border)">
           <span style="font-size:0.82rem;color:var(--text2)" data-ar="السماح بالحضور خارج النطاق" data-en="Allow check-in outside geo">السماح بالحضور خارج النطاق</span>
-          <label style="position:relative;width:44px;height:24px;flex-shrink:0;display:inline-block">
-          <input type="checkbox" id="settingsAllowOutside" style="width:18px;height:18px;cursor:pointer;accent-color:var(--primary)">
-            <span onclick="document.getElementById('settingsAllowOutside').click()" style="position:absolute;inset:0;background:var(--border);border-radius:50px;cursor:pointer;transition:0.2s" id="toggleSlider"></span>
+          <label style="position:relative;width:44px;height:24px;flex-shrink:0;display:inline-block;cursor:pointer">
+          <input type="checkbox" id="settingsAllowOutside" onchange="toggleSwitchVisual(this)" style="opacity:0;width:0;height:0">
+            <span style="position:absolute;inset:0;background:var(--border);border-radius:50px;transition:0.2s" id="toggleSlider"></span>
+            <span style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)" id="toggleKnob"></span>
           </label>
         </div>
       </div>
@@ -1434,6 +1435,19 @@ function updateToggle(){
   const sl=document.getElementById('toggleSlider');
   if(sl) sl.style.background=cb?.checked?'var(--primary)':'var(--border)';
 }
+
+function toggleSwitchVisual(cb){
+  var slider = document.getElementById('toggleSlider');
+  var knob = document.getElementById('toggleKnob');
+  if(!slider || !knob) return;
+  if(cb.checked){
+    slider.style.background = 'var(--primary)';
+    knob.style.transform = 'translateX(20px)';
+  } else {
+    slider.style.background = 'var(--border)';
+    knob.style.transform = 'translateX(0)';
+  }
+}
 async function loadSettings(){
   // Show/hide edit controls based on Settings.Edit permission
   const canEdit = hasAdminPermission('Settings.Edit');
@@ -1469,6 +1483,7 @@ async function loadSettings(){
     document.getElementById('settingsWorkStart').value = settings.attendance?.workStart || '07:30';
     document.getElementById('settingsWorkEnd').value = settings.attendance?.workEnd || '15:00';
     document.getElementById('settingsAllowOutside').checked = settings.attendance?.allowOutside || false;
+    toggleSwitchVisual(document.getElementById('settingsAllowOutside'));
     // Populate KG Info card
     const infoDiv = document.getElementById('settingsTenantInfo');
     if(infoDiv && tenant){
