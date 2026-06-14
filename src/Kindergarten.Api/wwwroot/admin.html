@@ -1361,7 +1361,7 @@ async function loadAuditLogs(page){
   if(!data){div.innerHTML='<p>Error</p>';return;}
   if(!data.logs||!data.logs.length){div.innerHTML='<div class="empty-state"><p>'+(ar?'لا توجد سجلات':'No logs')+'</p></div>';document.getElementById('audit-pagination').innerHTML='';return;}
   var ac={Create:'badge-green',Add:'badge-green',Update:'badge-blue',Delete:'badge-red',Review:'badge-orange'};
-  div.innerHTML='<div class="table-wrap"><table><thead><tr><th>'+(ar?'الوقت':'Time')+'</th><th>'+(ar?'الإجراء':'Action')+'</th><th>'+(ar?'الكيان':'Entity')+'</th><th>#</th><th>'+(ar?'المستخدم':'User')+'</th><th>'+(ar?'التفاصيل':'Details')+'</th></tr></thead><tbody>'+data.logs.map(function(l){return'<tr><td style="font-size:0.75rem;color:#64748b">'+new Date(l.createdAt).toLocaleString()+'</td><td><span class="badge '+(ac[l.action]||'badge-gray')+'">'+l.action+'</span></td><td>'+l.entityType+'</td><td>'+l.entityId+'</td><td style="font-size:0.8rem">'+l.userName+'<br><span style="color:#94a3b8">'+l.userEmail+'</span></td><td style="font-size:0.8rem;color:#64748b">'+l.details+'</td></tr>';}).join('')+'</tbody></table></div>';
+  div.innerHTML='<div class="table-wrap"><table><thead><tr><th>'+(ar?'الوقت':'Time')+'</th><th>'+(ar?'الإجراء':'Action')+'</th><th>'+(ar?'الكيان':'Entity')+'</th><th>#</th><th>'+(ar?'المستخدم':'User')+'</th><th>'+(ar?'التفاصيل':'Details')+'</th></tr></thead><tbody>'+data.logs.map(function(l){return'<tr><td style="font-size:0.75rem;color:#64748b">'+formatDateTime(l.createdAt)+'</td><td><span class="badge '+(ac[l.action]||'badge-gray')+'">'+l.action+'</span></td><td>'+l.entityType+'</td><td>'+l.entityId+'</td><td style="font-size:0.8rem">'+l.userName+'<br><span style="color:#94a3b8">'+l.userEmail+'</span></td><td style="font-size:0.8rem;color:#64748b">'+l.details+'</td></tr>';}).join('')+'</tbody></table></div>';
   var tp=Math.ceil(data.total/20);
   var pg='';
   if(tp>1){
@@ -1379,8 +1379,8 @@ function refreshCurrentPage(){showPage(currentPage);}
 function statusBadge(s){const m={Created:'badge-orange',InProgress:'badge-blue',Completed:'badge-green',Pending:'badge-orange',PickedUp:'badge-green',DroppedOff:'badge-green',Missed:'badge-red',Paid:'badge-green',Overdue:'badge-red'};return'<span class="badge '+(m[s]||'badge-gray')+'">'+(t('status.'+s)||s)+'</span>';}
 function roleBadge(r){if(!r)return'<span class="badge badge-gray">—</span>';const colors={admin:'badge-red',parent:'badge-blue',driver:'badge-green',employee:'badge-purple',supervisor:'badge-orange',accountant:'badge-purple',teacher:'badge-blue',superadmin:'badge-red'};const key=Object.keys(colors).find(k=>r.toLowerCase().includes(k));return'<span class="badge '+(key?colors[key]:'badge-gray')+'">'+r+'</span>';}
 function formatPrice(p){return currentLang==='ar'?p.toFixed(2)+' ريال':'SAR '+p.toFixed(2);}
-function formatDate(d){return new Date(d).toLocaleDateString(currentLang==='ar'?'ar-SA':'en-US');}
-function formatDateTime(d){return new Date(d).toLocaleString(currentLang==='ar'?'ar-SA':'en-US');}
+function formatDate(d){return new Date(d).toLocaleDateString(currentLang==='ar'?'ar-SA':'en-US',{timeZone:'Asia/Riyadh'});}
+function formatDateTime(d){return new Date(d).toLocaleString(currentLang==='ar'?'ar-SA':'en-US',{timeZone:'Asia/Riyadh'});}
 
 async function loadDynamicList(category, selectId, selectedValue=''){
   const items = await api('/api/lists/'+category) || [];
@@ -2074,7 +2074,7 @@ async function viewChildPaymentHistory(childId, childName) {
           <tr style="border-bottom:1px solid #e2e8f0">
             <td style="padding:0.5rem;font-weight:600;color:#16a34a">${p.amount} ر.س</td>
             <td style="padding:0.5rem">${p.method}</td>
-            <td style="padding:0.5rem">${new Date(p.paymentDate).toLocaleDateString(ar?'ar-SA':'en-US')}</td>
+            <td style="padding:0.5rem">${formatDate(p.paymentDate)}</td>
             <td style="padding:0.5rem;color:#666">${p.notes||'-'}</td>
           </tr>`).join('')}
         </tbody>
@@ -2247,7 +2247,7 @@ async function loadDevices(){
     return;
   }
   div.innerHTML = '<table><thead><tr><th>المستخدم</th><th>المنصة</th><th>آخر تحديث</th></tr></thead><tbody>'+
-    data.map(d=>'<tr><td>'+d.userId.substring(0,8)+'...</td><td>'+d.platform+'</td><td>'+new Date(d.updatedAt).toLocaleDateString()+'</td></tr>').join('')+
+    data.map(d=>'<tr><td>'+d.userId.substring(0,8)+'...</td><td>'+d.platform+'</td><td>'+formatDate(d.updatedAt)+'</td></tr>').join('')+
   '</tbody></table>';
 }
 
@@ -2701,7 +2701,7 @@ function renderLeaveTable(data){
   '</tr></thead><tbody>'+
   data.map(r=>{
     const shortReason = r.reason.length > 30 ? r.reason.substring(0,30)+'...' : r.reason;
-    const startDate = new Date(r.startTime).toLocaleDateString(ar?'ar-SA':'en-US');
+    const startDate = new Date(r.startTime).toLocaleDateString(ar?'ar-SA':'en-US',{timeZone:'Asia/Riyadh'});
     return '<tr>'+
       '<td><strong>'+(r.userName||r.employeeName||'—')+'</strong></td>'+
       '<td><span style="font-weight:700;color:'+((r.monthlyUsedHours||0)>=4?'#dc2626':'#16a34a')+'">'+
@@ -2747,15 +2747,15 @@ function viewLeaveDetails(id){
       '<div style="margin-top:0.3rem"><span class="badge" style="'+sc[r.status]+'">'+(sl[ar?'ar':'en'][r.status]||r.status)+'</span></div></div>'+
     '</div>'+
     '<div class="info-row"><span class="info-label">'+(ar?'السبب':'Reason')+'</span><span class="info-value" style="max-width:280px;white-space:pre-wrap">'+r.reason+'</span></div>'+
-    '<div class="info-row"><span class="info-label">'+(ar?'من':'From')+'</span><span class="info-value">'+new Date(r.startTime).toLocaleString(ar?'ar-SA':'en-US')+'</span></div>'+
-    '<div class="info-row"><span class="info-label">'+(ar?'إلى':'To')+'</span><span class="info-value">'+new Date(r.endTime).toLocaleString(ar?'ar-SA':'en-US')+'</span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'من':'From')+'</span><span class="info-value">'+new Date(r.startTime).toLocaleString(ar?'ar-SA':'en-US',{timeZone:'Asia/Riyadh'})+'</span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'إلى':'To')+'</span><span class="info-value">'+new Date(r.endTime).toLocaleString(ar?'ar-SA':'en-US',{timeZone:'Asia/Riyadh'})+'</span></div>'+
     '<div class="info-row"><span class="info-label">'+(ar?'عدد الساعات':'Hours Requested')+'</span><span class="info-value"><strong>'+((r.hours||0).toFixed(1))+'h</strong></span></div>'+
     '<div class="info-row"><span class="info-label">'+(ar?'الساعات المستخدمة':'Monthly Used')+'</span>'+
       '<span class="info-value"><div style="font-weight:700;color:'+hoursColor+'">'+((r.monthlyUsedHours||0).toFixed(1))+'/4h</div>'+
       '<div class="hours-bar"><div class="hours-fill" style="width:'+pct+'%;background:'+hoursColor+'"></div></div>'+
       '<div style="font-size:0.72rem;color:'+hoursColor+';margin-top:0.2rem">'+((r.monthlyUsedHours||0)>=4?(ar?'تجاوز الحد — خصم من الراتب':'Exceeds limit — salary deduction'):(ar?'ضمن الحد المسموح':'Within free limit'))+'</div></span></div>'+
     '<div class="info-row"><span class="info-label">'+(ar?'النوع':'Type')+'</span><span class="info-value">'+(r.isPaid?'<span style="color:#16a34a;font-weight:700">✅ '+(ar?'مدفوع':'Paid')+'</span>':'<span style="color:#dc2626;font-weight:700">⚠️ '+(ar?'خصم من الراتب':'Salary Deduction')+'</span>')+'</span></div>'+
-    '<div class="info-row"><span class="info-label">'+(ar?'تاريخ الطلب':'Submitted')+'</span><span class="info-value">'+new Date(r.createdAt).toLocaleString(ar?'ar-SA':'en-US')+'</span></div>'+
+    '<div class="info-row"><span class="info-label">'+(ar?'تاريخ الطلب':'Submitted')+'</span><span class="info-value">'+new Date(r.createdAt).toLocaleString(ar?'ar-SA':'en-US',{timeZone:'Asia/Riyadh'})+'</span></div>'+
     (r.adminNote?'<div class="info-row"><span class="info-label">'+(ar?'ملاحظة الأدمن':'Admin Note')+'</span><span class="info-value" style="color:#f97316;font-weight:600">'+r.adminNote+'</span></div>':'');
 
   document.getElementById('ldmActions').innerHTML = r.status==='Pending'?
@@ -2815,8 +2815,8 @@ async function loadAttendance(){
     data.map(r=>
       '<tr>'+
         '<td><strong>'+(r.userName||r.employeeName||''||'—')+'</strong></td>'+
-        '<td>'+(r.checkInTime?new Date(r.checkInTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>'+
-        '<td>'+(r.checkOutTime?new Date(r.checkOutTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>'+
+        '<td>'+(r.checkInTime?new Date(r.checkInTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'}):'—')+'</td>'+
+        '<td>'+(r.checkOutTime?new Date(r.checkOutTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'}):'—')+'</td>'+
         '<td>'+(r.workingHours||'—')+'</td>'+
         '<td>'+statusBadge(r.status)+'</td>'+
       '</tr>'
@@ -3377,7 +3377,7 @@ function startSR(){
 function disconnectSignalR(){
   if(signalrConnection){signalrConnection.stop();document.getElementById('signalr-status').className='badge badge-gray';document.getElementById('signalr-status').textContent=t('forms.disconnected');addLog(document.getElementById('signalr-log'),'⛔ Disconnected','red');}
 }
-function addLog(c,msg,color){const colors={blue:'#3b82f6',green:'#22c55e',orange:'#f97316',red:'#ef4444',gray:'#94a3b8'};const d=document.createElement('div');d.style.cssText='color:'+colors[color]+';padding:0.3rem 0;border-bottom:1px solid #f1f5f9';d.textContent='['+new Date().toLocaleTimeString()+'] '+msg;c.insertBefore(d,c.firstChild);}
+function addLog(c,msg,color){const colors={blue:'#3b82f6',green:'#22c55e',orange:'#f97316',red:'#ef4444',gray:'#94a3b8'};const d=document.createElement('div');d.style.cssText='color:'+colors[color]+';padding:0.3rem 0;border-bottom:1px solid #f1f5f9';d.textContent='['+new Date().toLocaleTimeString('en',{timeZone:'Asia/Riyadh'})+'] '+msg;c.insertBefore(d,c.firstChild);}
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+type;setTimeout(()=>t.className='',3000);}
 </script>

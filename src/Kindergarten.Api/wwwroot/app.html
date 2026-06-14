@@ -414,8 +414,8 @@ const TX = {
 function t(k){ return TX[lang][k] || k; }
 function ts(k){ return TX[lang].stat[k] || k; }
 function tr(k){ return TX[lang].role[k] || k; }
-function fTime(d){ return new Date(d).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}); }
-function fDate(d){ return new Date(d).toLocaleDateString(lang==='ar'?'ar-SA':'en-US'); }
+function fTime(d){ return new Date(d).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'}); }
+function fDate(d){ return new Date(d).toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{timeZone:'Asia/Riyadh'}); }
 function fPrice(p){ return lang==='ar'? p.toFixed(2)+' ريال' : 'SAR '+p.toFixed(2); }
 
 function sbadge(s){
@@ -789,9 +789,9 @@ async function loadLeave() {
   var sl={ar:{Pending:'معلق',Approved:'موافق عليه',Rejected:'مرفوض'},en:{Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}};
   listEl.innerHTML=data.map(function(r){
     var statusClass=r.status.toLowerCase();
-    var startDate=new Date(r.startTime).toLocaleDateString(ar?'ar-SA':'en-US',{month:'short',day:'numeric'});
-    var startTime=new Date(r.startTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'});
-    var endTime=new Date(r.endTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit'});
+    var startDate=new Date(r.startTime).toLocaleDateString(ar?'ar-SA':'en-US',{month:'short',day:'numeric',timeZone:'Asia/Riyadh'});
+    var startTime=new Date(r.startTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'});
+    var endTime=new Date(r.endTime).toLocaleTimeString(ar?'ar-SA':'en-US',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'});
     return '<div class="leave-card '+statusClass+'">'+
       '<div class="leave-head">'+
         '<div class="leave-reason">'+r.reason+'</div>'+
@@ -1033,9 +1033,9 @@ function buildDrawer(){
 setInterval(function() {
   var n = new Date();
   var c = document.getElementById('clock');
-  if(c) c.textContent = n.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+  if(c) c.textContent = n.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'});
   var d = document.getElementById('todayDate');
-  if(d) d.textContent = n.toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{weekday:'long',day:'numeric',month:'long'});
+  if(d) d.textContent = n.toLocaleDateString(lang==='ar'?'ar-SA':'en-US',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Riyadh'});
 }, 1000);
 
 // Init
