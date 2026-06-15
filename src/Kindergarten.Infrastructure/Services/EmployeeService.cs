@@ -3,7 +3,6 @@ using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Entities;
 using Kindergarten.Core.Interfaces;
 using Kindergarten.Infrastructure.Data;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kindergarten.Infrastructure.Services;
@@ -12,16 +11,13 @@ public class EmployeeService : IEmployeeService
 {
     private readonly ApplicationDbContext _db;
     private readonly ITenantService       _tenantService;
-    private readonly UserManager<ApplicationUser> _userManager;
 
     public EmployeeService(
         ApplicationDbContext db,
-        ITenantService tenantService,
-        UserManager<ApplicationUser> userManager)
+        ITenantService tenantService)
     {
         _db            = db;
         _tenantService = tenantService;
-        _userManager   = userManager;
     }
 
     // Haversine distance
