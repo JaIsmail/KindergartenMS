@@ -107,6 +107,10 @@ tbody tr:hover td{background:var(--surface2);}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
 .section-header h3{font-size:0.95rem;font-weight:700;}
 .section-header p{font-size:0.75rem;color:var(--text3);}
+.table-wrap{overflow-x:auto;width:100%;border-radius:12px;border:1px solid var(--border);}
+.table-wrap table{width:100%;border-collapse:collapse;}
+.table-wrap th,.table-wrap td{padding:0.6rem 0.8rem;text-align:start;border-bottom:1px solid var(--border);font-size:0.85rem;white-space:nowrap;}
+.table-wrap th{background:var(--bg2,#f8fafc);font-weight:700;color:var(--text2);}
 .form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;}
 .form-card h3{font-size:0.9rem;font-weight:700;margin-bottom:1.2rem;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
@@ -1190,6 +1194,12 @@ window.onload=async()=>{
   setLang(currentLang);
   if(token){
     // Check portal access
+    if(!_adminPermissions.includes('__superadmin__') && _adminPermissions.length===0){
+      document.getElementById('loginPage').style.display='none';
+      if(document.getElementById('mainContent'))document.getElementById('mainContent').style.display='none';
+      document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Cairo,sans-serif;background:#f0f4f8"><div style="background:#fff;padding:2rem;border-radius:16px;text-align:center;max-width:400px"><div style="font-size:3rem">' + String.fromCodePoint(0x26A0) + '</div><h2 style="color:#0f172a;margin:1rem 0">لا توجد صلاحيات</h2><p style="color:#64748b">لم يتم تعيين أي صلاحيات لحسابك بعد. يرجى التواصل مع مدير النظام.</p><button onclick="localStorage.clear();location.reload()" style="background:#f97316;color:#fff;padding:0.75rem 2rem;border-radius:10px;border:none;cursor:pointer;font-weight:700;margin-top:1rem">تسجيل الخروج</button></div></div>';
+      return;
+    }
     if(_adminPermissions.length>0 && !_adminPermissions.includes('__superadmin__') && !_adminPermissions.includes('Portal.Web')){
       document.getElementById('loginPage').style.display='none';
       if(document.getElementById('mainContent'))document.getElementById('mainContent').style.display='none';
@@ -1221,6 +1231,11 @@ async function doLogin(){
     const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json','Accept-Language':currentLang},body:JSON.stringify({email,password:pass})});
     const data=await res.json();
     if(data.token){token=data.token;tenantId=data.tenantId||'1';localStorage.setItem('kms_token',token);localStorage.setItem('kms_tenantId',tenantId);localStorage.setItem('kms_user',JSON.stringify(data));loadAdminPermissions();
+      if(!_adminPermissions.includes('__superadmin__') && _adminPermissions.length===0){
+        document.getElementById('loginPage').style.display='none';
+        document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Cairo,sans-serif;background:#f0f4f8"><div style="background:#fff;padding:2rem;border-radius:16px;text-align:center;max-width:400px"><div style="font-size:3rem">' + String.fromCodePoint(0x26A0) + '</div><h2 style="color:#0f172a;margin:1rem 0">لا توجد صلاحيات</h2><p style="color:#64748b">لم يتم تعيين أي صلاحيات لحسابك بعد. يرجى التواصل مع مدير النظام.</p><button onclick="localStorage.clear();location.reload()" style="background:#f97316;color:#fff;padding:0.75rem 2rem;border-radius:10px;border:none;cursor:pointer;font-weight:700;margin-top:1rem">تسجيل الخروج</button></div></div>';
+        return;
+      }
       if(_adminPermissions.length>0 && !_adminPermissions.includes('__superadmin__') && !_adminPermissions.includes('Portal.Web') ){
         document.getElementById('loginPage').style.display='none';document.body.innerHTML='<div style="text-align:center;padding:2rem">🚫 لا يمكنك الوصول<br><button onclick="localStorage.clear();location.reload()">خروج</button></div>';return;
       }
