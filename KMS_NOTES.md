@@ -599,3 +599,25 @@ Pre-conditions before retry:
 ## Audit Log UI fixes
 - Added pages.audit/subs.audit translations
 - Added .table-wrap CSS (overflow-x:auto) — fixes Time column visibility
+
+---
+
+## Note 50 — Identity Removal ✅ STAGE 2-3 DONE (2026-06-15)
+- ApplicationUser no longer inherits IdentityUser — plain entity with Id, UserName, Email, PasswordHash, PhoneNumber, FullName, Address, RoleType, TenantId
+- ApplicationDbContext changed from IdentityDbContext<ApplicationUser> to plain DbContext
+  - Added DbSet<ApplicationUser> Users, mapped to existing "AspNetUsers" table via ToTable()
+- AuthService rewritten: UserManager/RoleManager removed, uses _db.Users + PasswordHasher<ApplicationUser> directly
+  - Existing password hashes (created under old Identity) verified working with new PasswordHasher — same algorithm
+- TenantsController: create-admin and impersonate endpoints no longer use UserManager/RoleManager
+- PermissionGroupsController: assign-group endpoint uses _db.Users instead of UserManager
+- EmployeeService: removed unused UserManager field
+- Program.cs: removed AddIdentity<>(), SuperAdmin seeding now via _db.Users + PasswordHasher
+- Build: 0 errors (15 pre-existing EF1002 warnings unrelated)
+- Verified on staging: login (SuperAdmin/Admin/Teacher/Driver/Accountant), audit log, impersonate, leave requests, permission groups — all working
+
+### Remaining (Stage 4 - optional cleanup, low priority):
+- AspNetUsers table retains unused Identity columns (EmailConfirmed, SecurityStamp, LockoutEnabled, etc.) — harmless, unmapped
+- 6 orphaned Identity tables still exist in DB: AspNetRoles, AspNetUserRoles, AspNetUserClaims, AspNetUserLogins, AspNetUserTokens, AspNetRoleClaims — no FK dependencies, safe to drop via raw SQL anytime
+- EF auto-migration for this change produced a confusing drop+recreate cycle — migration was discarded; schema changes deferred to manual SQL cleanup script (Stage 4)
+
+Rollback reference if needed: v2.2-perm-fix-stable (pre-Identity-removal)
