@@ -581,3 +581,21 @@ Pre-conditions before retry:
 - IgnoreQueryFilters added to ALL service queries (was causing widespread data visibility issues)
 - Leave request system fully working — submit, approve, reject, monthly hours
 - app.html duplicate variable declarations fixed
+
+---
+
+## Critical Fix (2026-06-12): app.html Permission-Based Gating
+- ROOT CAUSE: buildDrawer() and post-login routing used hardcoded role-string arrays (roles:['Parent','Admin'] etc.) checking against GroupNameEn — completely ignored JWT Permission claims
+- Teacher group with 0 permissions could still see الحضور/الإذن menus and navigate (broken pages)
+- FIXED: buildDrawer() now filters items by perms:[...] arrays checked via hasPermission()
+- FIXED: post-login routing computes firstPage from pagePermMap + permission checks, falls back through ordered list
+- Added zero-permissions fallback page (admin.html + app.html) — friendly "no permissions" message + logout instead of blank/broken UI
+- Verified: Teacher with 6 perms (Children.View, Attendance.*, Leave.Submit, Portal.*) sees correct drawer items only
+
+## Note 30 — KSA Timezone ✅ DONE
+- formatDate/formatDateTime (admin.html) + fTime/fDate (app.html) use timeZone:'Asia/Riyadh'
+- All inline date displays (audit log, leave requests, attendance, payments, live clock) updated
+
+## Audit Log UI fixes
+- Added pages.audit/subs.audit translations
+- Added .table-wrap CSS (overflow-x:auto) — fixes Time column visibility
