@@ -541,9 +541,20 @@ function initApp() {
   document.getElementById('pRole').innerHTML = '<span class="badge bb">'+groupBadgeLabel()+'</span>';
   setLang(lang);
   buildDrawer();
-  if(role === 'Driver' || role.includes('Driver')) showPage('dtrips');
-  else if(role === 'Employee' || role.includes('Employee') || role.includes('Teacher') || role.includes('Supervisor') || role.includes('Accountant')) showPage('att');
-  else showPage('home');
+  if(permissions.length===0 && permissions.indexOf('__superadmin__')===-1){
+    document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Cairo,sans-serif;background:#f0f4f8"><div style="background:#fff;padding:2rem;border-radius:16px;text-align:center;max-width:380px"><div style="font-size:3rem">'+String.fromCodePoint(0x26A0)+'</div><h2 style="color:#0f172a;margin:1rem 0">'+(lang==='ar'?'لا توجد صلاحيات':'No Permissions')+'</h2><p style="color:#64748b">'+(lang==='ar'?'لم يتم تعيين أي صلاحيات لحسابك بعد. يرجى التواصل مع مدير النظام.':'No permissions assigned to your account yet. Please contact the administrator.')+'</p><button onclick="doLogout()" style="background:#f97316;color:#fff;padding:0.75rem 2rem;border-radius:10px;border:none;cursor:pointer;font-weight:700;margin-top:1rem">'+(lang==='ar'?'تسجيل الخروج':'Logout')+'</button></div></div>';
+    return;
+  }
+  var pagePermMap={home:['Children.View','Subscriptions.View','Trips.View'],dtrips:['Trips.Manage','Trips.Track'],att:['Attendance.CheckIn','Attendance.ViewOwn','Attendance.ViewAll'],leave:['Leave.Submit','Leave.ViewAll'],subs:['Subscriptions.View'],ptrips:['Trips.View']};
+  var isSuper=permissions.indexOf('__superadmin__')!==-1;
+  var order=['home','dtrips','att','leave','subs','ptrips','profile'];
+  var firstPage='profile';
+  for(var i=0;i<order.length;i++){
+    var pg=order[i];
+    var req=pagePermMap[pg];
+    if(isSuper || !req || req.some(function(p){return hasPermission(p);})){ firstPage=pg; break; }
+  }
+  showPage(firstPage);
 }
 
 function doLogout() {
@@ -1010,17 +1021,20 @@ function buildDrawer(){
   var dEmail=document.getElementById('dEmail'); if(dEmail) dEmail.textContent=email;
   var dRole=document.getElementById('dRole'); if(dRole) dRole.textContent=groupBadgeLabel();
   var allItems=[
-    {id:'home',   i:'🏠', l:t('home'),       roles:['Parent','Admin']},
-    {id:'ptrips', i:'🚌', l:t('childTrips'), roles:['Parent','Admin']},
-    {id:'subs',   i:'💳', l:t('subs'),       roles:['Parent','Admin']},
-    {id:'dtrips', i:'🚌', l:t('myTrips'),    roles:['Driver']},
-    {id:'leave',  i:'📋', l:lang==='ar'?'الإذن':'Leave', roles:['Driver']},
-    {id:'att',    i:'⏰', l:t('att'),        roles:['Employee','Teacher','Teacher_1','Teacher_2','Supervisor','Accountant','HR']},
-    {id:'leave',  i:'📋', l:lang==='ar'?'الإذن':'Leave', roles:['Employee','Teacher','Teacher_1','Teacher_2','Supervisor','Accountant','HR']},
-    {id:'notifs', i:'🔔', l:lang==='ar'?'الإشعارات':'Notifications', roles:['Parent','Driver','Employee','Admin']},
-    {id:'profile',i:'👤', l:t('profile'),    roles:['Parent','Driver','Employee','Admin']},
+    {id:'home',   i:'🏠', l:t('home'),       perms:['Children.View','Subscriptions.View','Trips.View']},
+    {id:'ptrips', i:'🚌', l:t('childTrips'), perms:['Trips.View']},
+    {id:'subs',   i:'💳', l:t('subs'),       perms:['Subscriptions.View']},
+    {id:'dtrips', i:'🚌', l:t('myTrips'),    perms:['Trips.Manage','Trips.Track']},
+    {id:'att',    i:'⏰', l:t('att'),        perms:['Attendance.CheckIn','Attendance.ViewOwn','Attendance.ViewAll']},
+    {id:'leave',  i:'📋', l:lang==='ar'?'الإذن':'Leave', perms:['Leave.Submit','Leave.ViewAll']},
+    {id:'notifs', i:'🔔', l:lang==='ar'?'الإشعارات':'Notifications', perms:['Children.View','Subscriptions.View','Trips.View','Attendance.CheckIn','Attendance.ViewOwn','Attendance.ViewAll','Leave.Submit','Leave.ViewAll','Trips.Manage','Trips.Track']},
+    {id:'profile',i:'👤', l:t('profile'),    perms:[]},
   ];
-  var items=allItems.filter(function(x){return x.roles.indexOf(role)!==-1;});
+  var items=allItems.filter(function(x){
+    if(permissions.indexOf('__superadmin__')!==-1) return true;
+    if(!x.perms || !x.perms.length) return true;
+    return x.perms.some(function(p){return hasPermission(p);});
+  });
   var dLogoutBtn=document.getElementById('dLogout');
   if(dLogoutBtn) dLogoutBtn.textContent='🚪 '+t('logout');
   var di=document.getElementById('drawerItems');
