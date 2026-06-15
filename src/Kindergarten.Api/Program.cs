@@ -245,4 +245,20 @@ using (var scope2 = app.Services.CreateScope())
     }
     catch { }
 }
+// Add StartDate/EndDate columns to DynamicLists for SubscriptionPeriods (Note 47)
+using (var scope3 = app.Services.CreateScope())
+{
+    var db3 = scope3.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    try
+    {
+        db3.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DynamicLists') AND name = 'StartDate')
+            ALTER TABLE DynamicLists ADD StartDate DATETIME2 NULL;
+
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DynamicLists') AND name = 'EndDate')
+            ALTER TABLE DynamicLists ADD EndDate DATETIME2 NULL;
+        ");
+    }
+    catch { }
+}
 app.Run();

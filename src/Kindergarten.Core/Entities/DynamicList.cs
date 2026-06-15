@@ -10,4 +10,6 @@ public class DynamicList
     public int    Order    { get; set; } = 0;
     public bool   IsActive { get; set; } = true;
     public int    TenantId { get; set; } = 1;
+    public DateTime? StartDate { get; set; } // used for SubscriptionPeriods
+    public DateTime? EndDate   { get; set; } // used for SubscriptionPeriods
 }

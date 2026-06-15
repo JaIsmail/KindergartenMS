@@ -473,6 +473,13 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div class="form-field"><label>الفترة</label><select id="subPeriod"><option value="">-- اختر الفترة --</option></select></div>
       </div>
       <div class="form-row">
+        <div class="form-field" style="grid-column:1/-1"><label>الفترة الزمنية للاشتراك</label>
+          <select id="subTimePeriod" onchange="applySubPeriod()" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+            <option value="">-- اختر فترة محددة أو أدخل تاريخاً مخصصاً --</option>
+            <option value="custom">📅 مخصص</option>
+          </select>
+          <div id="subPeriodSummary" style="display:none;font-size:0.8rem;color:var(--primary);font-weight:700;margin-top:0.4rem;padding:0.4rem 0.6rem;background:#fff7ed;border-radius:8px"></div>
+        </div>
         <div class="form-field"><label>السعر الإجمالي (ريال) *</label><input type="number" id="subPrice" value="500"></div>
         <div class="form-field"><label>ولي الأمر</label><input type="text" id="subParentName" readonly style="background:var(--surface2);cursor:default" placeholder="يُحدد تلقائياً من الطفل"></div>
       </div>
@@ -626,6 +633,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <button class="btn btn-ghost btn-sm" onclick="filterLists('AgeGroups')" data-ar="المراحل العمرية" data-en="Age Groups">المراحل العمرية</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('Neighborhoods')" data-ar="الأحياء" data-en="Neighborhoods">الأحياء</button>
       <button class="btn btn-ghost btn-sm" onclick="filterLists('Periods')" data-ar="الفترات" data-en="Periods">الفترات</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterLists('SubscriptionPeriods')" data-ar="فترات الاشتراك" data-en="Subscription Periods">فترات الاشتراك</button>
     </div>
     <div class="table-card"><div id="lists-table"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
@@ -641,7 +649,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <input type="hidden" id="listItemId">
         <div style="margin-bottom:1rem">
           <label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">التصنيف</label>
-          <select id="listCategory" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+          <select id="listCategory" onchange="toggleListDateFields()" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
             <option value="Classes" data-ar="أنواع الفصول" data-en="Class Types">أنواع الفصول</option>
             <option value="SubscriptionTypes" data-ar="أنواع الاشتراكات" data-en="Subscription Types">أنواع الاشتراكات</option>
             <option value="TripStatuses" data-ar="حالات الرحلات" data-en="Trip Statuses">حالات الرحلات</option>
@@ -650,6 +658,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
             <option value="AgeGroups" data-ar="المراحل العمرية" data-en="Age Groups">المراحل العمرية</option>
             <option value="Neighborhoods" data-ar="الأحياء" data-en="Neighborhoods">الأحياء</option>
             <option value="Periods" data-ar="الفترات" data-en="Periods">الفترات</option>
+            <option value="SubscriptionPeriods" data-ar="فترات الاشتراك" data-en="Subscription Periods">فترات الاشتراك</option>
           </select>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
@@ -661,6 +670,13 @@ html[lang="en"] #toast{left:auto;right:2rem;}
         <div>
           <label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">الترتيب</label>
           <input type="number" id="listOrder" value="0" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none">
+        </div>
+        <!-- Date range — only for SubscriptionPeriods -->
+        <div id="listDateFields" style="display:none;margin-top:1rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">تاريخ البداية</label><input type="date" id="listStartDate" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
+            <div><label style="font-size:0.75rem;font-weight:700;color:var(--text2);display:block;margin-bottom:0.35rem">تاريخ الانتهاء</label><input type="date" id="listEndDate" style="width:100%;padding:0.6rem;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:0.85rem;outline:none"></div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -1641,6 +1657,9 @@ function openAddListModal(){
   document.getElementById('listNameEn').value='';
   document.getElementById('listValue').value='';
   document.getElementById('listOrder').value='0';
+  document.getElementById('listStartDate').value='';
+  document.getElementById('listEndDate').value='';
+  toggleListDateFields();
   document.getElementById('listModalTitle').textContent='إضافة عنصر';
   openModal('listModal');
 }
@@ -1653,6 +1672,9 @@ async function editListItem(id){
   document.getElementById('listCategory').value=item.category;
   document.getElementById('listNameAr').value=item.nameAr;
   document.getElementById('listNameEn').value=item.nameEn;
+  document.getElementById('listStartDate').value=item.startDate?item.startDate.split('T')[0]:'';
+  document.getElementById('listEndDate').value=item.endDate?item.endDate.split('T')[0]:'';
+  toggleListDateFields();
   document.getElementById('listValue').value=item.value;
   document.getElementById('listOrder').value=item.order;
   document.getElementById('listModalTitle').textContent='تعديل العنصر';
@@ -1667,7 +1689,9 @@ async function saveListItem(){
     nameEn:   document.getElementById('listNameEn').value,
     value:    document.getElementById('listNameEn').value, // Phase 1: auto-set from NameEn
     order:    parseInt(document.getElementById('listOrder').value)||0,
-    isActive: true
+    isActive: true,
+    startDate: document.getElementById('listStartDate')?.value || null,
+    endDate:   document.getElementById('listEndDate')?.value || null
   };
   if(!body.nameAr||!body.value){showToast('يرجى تعبئة الحقول المطلوبة','error');return;}
   const method = id ? 'PUT' : 'POST';
@@ -1680,6 +1704,7 @@ async function saveListItem(){
     // Reload dropdowns
     // loadDynamicList moved to loadChildren to prevent duplicates
     loadDynamicList('SubscriptionTypes','subType');
+    loadSubTimePeriods();
   } else showToast('❌ فشل الحفظ','error');
 }
 
@@ -2972,7 +2997,63 @@ async function deleteSubscription_OLD(id) {
   }
 }
 
+
+var _subTimePeriods = [];
+async function loadSubTimePeriods(){
+  var data = await api('/api/lists/SubscriptionPeriods') || [];
+  _subTimePeriods = data;
+  var sel = document.getElementById('subTimePeriod');
+  if(!sel) return;
+  // keep first two options (placeholder + custom), rebuild rest
+  while(sel.options.length > 2) sel.remove(2);
+  data.forEach(function(p){
+    if(!p.isActive) return;
+    var ar = currentLang==='ar';
+    var label = (ar ? p.nameAr : p.nameEn) || p.nameEn;
+    var dates = '';
+    if(p.startDate && p.endDate){
+      dates = ' (' + formatDate(p.startDate) + ' — ' + formatDate(p.endDate) + ')';
+    }
+    var opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = label + dates;
+    sel.appendChild(opt);
+  });
+}
+function applySubPeriod(){
+  var sel = document.getElementById('subTimePeriod');
+  var val = sel ? sel.value : '';
+  var summary = document.getElementById('subPeriodSummary');
+  var startEl = document.getElementById('subStart');
+  var endEl = document.getElementById('subEnd');
+  if(!val || val==='custom'){
+    if(summary) summary.style.display='none';
+    if(startEl) startEl.readOnly = false;
+    if(endEl) endEl.readOnly = false;
+    return;
+  }
+  var period = _subTimePeriods.find(function(p){ return String(p.id)===String(val); });
+  if(!period) return;
+  if(period.startDate && startEl) startEl.value = period.startDate.split('T')[0];
+  if(period.endDate && endEl) endEl.value = period.endDate.split('T')[0];
+  if(startEl) startEl.readOnly = true;
+  if(endEl) endEl.readOnly = true;
+  if(summary && period.startDate && period.endDate){
+    var start = new Date(period.startDate);
+    var end = new Date(period.endDate);
+    var days = Math.round((end-start)/(1000*60*60*24));
+    summary.style.display='block';
+    summary.textContent = formatDate(period.startDate) + ' ← ' + formatDate(period.endDate) + ' (' + days + (currentLang==='ar'?' يوم':' days') + ')';
+  }
+}
+function toggleListDateFields(){
+  var cat = document.getElementById('listCategory')?.value;
+  var fields = document.getElementById('listDateFields');
+  if(fields) fields.style.display = (cat==='SubscriptionPeriods') ? 'block' : 'none';
+}
+
 async function loadSubscriptions(){
+  await loadSubTimePeriods();
   await loadDynamicList('SubscriptionTypes', 'subType');
   await loadDynamicList('Periods', 'subPeriod');
   // Cache periods for display
