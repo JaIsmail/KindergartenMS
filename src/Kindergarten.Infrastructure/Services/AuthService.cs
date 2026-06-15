@@ -5,9 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using Kindergarten.Core.DTOs;
 using Kindergarten.Core.Interfaces;
-using Kindergarten.Core.Interfaces;
 using Kindergarten.Core.Entities;
-using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -16,29 +14,24 @@ namespace Kindergarten.Infrastructure.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole>   _roleManager;
-    private readonly IConfiguration              _config;
-    private readonly ApplicationDbContext        _db;
-    private readonly IAuditService               _audit;
+    private readonly IConfiguration _config;
+    private readonly ApplicationDbContext _db;
+    private readonly IAuditService _audit;
+    private readonly PasswordHasher<ApplicationUser> _hasher = new();
 
     public AuthService(
-        UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole>    roleManager,
-        IConfiguration               config,
-        ApplicationDbContext         db,
-        IAuditService               audit)
+        IConfiguration config,
+        ApplicationDbContext db,
+        IAuditService audit)
     {
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _config      = config;
-        _db          = db;
-        _audit       = audit;
+        _config = config;
+        _db     = db;
+        _audit  = audit;
     }
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
     {
-        var existing = await _userManager.FindByEmailAsync(dto.Email);
+        var existing = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == dto.Email);
         if (existing != null) return null;
 
         var user = new ApplicationUser
@@ -50,9 +43,10 @@ public class AuthService : IAuthService
             RoleType    = "Employee",
             TenantId    = dto.TenantId
         };
+        user.PasswordHash = _hasher.HashPassword(user, dto.Password);
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
-        if (!result.Succeeded) return null;
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
 
         await _audit.LogAsync("Login", "User", user.Id, $"Login: {user.Email}");
         return await GenerateTokenAsync(user);
@@ -60,11 +54,11 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
-        if (user == null) return null;
+        var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == dto.Email);
+        if (user == null || user.PasswordHash == null) return null;
 
-        var valid = await _userManager.CheckPasswordAsync(user, dto.Password);
-        if (!valid) return null;
+        var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
+        if (result == PasswordVerificationResult.Failed) return null;
 
         await _audit.LogAsync("Login", "User", user.Id, $"Login: {user.Email}");
         return await GenerateTokenAsync(user);

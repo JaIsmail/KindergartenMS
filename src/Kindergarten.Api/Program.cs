@@ -35,10 +35,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             errorNumbersToAdd: null)
     ));
 
-// ── Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
 
 // ── JWT Authentication
 var jwtKey = builder.Configuration["Jwt__Key"]
@@ -202,20 +198,12 @@ app.MapHub<TripHub>("/hubs/trip");
 // Seed SuperAdmin
 using (var scope = app.Services.CreateScope())
 {
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Kindergarten.Core.Entities.ApplicationUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    // Ensure SuperAdmin role exists
-    if (!await roleManager.RoleExistsAsync("SuperAdmin"))
-        await roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
-
-    // Ensure TenantAdmin role exists
-    if (!await roleManager.RoleExistsAsync("TenantAdmin"))
-        await roleManager.CreateAsync(new IdentityRole("TenantAdmin"));
+    var db0 = scope.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Kindergarten.Core.Entities.ApplicationUser>();
 
     // Create SuperAdmin user if not exists
     var superAdminEmail = "superadmin@kms-platform.com";
-    var superAdmin = await userManager.FindByEmailAsync(superAdminEmail);
+    var superAdmin = await db0.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == superAdminEmail);
     if (superAdmin == null)
     {
         superAdmin = new Kindergarten.Core.Entities.ApplicationUser
@@ -224,11 +212,11 @@ using (var scope = app.Services.CreateScope())
             Email    = superAdminEmail,
             FullName = "Super Admin",
             RoleType = "SuperAdmin",
-            TenantId = 0, // SuperAdmin belongs to no tenant
-            EmailConfirmed = true
+            TenantId = 0 // SuperAdmin belongs to no tenant
         };
-        await userManager.CreateAsync(superAdmin, "SuperAdmin@123456");
-        await userManager.AddToRoleAsync(superAdmin, "SuperAdmin");
+        superAdmin.PasswordHash = hasher.HashPassword(superAdmin, "SuperAdmin@123456");
+        db0.Users.Add(superAdmin);
+        await db0.SaveChangesAsync();
     }
 }
 

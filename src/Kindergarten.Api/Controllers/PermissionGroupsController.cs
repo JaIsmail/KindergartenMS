@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Kindergarten.Core.Entities;
-using Microsoft.AspNetCore.Identity;
 using Kindergarten.Api.Authorization;
 using Kindergarten.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -15,12 +14,10 @@ namespace Kindergarten.Api.Controllers;
 public class PermissionGroupsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
-    private readonly UserManager<ApplicationUser> _userManager;
 
-    public PermissionGroupsController(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
+    public PermissionGroupsController(ApplicationDbContext db)
     {
         _db = db;
-        _userManager = userManager;
     }
 
     private string GetUserId() =>
@@ -206,11 +203,10 @@ public class PermissionGroupsController : ControllerBase
         }
 
         // Set user's role from group's NameEn
-        var assignUser = await _userManager.FindByIdAsync(userId);
+        var assignUser = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
         if (assignUser != null)
         {
             assignUser.RoleType = group.NameEn;
-            await _userManager.UpdateAsync(assignUser);
         }
 
         await _db.SaveChangesAsync();

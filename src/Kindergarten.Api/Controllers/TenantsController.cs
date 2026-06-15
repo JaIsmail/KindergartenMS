@@ -21,13 +21,11 @@ public class TenantsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
     private readonly IConfiguration _config;
-    private readonly UserManager<ApplicationUser> _userManager;
 
-    public TenantsController(ApplicationDbContext db, IConfiguration config, UserManager<ApplicationUser> userManager)
+    public TenantsController(ApplicationDbContext db, IConfiguration config)
     {
         _db = db;
         _config = config;
-        _userManager = userManager;
     }
 
     private async Task SeedDefaultGroupsForTenantAsync(int tenantId)
@@ -252,15 +250,13 @@ public class TenantsController : ControllerBase
     [HttpPost("{id}/create-admin")]
     [Authorize]
     public async Task<IActionResult> CreateTenantAdmin(int id,
-        [FromBody] CreateTenantAdminDto dto,
-        [FromServices] Microsoft.AspNetCore.Identity.UserManager<Kindergarten.Core.Entities.ApplicationUser> userManager,
-        [FromServices] Microsoft.AspNetCore.Identity.RoleManager<Microsoft.AspNetCore.Identity.IdentityRole> roleManager)
+        [FromBody] CreateTenantAdminDto dto)
     {
         var tenant = await _db.Tenants.FindAsync(id);
         if (tenant == null) return NotFound("Tenant not found");
 
         // Check if email already exists
-        var existing = await userManager.FindByEmailAsync(dto.Email);
+        var existing = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == dto.Email);
         if (existing != null) return BadRequest("Email already exists");
 
         var user = new Kindergarten.Core.Entities.ApplicationUser
@@ -269,18 +265,13 @@ public class TenantsController : ControllerBase
             Email          = dto.Email,
             FullName       = dto.FullName,
             RoleType       = "TenantAdmin",
-            TenantId       = id,
-            EmailConfirmed = true
+            TenantId       = id
         };
 
-        var result = await userManager.CreateAsync(user, dto.Password);
-        if (!result.Succeeded)
-            return BadRequest(result.Errors.Select(e => e.Description));
-
-        if (!await roleManager.RoleExistsAsync("TenantAdmin"))
-            await roleManager.CreateAsync(new Microsoft.AspNetCore.Identity.IdentityRole("TenantAdmin"));
-
-        await userManager.AddToRoleAsync(user, "TenantAdmin");
+        var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Kindergarten.Core.Entities.ApplicationUser>();
+        user.PasswordHash = hasher.HashPassword(user, dto.Password);
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
 
         return Ok(new { 
             message = "TenantAdmin created successfully",
@@ -296,15 +287,14 @@ public class TenantsController : ControllerBase
     [HttpPost("{id}/impersonate")]
     [Authorize]
     public async Task<IActionResult> Impersonate(int id,
-        [FromServices] IConfiguration config,
-        [FromServices] Microsoft.AspNetCore.Identity.UserManager<Kindergarten.Core.Entities.ApplicationUser> userManager)
+        [FromServices] IConfiguration config)
     {
         if (!IsSuperAdmin()) return Forbid();
         var tenant = await _db.Tenants.FindAsync(id);
         if (tenant == null) return NotFound("Tenant not found");
 
         var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var currentUser = await userManager.FindByIdAsync(currentUserId ?? "");
+        var currentUser = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == (currentUserId ?? ""));
         if (currentUser == null) return Unauthorized();
 
         // Generate impersonation token with tenant context

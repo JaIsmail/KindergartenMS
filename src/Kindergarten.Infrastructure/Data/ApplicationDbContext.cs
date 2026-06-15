@@ -1,12 +1,11 @@
 using Kindergarten.Core.Entities;
 using Kindergarten.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kindergarten.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+public class ApplicationDbContext : DbContext
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -28,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         }
     }
     public DbSet<Kindergarten.Core.Entities.AuditLog> AuditLogs { get; set; }
+public DbSet<ApplicationUser> Users { get; set; }
 public DbSet<Child>        Children      { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<Payment>      Payments      { get; set; }
@@ -84,7 +84,13 @@ public DbSet<Child>        Children      { get; set; }
         builder.Entity<UserPermissionGroup>()
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
 
-  // Tenant navigation — no FK
+  // ApplicationUser configuration (was Identity-managed table AspNetUsers)
+        builder.Entity<ApplicationUser>().ToTable("AspNetUsers");
+        builder.Entity<ApplicationUser>().HasKey(u => u.Id);
+        builder.Entity<ApplicationUser>().HasIndex(u => u.Email).IsUnique(false);
+        builder.Entity<ApplicationUser>().HasIndex(u => u.UserName).IsUnique(false);
+
+        // Tenant navigation — no FK
         builder.Entity<Kindergarten.Core.Entities.ApplicationUser>().Ignore(e => e.Tenant);
         builder.Entity<Kindergarten.Core.Entities.Child>().Ignore(e => e.Tenant);
         builder.Entity<Kindergarten.Core.Entities.Trip>().Ignore(e => e.Tenant);

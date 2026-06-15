@@ -139,7 +139,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Attendance");
+                    b.ToTable("Attendance", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.AttendancePeriod", b =>
@@ -166,7 +166,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("AttendanceId");
 
-                    b.ToTable("AttendancePeriods");
+                    b.ToTable("AttendancePeriods", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.AuditLog", b =>
@@ -217,7 +217,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.Child", b =>
@@ -273,7 +273,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("Children");
+                    b.ToTable("Children", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.DynamicList", b =>
@@ -311,7 +311,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DynamicLists");
+                    b.ToTable("DynamicLists", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.Employee", b =>
@@ -341,7 +341,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.LeaveRequest", b =>
@@ -395,7 +395,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("LeaveRequests");
+                    b.ToTable("LeaveRequests", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.Payment", b =>
@@ -431,7 +431,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("SubscriptionId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.Permission", b =>
@@ -468,7 +468,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permissions");
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.PermissionGroup", b =>
@@ -502,7 +502,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PermissionGroups");
+                    b.ToTable("PermissionGroups", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.PermissionGroupPermission", b =>
@@ -517,7 +517,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("PermissionId");
 
-                    b.ToTable("PermissionGroupPermissions");
+                    b.ToTable("PermissionGroupPermissions", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.Subscription", b =>
@@ -566,7 +566,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("Subscriptions");
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.Tenant", b =>
@@ -615,7 +615,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tenants");
+                    b.ToTable("Tenants", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.Trip", b =>
@@ -654,7 +654,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("DriverId");
 
-                    b.ToTable("Trips");
+                    b.ToTable("Trips", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.TripChild", b =>
@@ -686,7 +686,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("ChildId");
 
-                    b.ToTable("TripChildren");
+                    b.ToTable("TripChildren", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.TripLocation", b =>
@@ -716,7 +716,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("TripLocations");
+                    b.ToTable("TripLocations", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.UserDevice", b =>
@@ -749,7 +749,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserDevices");
+                    b.ToTable("UserDevices", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.UserPermission", b =>
@@ -783,7 +783,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserPermissions");
+                    b.ToTable("UserPermissions", (string)null);
                 });
 
             modelBuilder.Entity("Kindergarten.Core.Entities.UserPermissionGroup", b =>
@@ -817,7 +817,7 @@ namespace Kindergarten.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserPermissionGroups");
+                    b.ToTable("UserPermissionGroups", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
