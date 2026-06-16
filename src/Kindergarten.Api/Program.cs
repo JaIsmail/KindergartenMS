@@ -253,11 +253,13 @@ using (var scope3 = app.Services.CreateScope())
     {
         db3.Database.ExecuteSqlRaw(@"
             IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DynamicLists') AND name = 'StartDate')
-            ALTER TABLE DynamicLists ADD StartDate DATETIME2 NULL;
-
-            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DynamicLists') AND name = 'EndDate')
-            ALTER TABLE DynamicLists ADD EndDate DATETIME2 NULL;
+            ALTER TABLE DynamicLists ADD StartDate DATETIME2 NULL
         ");
+        db3.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DynamicLists') AND name = 'EndDate')
+            ALTER TABLE DynamicLists ADD EndDate DATETIME2 NULL
+        ");
+        Console.WriteLine("DynamicLists date columns verified");
     }
     catch { }
 }
