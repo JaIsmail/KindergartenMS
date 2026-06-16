@@ -621,3 +621,17 @@ Pre-conditions before retry:
 - EF auto-migration for this change produced a confusing drop+recreate cycle — migration was discarded; schema changes deferred to manual SQL cleanup script (Stage 4)
 
 Rollback reference if needed: v2.2-perm-fix-stable (pre-Identity-removal)
+
+---
+
+## Note 47 — Subscription Period Picker ✅ DONE (2026-06-15)
+- DynamicList entity extended with nullable StartDate/EndDate (DateTime?) for SubscriptionPeriods category
+- DB columns added via startup SQL (separate ExecuteSqlRaw calls)
+- DynamicListsController Create/Update now maps StartDate/EndDate
+- Dynamic Lists page: added "فترات الاشتراك" filter button + SubscriptionPeriods category option
+- List modal: date fields shown only when category = SubscriptionPeriods (toggleListDateFields())
+- Add Subscription form: new "الفترة الزمنية للاشتراك" dropdown auto-fills subStart/subEnd on selection
+- Summary bar shows selected period range + days count
+- Date fields become read-only when a named period is selected; editable when "مخصص" or blank
+- loadSubTimePeriods() loads from /api/lists/SubscriptionPeriods, called on subscription page load
+- Note: drag-handle calendar widget deferred to future enhancement
