@@ -263,4 +263,28 @@ using (var scope3 = app.Services.CreateScope())
     }
     catch { }
 }
+// Stage 4: Drop orphaned Identity tables (Note 50 cleanup)
+using (var scope4 = app.Services.CreateScope())
+{
+    var db4 = scope4.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    try
+    {
+        // Drop Identity columns from AspNetUsers
+        var identityCols = new[]{"AccessFailedCount","ConcurrencyStamp","EmailConfirmed","LockoutEnabled","LockoutEnd","NormalizedEmail","NormalizedUserName","PhoneNumberConfirmed","SecurityStamp","TwoFactorEnabled"};
+        foreach(var col in identityCols)
+        {
+            db4.Database.ExecuteSqlRaw($"IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = '{col}') ALTER TABLE AspNetUsers DROP COLUMN [{col}]");
+        }
+        // Drop orphaned Identity tables
+        var tables = new[]{"AspNetUserTokens","AspNetUserLogins","AspNetUserClaims","AspNetUserRoles","AspNetRoleClaims","AspNetRoles"};
+        foreach(var tbl in tables)
+        {
+            db4.Database.ExecuteSqlRaw($"IF OBJECT_ID('{tbl}') IS NOT NULL DROP TABLE [{tbl}]");
+        }
+        // Mark CleanupIdentityColumns migration as applied
+        db4.Database.ExecuteSqlRaw("IF NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20260616003330_CleanupIdentityColumns') INSERT INTO [__EFMigrationsHistory] ([MigrationId],[ProductVersion]) VALUES ('20260616003330_CleanupIdentityColumns','9.0.0')");
+        Console.WriteLine("✅ Identity cleanup complete");
+    }
+    catch(Exception ex) { Console.WriteLine($"Identity cleanup warning: {ex.Message}"); }
+}
 app.Run();
