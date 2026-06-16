@@ -496,13 +496,26 @@ html[lang="en"] #toast{left:auto;right:2rem;}
   <div class="page" id="page-payments">
     <div class="form-card">
       <h3 id="h-record-pay">💰 تسجيل دفعة</h3>
+      <div class="form-row full">
+        <div class="form-field">
+          <label>الطفل *</label>
+          <div id="payChildSelected" style="display:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:0.6rem 1rem;align-items:center;justify-content:space-between">
+            <div><strong id="payChildName"></strong><div style="font-size:0.75rem;color:var(--text3)" id="payChildInfo"></div></div>
+            <button type="button" onclick="clearPayChild()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem">✕</button>
+          </div>
+          <div id="payChildPickerWrap">
+            <input type="text" id="payChildSearch" placeholder="ابحث باسم الطفل أو ولي الأمر..." autocomplete="off" oninput="filterPayChildren()" onfocus="showPayChildDropdown()" style="width:100%;padding:0.65rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.85rem;box-sizing:border-box">
+            <div id="payChildDropdown" style="display:none;position:absolute;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:100;max-height:220px;overflow-y:auto;margin-top:0.25rem;min-width:100%"></div>
+          </div>
+        </div>
+      </div>
       <div class="form-row">
-        <div class="form-field"><label id="lbl-pay-sub">رقم الاشتراك</label><input type="number" id="paySubId" placeholder="1"></div>
+        <div class="form-field"><label id="lbl-pay-sub">اشتراك الطفل</label><select id="paySubId" onchange="selectPaySubscription()"><option value="">-- اختر الاشتراك --</option></select></div>
         <div class="form-field"><label id="lbl-pay-amount">المبلغ (ريال)</label><input type="number" id="payAmount" value="500"></div>
       </div>
       <div class="form-row full"><div class="form-field"><label id="lbl-pay-method">طريقة الدفع</label><select id="payMethod"><option value="Cash">نقداً</option></select></div></div>
       <div class="form-row full"><div class="form-field"><label>حالة الدفع</label><select id="payStatus"><option value="Paid">مدفوع</option></select></div></div>
-      <button class="btn btn-primary" id="btn-record-pay" onclick="recordPayment()">تسجيل الدفعة</button>
+      <button class="btn btn-primary" id="btn-record-pay" onclick="recordPayment()" disabled>تسجيل الدفعة</button>
     </div>
     <div class="section-header"><div><h3 id="h-pay-history">سجل المدفوعات</h3></div></div>
     <div class="table-card"><div id="payments-table"><div class="loading"><div class="spinner"></div></div></div></div>
@@ -3162,6 +3175,7 @@ async function confirmUpdateStatus(){
 
 async function loadPayments(){
   await loadPayStatusDropdown();
+  window._payAllChildren = await api('/api/children') || [];
   const div=document.getElementById('payments-table');
   const overdueDiv=document.getElementById('overdue-table');
   div.innerHTML='<div class="loading"><div class="spinner"></div></div>';
@@ -3204,13 +3218,69 @@ async function loadPayStatusDropdown(){
     mSel.innerHTML = methods.map(m=>'<option value="'+m.nameEn+'">'+( ar ? m.nameAr : m.nameEn)+'</option>').join('');
 }
 
+window._payAllChildren = [];
+function showPayChildDropdown() {
+  filterPayChildren();
+  document.getElementById('payChildDropdown').style.display = 'block';
+}
+function filterPayChildren() {
+  const q = (document.getElementById('payChildSearch')?.value || '').toLowerCase();
+  const children = window._payAllChildren || [];
+  const filtered = q ? children.filter(ch => (ch.name||'').toLowerCase().includes(q) || (ch.parentName||'').toLowerCase().includes(q)) : children;
+  const dd = document.getElementById('payChildDropdown');
+  dd.innerHTML = filtered.slice(0,30).map(ch => '<div onclick="selectPayChild('+ch.id+')" style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 1rem;cursor:pointer;border-bottom:1px solid var(--border)"><div><strong style="font-size:0.85rem">'+ch.name+'</strong><div style="font-size:0.72rem;color:var(--text3)">'+(ch.parentName||'')+'</div></div></div>').join('');
+}
+async function selectPayChild(childId) {
+  const ch = (window._payAllChildren||[]).find(x => x.id === childId);
+  if (!ch) return;
+  window._paySelectedChild = ch;
+  document.getElementById('payChildName').textContent = ch.name;
+  document.getElementById('payChildInfo').textContent = ch.parentName || '';
+  document.getElementById('payChildPickerWrap').style.display = 'none';
+  document.getElementById('payChildSelected').style.display = 'flex';
+  document.getElementById('payChildDropdown').style.display = 'none';
+  document.getElementById('payChildSearch').value = '';
+  const subs = await api('/api/subscriptions') || [];
+  const childSubs = subs.filter(s => s.childId === childId);
+  const sel = document.getElementById('paySubId');
+  sel.innerHTML = '<option value="">-- اختر الاشتراك --</option>';
+  window._paySubsList = childSubs;
+  const statusLabels = {Pending:'⏳ قيد الانتظار',Paid:'✅ مدفوع',Overdue:'⚠️ متأخر',Cancelled:'❌ ملغي'};
+  childSubs.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = (s.type||'اشتراك') + ' — ' + formatDate(s.startDate) + ' → ' + formatDate(s.endDate) + ' — ' + (s.price||0) + ' ريال — ' + (statusLabels[s.paymentStatus]||s.paymentStatus);
+    sel.appendChild(opt);
+  });
+  document.getElementById('btn-record-pay').disabled = true;
+  if (childSubs.length === 0) { showToast('لا توجد اشتراكات لهذا الطفل', 'error'); }
+}
+function clearPayChild() {
+  window._paySelectedChild = null;
+  document.getElementById('payChildPickerWrap').style.display = 'block';
+  document.getElementById('payChildSelected').style.display = 'none';
+  document.getElementById('btn-record-pay').disabled = true;
+}
+function selectPaySubscription() {
+  const subId = document.getElementById('paySubId').value;
+  const sub = (window._paySubsList||[]).find(s => String(s.id) === String(subId));
+  if (sub) {
+    document.getElementById('payAmount').value = sub.price || 0;
+    document.getElementById('btn-record-pay').disabled = false;
+  } else {
+    document.getElementById('btn-record-pay').disabled = true;
+  }
+}
 async function recordPayment(){
   const subId=parseInt(document.getElementById('paySubId').value);const amount=parseFloat(document.getElementById('payAmount').value);const method=document.getElementById('payMethod').value;
   if(!subId||!amount){showToast(t('err.fill'),'error');return;}
   const status=document.getElementById('payStatus')?document.getElementById('payStatus').value:'Paid';
   const result=await api('/api/payments','POST',{subscriptionId:subId,amount,method,status});
-  if(result){showToast('✅ '+t('succ.pay'),'success');loadPayments();}
-  else showToast(t('err.failed'),'error');
+  if(result){
+    showToast('✅ '+t('succ.pay'),'success');
+    clearPayChild();
+    loadPayments();
+  } else showToast(t('err.failed'),'error');
 }
 
 async function loadUsers(){
