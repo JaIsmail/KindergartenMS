@@ -50,11 +50,13 @@ public class DynamicListsController : ControllerBase
     {
         var item = new DynamicList
         {
-            Category = dto.Category,
-            NameAr   = dto.NameAr,
-            NameEn   = dto.NameEn,
-            Value    = dto.Value,
-            Order    = dto.Order,
+            Category  = dto.Category,
+            NameAr    = dto.NameAr,
+            NameEn    = dto.NameEn,
+            Value     = dto.Value,
+            Order     = dto.Order,
+            StartDate = dto.StartDate,
+            EndDate   = dto.EndDate,
             IsActive = true,
             TenantId = GetTenantId()
         };
@@ -70,11 +72,13 @@ public class DynamicListsController : ControllerBase
     {
         var item = await _db.DynamicLists.FindAsync(id);
         if (item == null) return NotFound();
-        item.NameAr   = dto.NameAr;
-        item.NameEn   = dto.NameEn;
-        item.Value    = dto.Value;
-        item.Order    = dto.Order;
-        item.IsActive = dto.IsActive;
+        item.NameAr    = dto.NameAr;
+        item.NameEn    = dto.NameEn;
+        item.Value     = dto.Value;
+        item.Order     = dto.Order;
+        item.IsActive  = dto.IsActive;
+        item.StartDate = dto.StartDate;
+        item.EndDate   = dto.EndDate;
         await _db.SaveChangesAsync();
         return Ok(item);
     }
