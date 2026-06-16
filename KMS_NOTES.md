@@ -635,3 +635,15 @@ Rollback reference if needed: v2.2-perm-fix-stable (pre-Identity-removal)
 - Date fields become read-only when a named period is selected; editable when "مخصص" or blank
 - loadSubTimePeriods() loads from /api/lists/SubscriptionPeriods, called on subscription page load
 - Note: drag-handle calendar widget deferred to future enhancement
+
+---
+
+## Note 50 — Stage 4 Cleanup ✅ DONE (2026-06-16)
+- Removed 173 lines of Identity entity definitions from ApplicationDbContextModelSnapshot.cs (IdentityRole, IdentityRoleClaim, IdentityUserClaim, IdentityUserLogin, IdentityUserRole, IdentityUserToken)
+- Dropped 6 orphaned tables: AspNetRoles, AspNetUserRoles, AspNetUserClaims, AspNetUserLogins, AspNetUserTokens, AspNetRoleClaims
+- Dropped 10 unused Identity columns from AspNetUsers: AccessFailedCount, ConcurrencyStamp, EmailConfirmed, LockoutEnabled, LockoutEnd, NormalizedEmail, NormalizedUserName, PhoneNumberConfirmed, SecurityStamp, TwoFactorEnabled
+- Applied via startup SQL in Program.cs (proven safe pattern), migration marked as applied in __EFMigrationsHistory
+- Verified: a fresh `dotnet ef migrations add` now produces 0 operations — snapshot fully in sync with DB
+- Verified end-to-end: login (SuperAdmin/Admin/Teacher/Driver), audit log, leave requests, subscription periods all working post-cleanup
+
+**Note 50 is now FULLY COMPLETE (Stages 1-4).** ASP.NET Identity is completely removed from the codebase and database.
