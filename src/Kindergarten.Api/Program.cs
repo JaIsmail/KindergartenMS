@@ -287,4 +287,26 @@ using (var scope4 = app.Services.CreateScope())
     }
     catch(Exception ex) { Console.WriteLine($"Identity cleanup warning: {ex.Message}"); }
 }
+// Add Notes column to Payments if missing (pre-existing schema drift fix)
+using (var scope5 = app.Services.CreateScope())
+{
+    var db5 = scope5.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    try
+    {
+        db5.Database.ExecuteSqlRaw("IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Payments') AND name = 'Notes') ALTER TABLE Payments ADD Notes NVARCHAR(MAX) NOT NULL DEFAULT ''");
+        Console.WriteLine("Payments.Notes column verified");
+    }
+    catch (Exception ex) { Console.WriteLine($"Payments.Notes column warning: {ex.Message}"); }
+}
+// Add Notes column to Payments if missing (pre-existing schema drift fix)
+using (var scope5 = app.Services.CreateScope())
+{
+    var db5 = scope5.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    try
+    {
+        db5.Database.ExecuteSqlRaw("IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Payments') AND name = 'Notes') ALTER TABLE Payments ADD Notes NVARCHAR(MAX) NOT NULL DEFAULT ''");
+        Console.WriteLine("Payments.Notes column verified");
+    }
+    catch (Exception ex) { Console.WriteLine($"Payments.Notes column warning: {ex.Message}"); }
+}
 app.Run();
