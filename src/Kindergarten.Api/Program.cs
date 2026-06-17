@@ -73,7 +73,7 @@ builder.Services.AddAuthorization(options =>
         // Subscriptions
         "Subscriptions.View","Subscriptions.Add","Subscriptions.Edit","Subscriptions.Delete",
         // Payments
-        "Payments.View","Payments.Add","Payments.Delete",
+        "Payments.View","Payments.Add","Payments.Edit","Payments.Delete",
         // Users
         "Users.View","Users.Add","Users.Edit","Users.Delete",
         // Attendance
