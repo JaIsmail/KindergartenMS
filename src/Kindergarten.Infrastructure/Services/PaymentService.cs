@@ -29,6 +29,8 @@ public class PaymentService : IPaymentService
                 SubscriptionId = p.SubscriptionId,
                 Amount         = p.Amount,
                 Method         = p.Method,
+                Notes          = p.Notes,
+                Status         = p.Status,
                 PaymentDate    = p.PaymentDate
             })
             .ToListAsync();
@@ -148,6 +150,8 @@ public class PaymentService : IPaymentService
                 SubscriptionId = p.SubscriptionId,
                 Amount         = p.Amount,
                 Method         = p.Method,
+                Notes          = p.Notes,
+                Status         = p.Status,
                 PaymentDate    = p.PaymentDate
             })
             .ToListAsync();
