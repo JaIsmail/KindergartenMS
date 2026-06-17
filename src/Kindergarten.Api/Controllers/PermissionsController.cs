@@ -98,6 +98,7 @@ public class PermissionsController : ControllerBase
             // ── Payments ──────────────────────────────────────────
             new() { Name="Payments.View",         Category="Payments",     DisplayNameAr="عرض المدفوعات",            DisplayNameEn="View Payments",           DescriptionAr="مشاهدة سجلات المدفوعات",             DescriptionEn="View payment records" },
             new() { Name="Payments.Add",          Category="Payments",     DisplayNameAr="تسجيل دفعة",               DisplayNameEn="Add Payment",             DescriptionAr="تسجيل دفعة جديدة",                   DescriptionEn="Record a new payment" },
+            new() { Name="Payments.Edit",         Category="Payments",     DisplayNameAr="تعديل حالة الدفعة",        DisplayNameEn="Edit Payment Status",     DescriptionAr="تعديل حالة وملاحظات الدفعة",         DescriptionEn="Edit a payment's status and notes" },
             new() { Name="Payments.Delete",       Category="Payments",     DisplayNameAr="حذف دفعة",                 DisplayNameEn="Delete Payment",          DescriptionAr="حذف سجل دفعة",                       DescriptionEn="Delete a payment record" },
             // ── Users ─────────────────────────────────────────────
             new() { Name="Users.View",            Category="Users",        DisplayNameAr="عرض المستخدمين",           DisplayNameEn="View Users",              DescriptionAr="مشاهدة قائمة المستخدمين",            DescriptionEn="View users list" },

@@ -8,4 +8,6 @@ public interface IPaymentService
     Task<PaymentResponseDto>              CreateAsync(CreatePaymentDto dto);
     Task<IEnumerable<PaymentResponseDto>> GetAllAsync();
     Task<IEnumerable<OverdueSubscriptionDto>> GetOverdueAsync();
+    Task<PaymentResponseDto?> UpdateAsync(int id, UpdatePaymentStatusDto dto);
+    Task<bool> DeleteAsync(int id);
 }

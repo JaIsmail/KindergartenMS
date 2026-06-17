@@ -9,5 +9,6 @@ public class Payment
     public int TenantId { get; set; } = 1;
     public string Method { get; set; } = string.Empty;
     public string Notes  { get; set; } = string.Empty;
+    public string Status { get; set; } = "Completed";
     public Subscription Subscription { get; set; } = null!;
 }

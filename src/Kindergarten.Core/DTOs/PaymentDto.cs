@@ -7,6 +7,11 @@ public class CreatePaymentDto
     public string  Method         { get; set; } = string.Empty;
     public string  Notes          { get; set; } = string.Empty;
 }
+public class UpdatePaymentStatusDto
+{
+    public string Status { get; set; } = string.Empty;
+    public string Notes  { get; set; } = string.Empty;
+}
 
 public class PaymentResponseDto
 {
@@ -16,6 +21,7 @@ public class PaymentResponseDto
     public string   Method         { get; set; } = string.Empty;
     public DateTime PaymentDate    { get; set; }
     public string   Notes         { get; set; } = string.Empty;
+    public string   Status        { get; set; } = string.Empty;
     public string   ChildName     { get; set; } = string.Empty;
     public string   ParentName    { get; set; } = string.Empty;
 }

@@ -309,4 +309,15 @@ using (var scope5 = app.Services.CreateScope())
     }
     catch (Exception ex) { Console.WriteLine($"Payments.Notes column warning: {ex.Message}"); }
 }
+// Add Status column to Payments if missing
+using (var scope6 = app.Services.CreateScope())
+{
+    var db6 = scope6.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    try
+    {
+        db6.Database.ExecuteSqlRaw("IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Payments') AND name = 'Status') ALTER TABLE Payments ADD Status NVARCHAR(50) NOT NULL DEFAULT 'Completed'");
+        Console.WriteLine("Payments.Status column verified");
+    }
+    catch (Exception ex) { Console.WriteLine($"Payments.Status column warning: {ex.Message}"); }
+}
 app.Run();

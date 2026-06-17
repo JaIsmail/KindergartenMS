@@ -153,6 +153,39 @@ public class PaymentService : IPaymentService
             .ToListAsync();
     }
 
+    public async Task<PaymentResponseDto?> UpdateAsync(int id, UpdatePaymentStatusDto dto)
+    {
+        var payment = await _db.Payments.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == id);
+        if (payment == null) return null;
+
+        payment.Status = dto.Status;
+        if (!string.IsNullOrWhiteSpace(dto.Notes))
+            payment.Notes = dto.Notes;
+
+        await _db.SaveChangesAsync();
+
+        return new PaymentResponseDto
+        {
+            Id             = payment.Id,
+            SubscriptionId = payment.SubscriptionId,
+            Amount         = payment.Amount,
+            Method         = payment.Method,
+            Notes          = payment.Notes,
+            Status         = payment.Status,
+            PaymentDate    = payment.PaymentDate
+        };
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var payment = await _db.Payments.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == id);
+        if (payment == null) return false;
+
+        _db.Payments.Remove(payment);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<IEnumerable<OverdueSubscriptionDto>> GetOverdueAsync()
     {
         var today = DateTime.UtcNow.Date;
