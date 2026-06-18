@@ -315,8 +315,14 @@ public class PermissionGroupsController : ControllerBase
              new List<string> { "Users.View","Children.View","Attendance.ViewAll","Leave.ViewAll","Leave.Approve","Reports.View" }),
         };
 
+        var existingNames = await _db.PermissionGroups.IgnoreQueryFilters()
+            .Where(g => g.TenantId == tenantId)
+            .Select(g => g.NameEn)
+            .ToListAsync();
+
         foreach (var (group, permNames) in groups)
         {
+            if (existingNames.Contains(group.NameEn)) continue;
             _db.PermissionGroups.Add(group);
             await _db.SaveChangesAsync();
             var permIds = permNames
