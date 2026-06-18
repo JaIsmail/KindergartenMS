@@ -31,3 +31,12 @@
 - Gap: actual FCM push delivery not confirmed on a real device — browser-based device registration (app.html desktop flow) did not successfully register a token during testing; root cause not isolated (no console "FCM ready"/"FCM error" log captured)
 - Decision: backend trigger+payload logic is correct and sufficient to mark this note done; device registration/delivery is a separate, lower-priority follow-up if real-world testing surfaces it as an issue
 - No Phase 2/webhook work needed yet (Moyasar not implemented)
+
+---
+
+## SeedDefaultGroupsAsync Duplicate Groups Bug ✅ FIXED (2026-06-18)
+- Root cause: PermissionGroupsController.SeedDefaultGroupsAsync(tenantId) had no existence check, unconditionally added 6 default groups every call
+- Verified before fixing: method was dead code, never called from anywhere in the API — zero active risk
+- Verified database: 0 duplicate groups existed across all tenants (6 total groups, all clean)
+- Fix applied: added existingNames check (IgnoreQueryFilters().Where(g => g.TenantId == tenantId)) before each group insert, skips if NameEn already exists for that tenant
+- Deployed and verified build clean
