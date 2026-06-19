@@ -40,3 +40,16 @@
 - Verified database: 0 duplicate groups existed across all tenants (6 total groups, all clean)
 - Fix applied: added existingNames check (IgnoreQueryFilters().Where(g => g.TenantId == tenantId)) before each group insert, skips if NameEn already exists for that tenant
 - Deployed and verified build clean
+
+
+---
+
+## Prod Environment (kms-api-prod-kg01) — Investigated, Paused (2026-06-18)
+- Confirmed broken: container crashes with exit code 134 consistently ~28-30s into startup, every restart attempt
+- Has been broken since at least 2026-06-06 (earliest available log), likely longer — never actually used/relied upon in this project
+- Root causes ruled out: missing Jwt__Issuer/Jwt__Audience/FirebaseAdminSdk settings (added, no change), SQL password placeholder "YourStr0ngP@ssword!" (reset to real password, no change), container start timeout (extended via WEBSITES_CONTAINER_START_TIME_LIMIT, setting didn't appear to register, no change)
+- IMPORTANT LESSON: kms-sqlserver-kg01 is SHARED between staging and prod databases. Resetting the server admin password (az sql server update --admin-password) broke staging's connection string until manually updated to match. Staging connection string updated and restored — confirmed working post-fix.
+- New SQL admin password in use (shared server): KmsProd2026SecurePass — update both staging AND prod connection strings together if ever changed again
+- No functional impact: staging has served as the de facto working environment for all development/testing throughout the project; prod has never been used
+- Decision: paused further investigation given shared-infrastructure risk (already caused one near-miss to staging today); deprioritized in favor of Note 53 (dedicated demo subscription) as the path to a clean, isolated client-facing environment
+- If revisited: use Kudu SSH console (kms-api-prod-kg01.scm.azurewebsites.net) for cleaner exception traces rather than docker.log/containerStream.log, which did not capture useful application-level stack traces
