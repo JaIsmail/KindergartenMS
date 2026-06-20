@@ -10,10 +10,12 @@ public class SubscriptionService : ISubscriptionService
 {
     private readonly ApplicationDbContext _db;
     private readonly ITenantService _tenantService;
-    public SubscriptionService(ApplicationDbContext db, ITenantService tenantService)
+    private readonly INotificationService _notify;
+    public SubscriptionService(ApplicationDbContext db, ITenantService tenantService, INotificationService notify)
     {
         _db = db;
         _tenantService = tenantService;
+        _notify = notify;
     }
 
     public async Task<IEnumerable<SubscriptionResponseDto>> GetAllAsync(string? parentId)
@@ -89,6 +91,22 @@ public class SubscriptionService : ISubscriptionService
 
         _db.Subscriptions.Add(subscription);
         await _db.SaveChangesAsync();
+
+
+        if (child != null)
+        {
+            await _notify.SendToUserAsync(
+                resolvedParentId,
+                "تم تسجيل اشتراك جديد", "New Subscription Registered",
+                $"تم تسجيل اشتراك {dto.Type} لـ {child.Name} بقيمة {dto.Price} ريال",
+                $"A {dto.Type} subscription has been registered for {child.Name} for {dto.Price} SAR",
+                new Dictionary<string, string>
+                {
+                    ["type"] = "subscription_created",
+                    ["subscriptionId"] = subscription.Id.ToString()
+                }
+            );
+        }
 
         return new SubscriptionResponseDto
         {
