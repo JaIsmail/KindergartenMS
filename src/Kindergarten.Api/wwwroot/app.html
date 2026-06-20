@@ -419,7 +419,7 @@ function fDate(d){ return new Date(d).toLocaleDateString(lang==='ar'?'ar-SA':'en
 function fPrice(p){ return lang==='ar'? p.toFixed(2)+' ريال' : 'SAR '+p.toFixed(2); }
 
 function sbadge(s){
-  const m={Created:'bo',InProgress:'bb',Completed:'bg',Pending:'bo',PickedUp:'bg',DroppedOff:'bg',Paid:'bg',Overdue:'br',Present:'bg',Late:'bo',Absent:'br'};
+  const m={Created:'bo',InProgress:'bb',Completed:'bg',Pending:'bo',PickedUp:'bg',DroppedOff:'bg',Paid:'bg',PartiallyPaid:'bo',Overdue:'br',Present:'bg',Late:'bo',Absent:'br'};
   return '<span class="badge '+(m[s]||'bgr')+'">'+ts(s)+'</span>';
 }
 
@@ -614,14 +614,16 @@ async function loadSubs() {
   var div = document.getElementById('subList');
   if(!data || !data.length) { div.innerHTML = '<div class="empty"><div class="em">💳</div>'+t('noData')+'</div>'; return; }
   div.innerHTML = '<div class="lcard">'+data.map(function(s) {
-    return '<div class="litem" onclick="togglePayHistory('+s.id+')" style="cursor:pointer;flex-direction:column;align-items:stretch">'+
+    return '<div class="litem" onclick="togglePayHistory('+s.id+','+s.price+')" style="cursor:pointer;flex-direction:column;align-items:stretch">'+
       '<div style="display:flex;align-items:center;gap:0.7rem"><span class="lic">💳</span><div class="linf"><div class="t">'+s.childName+'</div><div class="s">'+s.type+' • '+fPrice(s.price)+'</div></div>'+sbadge(s.paymentStatus)+'<span style="color:var(--t2);font-size:0.75rem">▾</span></div>'+
       '<div id="payHist-'+s.id+'" class="hidden" style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid #f1f5f9"></div>'+
       '</div>';
   }).join('')+'</div>';
 }
 var openPayHist = {};
-async function togglePayHistory(subId) {
+var subPriceCache = {};
+async function togglePayHistory(subId, price) {
+  if(price !== undefined) subPriceCache[subId] = price;
   var box = document.getElementById('payHist-'+subId);
   if(!box) return;
   var isOpen = openPayHist[subId];
@@ -633,9 +635,17 @@ async function togglePayHistory(subId) {
   if(!payments || !payments.length) {
     box.innerHTML = '<div style="font-size:0.78rem;color:var(--t2);text-align:center;padding:0.4rem">'+(lang==='ar'?'لا توجد مدفوعات بعد':'No payments yet')+'</div>';
     return;
-  }
-var statusLabel = {Completed:lang==='ar'?'مكتمل':'Completed',Refunded:lang==='ar'?'مسترجع':'Refunded',Voided:lang==='ar'?'ملغي':'Voided'};
-  box.innerHTML = payments.map(function(p) {
+}
+  var statusLabel = {Completed:lang==='ar'?'مكتمل':'Completed',Refunded:lang==='ar'?'مسترجع':'Refunded',Voided:lang==='ar'?'ملغي':'Voided'};
+  var totalPaid = payments.filter(function(p){return p.status!=='Voided' && p.status!=='Refunded';}).reduce(function(sum,p){return sum+p.amount;},0);
+  var price = subPriceCache[subId] || 0;
+  var remaining = Math.max(0, price - totalPaid);
+  var summaryHtml = '<div style="display:flex;justify-content:space-between;padding:0.4rem 0;margin-bottom:0.3rem;border-bottom:1px solid #f1f5f9;font-size:0.78rem">'+
+    '<span style="color:var(--t2)">'+(lang==='ar'?'الإجمالي':'Total')+': '+fPrice(price)+'</span>'+
+    '<span style="color:var(--t2)">'+(lang==='ar'?'المدفوع':'Paid')+': '+fPrice(totalPaid)+'</span>'+
+    '<span style="font-weight:700;color:'+(remaining>0?'#dc2626':'#16a34a')+'">'+(lang==='ar'?'المتبقي':'Remaining')+': '+fPrice(remaining)+'</span>'+
+  '</div>';
+  box.innerHTML = summaryHtml + payments.map(function(p) {
     var st = statusLabel[p.status] || p.status || (lang==='ar'?'مكتمل':'Completed');
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem">'+
       '<div><div style="font-weight:700">'+fPrice(p.amount)+'</div><div style="color:var(--t2);font-size:0.72rem">'+fDate(p.paymentDate)+' • '+p.method+'</div>'+(p.notes?'<div style="color:var(--t2);font-size:0.72rem;font-style:italic">'+p.notes+'</div>':'')+'</div>'+

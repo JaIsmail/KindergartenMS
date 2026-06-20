@@ -49,12 +49,16 @@ public class PaymentService : IPaymentService
         };
 
         _db.Payments.Add(payment);
-
-        // Update subscription status to Paid
+        // Update subscription status based on total paid vs price
         var subscription = await _db.Subscriptions.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == dto.SubscriptionId);
         if (subscription != null)
-            subscription.PaymentStatus = "Paid";
-
+        {
+            var totalPaid = await _db.Payments.IgnoreQueryFilters()
+                .Where(p => p.SubscriptionId == dto.SubscriptionId && p.Status != "Voided" && p.Status != "Refunded")
+                .SumAsync(p => p.Amount);
+            totalPaid += dto.Amount;
+            subscription.PaymentStatus = totalPaid >= subscription.Price ? "Paid" : "PartiallyPaid";
+        }
         await _db.SaveChangesAsync();
 
         // Notify parent
