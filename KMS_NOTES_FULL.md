@@ -65,3 +65,15 @@
 - This bug existed since these files were created; never caught before because staging was the only environment ever actually tested via browser until today
 - Verified post-fix: prod's UI now correctly shows only its own genuine data (1 SuperAdmin, 0 children, 0 tenants)
 - IMPORTANT: this fix benefits ALL environments going forward, including any future demo/client subscription (Note 53) — no per-environment URL configuration needed, it now just works correctly based on deployment domain
+
+---
+
+## Prod = Client Testing Platform — Synced with Staging (2026-06-20)
+- Used `az sql db copy` to clone KindergartenDB-staging -> KindergartenDB-prod-copy (same server, real-time copy of all live data: tenant مركز رواد العلم, 7 users, 1 child, subscriptions, payments)
+- Deleted the empty/clean-schema KindergartenDB-prod created earlier in today's session
+- Renamed KindergartenDB-prod-copy -> KindergartenDB-prod for consistency
+- Updated kms-api-prod-kg01 connection string to point at the renamed database, restarted, verified working
+- Verified via curl: /api/tenants on prod returns the real tenant data, matching staging exactly
+- Prod (kms-api-prod-kg01.azurewebsites.net) is now ready for client testing with real, current data
+- IMPORTANT: prod and staging are now two SEPARATE databases with a snapshot of the same data as of 2026-06-20 — they will diverge over time as each receives independent writes (this is intentional; prod is now a stable point-in-time copy for client demos, not a live mirror)
+- If a fresh sync is needed later, repeat the `az sql db copy` step (will need to delete/rename again, or copy to a new name and switch the connection string)
