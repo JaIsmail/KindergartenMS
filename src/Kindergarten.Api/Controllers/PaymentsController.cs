@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Kindergarten.Api.Authorization;
 using Kindergarten.Core.Interfaces;
 using Kindergarten.Core.DTOs;
@@ -24,6 +25,13 @@ public class PaymentsController : ControllerBase
     [RequirePermission("Payments.View")]
     public async Task<IActionResult> GetBySubscription(int subscriptionId)
     {
+        var canViewAll = User.HasClaim("Permission", "Finance.ViewAll");
+        if (!canViewAll)
+        {
+            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier) ?? string.Empty;
+            var owns = await _paymentService.SubscriptionBelongsToUserAsync(subscriptionId, userId);
+            if (!owns) return Forbid();
+        }
         var payments = await _paymentService.GetBySubscriptionAsync(subscriptionId);
         return Ok(payments);
     }

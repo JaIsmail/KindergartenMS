@@ -190,6 +190,12 @@ public class PaymentService : IPaymentService
         return true;
     }
 
+    public async Task<bool> SubscriptionBelongsToUserAsync(int subscriptionId, string userId)
+    {
+        var sub = await _db.Subscriptions.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == subscriptionId);
+        return sub != null && sub.ParentId == userId;
+    }
+
     public async Task<IEnumerable<OverdueSubscriptionDto>> GetOverdueAsync()
     {
         var today = DateTime.UtcNow.Date;

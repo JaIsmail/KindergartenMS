@@ -10,4 +10,5 @@ public interface IPaymentService
     Task<IEnumerable<OverdueSubscriptionDto>> GetOverdueAsync();
     Task<PaymentResponseDto?> UpdateAsync(int id, UpdatePaymentStatusDto dto);
     Task<bool> DeleteAsync(int id);
+    Task<bool> SubscriptionBelongsToUserAsync(int subscriptionId, string userId);
 }
