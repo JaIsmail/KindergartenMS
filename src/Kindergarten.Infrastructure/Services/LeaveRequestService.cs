@@ -18,6 +18,27 @@ public class LeaveRequestService : ILeaveRequestService
         _notify = notify;
     }
 
+    private async Task<List<string>> GetUserIdsWithPermissionAsync(string permissionName, int tenantId)
+    {
+        var viaGroups = await _db.UserPermissionGroups
+            .IgnoreQueryFilters()
+            .Where(ug => ug.TenantId == tenantId)
+            .Join(_db.PermissionGroupPermissions, ug => ug.GroupId, pgp => pgp.GroupId, (ug, pgp) => new { ug.UserId, pgp.PermissionId })
+            .Join(_db.Permissions, x => x.PermissionId, p => p.Id, (x, p) => new { x.UserId, p.Name })
+            .Where(x => x.Name == permissionName)
+            .Select(x => x.UserId)
+            .ToListAsync();
+ var viaDirect = await _db.UserPermissions
+            .IgnoreQueryFilters()
+            .Where(up => up.TenantId == tenantId)
+            .Join(_db.Permissions, up => up.PermissionId, p => p.Id, (up, p) => new { up.UserId, p.Name })
+            .Where(x => x.Name == permissionName)
+            .Select(x => x.UserId)
+            .ToListAsync();
+
+        return viaGroups.Concat(viaDirect).Distinct().ToList();
+    }
+
     public async Task<double> GetMonthlyHoursAsync(string userId)
     {
         var now   = DateTime.UtcNow;
@@ -49,17 +70,32 @@ public class LeaveRequestService : ILeaveRequestService
         };
         _db.LeaveRequests.Add(request);
         await _db.SaveChangesAsync();
-        // Notify admin (best effort)
+        // Notify approvers (best effort)
         try
         {
             var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
-            await _notify.SendToAllParentsAsync(
-                titleAr: "طلب إذن جديد",
-                titleEn: "New Leave Request",
-                bodyAr:  $"{user?.FullName ?? "موظف"} طلب إذناً لمدة {request.Hours:F1} ساعة",
-                bodyEn:  $"{user?.FullName ?? "Employee"} requested {request.Hours:F1}h leave",
-                data: new Dictionary<string, string> { { "type", "leave_request" }, { "id", request.Id.ToString() } }
-            );
+            var tenantId = user?.TenantId ?? request.TenantId;
+
+            var approverIds = await GetUserIdsWithPermissionAsync("Leave.Approve", tenantId);
+            if (!approverIds.Any())
+            {
+                approverIds = await _db.Users
+                    .IgnoreQueryFilters()
+                    .Where(u => u.TenantId == tenantId && u.RoleType == "Admin")
+                    .Select(u => u.Id)
+                    .ToListAsync();
+            }
+
+            var data = new Dictionary<string, string> { { "type", "leave_request" }, { "id", request.Id.ToString() } };
+            var replacements = new Dictionary<string, string>
+            {
+                { "employeeName", user?.FullName ?? "Employee" },
+                { "hours", request.Hours.ToString("F1") }
+            };
+foreach (var approverId in approverIds)
+            {
+                await _notify.SendTemplatedAsync("leave_request_submitted", approverId, replacements, data);
+            }
         }
         catch { /* notification failed */ }
         return await MapAsync(request.Id);
@@ -98,6 +134,22 @@ public class LeaveRequestService : ILeaveRequestService
         request.ReviewedAt = DateTime.UtcNow;
         request.ReviewedBy = reviewerId;
         await _db.SaveChangesAsync();
+
+        // Notify the employee of the decision (best effort)
+        try
+        {
+  var statusAr = dto.Status == "Approved" ? "قبول" : "رفض";
+            var statusEn = dto.Status == "Approved" ? "Approved" : "Rejected";
+            var replacements = new Dictionary<string, string>
+            {
+                { "statusAr", statusAr },
+                { "statusEn", statusEn }
+            };
+            var data = new Dictionary<string, string> { { "type", "leave_request_reviewed" }, { "id", request.Id.ToString() } };
+            await _notify.SendTemplatedAsync("leave_request_reviewed", request.UserId, replacements, data);
+        }
+        catch { /* notification failed */ }
+
         return await MapAsync(id);
     }
 

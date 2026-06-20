@@ -247,6 +247,12 @@ public static class DefaultTemplates
             "attendance_marked" => ("تحديث حالة الحضور", "Attendance Status Update",
                 "تم تسجيل حالة طفلك {childName}: {status}",
                 "Your child {childName}'s attendance status: {status}"),
+            "leave_request_submitted" => ("طلب إذن جديد", "New Leave Request",
+                "{employeeName} طلب إذناً لمدة {hours} ساعة",
+                "{employeeName} requested {hours}h leave"),
+            "leave_request_reviewed" => ("تحديث حالة طلب الإذن", "Leave Request Update",
+                "تم {statusAr} طلب الإذن الخاص بك",
+                "Your leave request has been {statusEn}"),
             _ => ("إشعار", "Notification", "{message}", "{message}")
         };
     }
