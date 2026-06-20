@@ -8,4 +8,5 @@ public interface INotificationService
     Task<bool> SendToParentAsync(string parentId, string titleAr, string titleEn, string bodyAr, string bodyEn, Dictionary<string, string>? data = null);
     Task<bool> SendToUserAsync(string userId, string titleAr, string titleEn, string bodyAr, string bodyEn, Dictionary<string, string>? data = null);
     Task<bool> SendToAllParentsAsync(string titleAr, string titleEn, string bodyAr, string bodyEn, Dictionary<string, string>? data = null);
+    Task<bool> SendTemplatedAsync(string key, string userId, Dictionary<string, string> replacements, Dictionary<string, string>? data = null);
 }

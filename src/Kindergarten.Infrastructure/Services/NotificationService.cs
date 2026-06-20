@@ -197,4 +197,57 @@ public class NotificationService : INotificationService
 
         return results.Any(r => r);
     }
+
+    public async Task<bool> SendTemplatedAsync(string key, string userId, Dictionary<string, string> replacements, Dictionary<string, string>? data = null)
+    {
+        var template = await _db.NotificationTemplates
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(t => t.Key == key && t.IsActive);
+
+        string titleAr, titleEn, bodyAr, bodyEn;
+        if (template != null)
+        {
+            titleAr = template.TitleAr;
+            titleEn = template.TitleEn;
+            bodyAr  = template.BodyAr;
+            bodyEn  = template.BodyEn;
+        }
+        else
+        {
+ // Fallback defaults if no custom template configured for this tenant
+            var defaults = DefaultTemplates.Get(key);
+            titleAr = defaults.titleAr;
+            titleEn = defaults.titleEn;
+            bodyAr  = defaults.bodyAr;
+            bodyEn  = defaults.bodyEn;
+        }
+
+        foreach (var kv in replacements)
+        {
+            bodyAr = bodyAr.Replace("{" + kv.Key + "}", kv.Value);
+            bodyEn = bodyEn.Replace("{" + kv.Key + "}", kv.Value);
+        }
+
+        return await SendToUserAsync(userId, titleAr, titleEn, bodyAr, bodyEn, data);
+    }
+}
+
+public static class DefaultTemplates
+{
+    public static (string titleAr, string titleEn, string bodyAr, string bodyEn) Get(string key)
+    {
+ return key switch
+        {
+            "payment_confirmed" => ("تم تأكيد الدفع \u2705", "Payment Confirmed \u2705",
+                "تم استلام دفعة بمبلغ {amount} ريال لاشتراك {childName}",
+                "Payment of {amount} SAR received for {childName}'s subscription"),
+            "subscription_created" => ("تم تسجيل اشتراك جديد", "New Subscription Registered",
+                "تم تسجيل اشتراك {type} لـ {childName} بقيمة {price} ريال",
+                "A {type} subscription has been registered for {childName} for {price} SAR"),
+            "attendance_marked" => ("تحديث حالة الحضور", "Attendance Status Update",
+                "تم تسجيل حالة طفلك {childName}: {status}",
+                "Your child {childName}'s attendance status: {status}"),
+            _ => ("إشعار", "Notification", "{message}", "{message}")
+        };
+    }
 }

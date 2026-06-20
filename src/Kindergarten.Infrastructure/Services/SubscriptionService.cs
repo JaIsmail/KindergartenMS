@@ -95,14 +95,18 @@ public class SubscriptionService : ISubscriptionService
 
         if (child != null)
         {
-            await _notify.SendToUserAsync(
+            await _notify.SendTemplatedAsync(
+                "subscription_created",
                 resolvedParentId,
-                "تم تسجيل اشتراك جديد", "New Subscription Registered",
-                $"تم تسجيل اشتراك {dto.Type} لـ {child.Name} بقيمة {dto.Price} ريال",
-                $"A {dto.Type} subscription has been registered for {child.Name} for {dto.Price} SAR",
                 new Dictionary<string, string>
                 {
-                    ["type"] = "subscription_created",
+                    ["type"]      = dto.Type,
+                    ["childName"] = child.Name,
+                    ["price"]     = dto.Price.ToString()
+                },
+                new Dictionary<string, string>
+                {
+                    ["type"]           = "subscription_created",
                     ["subscriptionId"] = subscription.Id.ToString()
                 }
             );

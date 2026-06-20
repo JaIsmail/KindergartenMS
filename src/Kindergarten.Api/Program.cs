@@ -320,4 +320,27 @@ using (var scope6 = app.Services.CreateScope())
     }
     catch (Exception ex) { Console.WriteLine($"Payments.Status column warning: {ex.Message}"); }
 }
+// Create NotificationTemplates table if not exists
+using (var scope7 = app.Services.CreateScope())
+{
+    var db7 = scope7.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    try
+    {
+        db7.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'NotificationTemplates')
+            CREATE TABLE NotificationTemplates (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                [Key] NVARCHAR(100) NOT NULL,
+                TitleAr NVARCHAR(200) NOT NULL DEFAULT '',
+                TitleEn NVARCHAR(200) NOT NULL DEFAULT '',
+                BodyAr NVARCHAR(MAX) NOT NULL DEFAULT '',
+                BodyEn NVARCHAR(MAX) NOT NULL DEFAULT '',
+                TenantId INT NOT NULL DEFAULT 1,
+                IsActive BIT NOT NULL DEFAULT 1
+            )
+        ");
+        Console.WriteLine("NotificationTemplates table verified");
+    }
+    catch (Exception ex) { Console.WriteLine($"NotificationTemplates table warning: {ex.Message}"); }
+}
 app.Run();

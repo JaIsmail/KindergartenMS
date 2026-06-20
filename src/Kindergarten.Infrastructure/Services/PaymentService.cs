@@ -68,11 +68,14 @@ public class PaymentService : IPaymentService
             var child  = await _db.Children.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == subscription.ChildId);
             if (parent != null && child != null)
             {
-                await _notify.SendToUserAsync(
+await _notify.SendTemplatedAsync(
+                    "payment_confirmed",
                     parent.Id,
-                    "تم تأكيد الدفع ✅", "Payment Confirmed ✅",
-                    $"تم استلام دفعة بمبلغ {dto.Amount} ريال لاشتراك {child.Name}",
-                    $"Payment of {dto.Amount} SAR received for {child.Name}'s subscription",
+                    new Dictionary<string, string>
+                    {
+                        ["amount"]    = dto.Amount.ToString(),
+                        ["childName"] = child.Name
+                    },
                     new Dictionary<string, string>
                     {
                         ["type"]      = "payment_confirmed",

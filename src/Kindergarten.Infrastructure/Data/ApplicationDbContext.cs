@@ -28,6 +28,7 @@ public class ApplicationDbContext : DbContext
     }
     public DbSet<Kindergarten.Core.Entities.AuditLog> AuditLogs { get; set; }
 public DbSet<ApplicationUser> Users { get; set; }
+public DbSet<Kindergarten.Core.Entities.NotificationTemplate> NotificationTemplates { get; set; }
 public DbSet<Child>        Children      { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<Payment>      Payments      { get; set; }
@@ -78,6 +79,8 @@ public DbSet<Child>        Children      { get; set; }
             .HasForeignKey(p => p.AttendanceId)
             .OnDelete(DeleteBehavior.Cascade);
         builder.Entity<DynamicList>()
+            .HasQueryFilter(x => x.TenantId == CurrentTenantId);
+        builder.Entity<Kindergarten.Core.Entities.NotificationTemplate>()
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
         builder.Entity<PermissionGroup>()
             .HasQueryFilter(x => x.TenantId == CurrentTenantId);
