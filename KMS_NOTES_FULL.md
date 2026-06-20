@@ -113,3 +113,12 @@ Both fixes confirmed deployed and stable on staging and prod as of 2026-06-20. N
 - Direct messaging with teachers/admin
 - Subscription-creation notification (separate from Note 48's payment-confirmation notification)
 - Admin-configurable notification message templates
+
+---
+
+## Note 55: Attendance Status Notification to Parent 🟡 PENDING (2026-06-20)
+- When a child's attendance is marked, parent should be notified
+- Admin needs flexibility to select status (Absent / Attended / other states)
+- Admin should be able to write a customized text message for the notification (not just a fixed template)
+- Likely ties into the broader "admin-configurable notification templates" need already noted under Note 51
+- Needs design: trigger point (attendance check-in/out vs manual admin marking?), UI for status selection + message composer, notification delivery via existing INotificationService
