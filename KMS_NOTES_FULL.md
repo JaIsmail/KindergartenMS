@@ -77,3 +77,16 @@
 - Prod (kms-api-prod-kg01.azurewebsites.net) is now ready for client testing with real, current data
 - IMPORTANT: prod and staging are now two SEPARATE databases with a snapshot of the same data as of 2026-06-20 — they will diverge over time as each receives independent writes (this is intentional; prod is now a stable point-in-time copy for client demos, not a live mirror)
 - If a fresh sync is needed later, repeat the `az sql db copy` step (will need to delete/rename again, or copy to a new name and switch the connection string)
+
+---
+
+## Note 49 — Complete Verification Summary (2026-06-20)
+Two related but distinct permission-system bugs, both confirmed fixed:
+
+1. **Duplicate PermissionGroups on re-seed** (SeedDefaultGroupsAsync): Fixed earlier with existingNames check. Verified via direct SQL query on staging AND prod: 0 duplicates, 6 groups each.
+
+2. **Permission seed overriding/resetting existing data** (/api/permissions/seed endpoint): Previously fixed to upsert instead of delete-and-reinsert. Re-verified today on BOTH staging and prod:
+   - POST /api/permissions/seed returns {"added":0} when all 50 permissions already exist (correct idempotent behavior)
+   - Admin group's permission count remains at 50 after calling seed (no reset/override occurred)
+
+Both fixes confirmed deployed and stable on staging and prod as of 2026-06-20. Note 49 fully closed, no remaining action items.
