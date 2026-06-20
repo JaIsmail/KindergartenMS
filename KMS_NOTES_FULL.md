@@ -53,3 +53,15 @@
 - No functional impact: staging has served as the de facto working environment for all development/testing throughout the project; prod has never been used
 - Decision: paused further investigation given shared-infrastructure risk (already caused one near-miss to staging today); deprioritized in favor of Note 53 (dedicated demo subscription) as the path to a clean, isolated client-facing environment
 - If revisited: use Kudu SSH console (kms-api-prod-kg01.scm.azurewebsites.net) for cleaner exception traces rather than docker.log/containerStream.log, which did not capture useful application-level stack traces
+
+---
+
+## CRITICAL BUG FOUND & FIXED: Hardcoded Staging API URL (2026-06-19)
+- Root cause of today's prod investigation confusion: admin.html, app.html, and demo.html all had `const API = 'https://kms-api-staging-kg01.azurewebsites.net'` HARDCODED
+- This meant EVERY deployment (prod, dev, any future environment) silently called staging's API for all data, regardless of which domain actually served the HTML page
+- Curl tests correctly hit each environment's real API directly; browser tests were always silently redirected to staging via this hardcoded JS constant — explaining the day-long discrepancy between curl results (correct, empty prod) and browser results (showing staging's real data on prod's URL)
+- Proven via controlled test: created uniquely-named child "STAGING_ONLY_TEST_CHILD_12345" on staging only, immediately appeared in prod's browser UI; curl to prod's actual API correctly showed empty results
+- FIX: changed `const API = 'https://...'` to `const API = '';` in all three files — now uses relative URLs, correctly targeting whatever origin serves the page
+- This bug existed since these files were created; never caught before because staging was the only environment ever actually tested via browser until today
+- Verified post-fix: prod's UI now correctly shows only its own genuine data (1 SuperAdmin, 0 children, 0 tenants)
+- IMPORTANT: this fix benefits ALL environments going forward, including any future demo/client subscription (Note 53) — no per-environment URL configuration needed, it now just works correctly based on deployment domain
