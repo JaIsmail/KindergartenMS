@@ -90,3 +90,10 @@ Two related but distinct permission-system bugs, both confirmed fixed:
    - Admin group's permission count remains at 50 after calling seed (no reset/override occurred)
 
 Both fixes confirmed deployed and stable on staging and prod as of 2026-06-20. Note 49 fully closed, no remaining action items.
+
+---
+
+## Note 54: Account Dropdown Menu — Admin/App Header 🟡 PENDING (2026-06-20)
+- Top-left avatar circle (currently just shows initial letter, e.g. "A") needs a dropdown on click
+- Should show: full name, profile picture (placeholder/future feature), "تغيير كلمة المرور" (change password), "تسجيل الخروج" (sign out)
+- Applies to both admin.html and app.html headers
