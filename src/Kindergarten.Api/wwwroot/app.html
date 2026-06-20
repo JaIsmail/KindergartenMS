@@ -614,8 +614,34 @@ async function loadSubs() {
   var div = document.getElementById('subList');
   if(!data || !data.length) { div.innerHTML = '<div class="empty"><div class="em">💳</div>'+t('noData')+'</div>'; return; }
   div.innerHTML = '<div class="lcard">'+data.map(function(s) {
-    return '<div class="litem"><span class="lic">💳</span><div class="linf"><div class="t">'+s.childName+'</div><div class="s">'+s.type+' • '+fPrice(s.price)+'</div></div>'+sbadge(s.paymentStatus)+'</div>';
+    return '<div class="litem" onclick="togglePayHistory('+s.id+')" style="cursor:pointer;flex-direction:column;align-items:stretch">'+
+      '<div style="display:flex;align-items:center;gap:0.7rem"><span class="lic">💳</span><div class="linf"><div class="t">'+s.childName+'</div><div class="s">'+s.type+' • '+fPrice(s.price)+'</div></div>'+sbadge(s.paymentStatus)+'<span style="color:var(--t2);font-size:0.75rem">▾</span></div>'+
+      '<div id="payHist-'+s.id+'" class="hidden" style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid #f1f5f9"></div>'+
+      '</div>';
   }).join('')+'</div>';
+}
+var openPayHist = {};
+async function togglePayHistory(subId) {
+  var box = document.getElementById('payHist-'+subId);
+  if(!box) return;
+  var isOpen = openPayHist[subId];
+  openPayHist[subId] = !isOpen;
+  if(isOpen) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  box.innerHTML = '<div style="text-align:center;padding:0.5rem"><div class="spin" style="width:18px;height:18px;margin:0 auto"></div></div>';
+  var payments = await apiCall('/api/payments/subscription/'+subId);
+  if(!payments || !payments.length) {
+    box.innerHTML = '<div style="font-size:0.78rem;color:var(--t2);text-align:center;padding:0.4rem">'+(lang==='ar'?'لا توجد مدفوعات بعد':'No payments yet')+'</div>';
+    return;
+  }
+var statusLabel = {Completed:lang==='ar'?'مكتمل':'Completed',Refunded:lang==='ar'?'مسترجع':'Refunded',Voided:lang==='ar'?'ملغي':'Voided'};
+  box.innerHTML = payments.map(function(p) {
+    var st = statusLabel[p.status] || p.status || (lang==='ar'?'مكتمل':'Completed');
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem">'+
+      '<div><div style="font-weight:700">'+fPrice(p.amount)+'</div><div style="color:var(--t2);font-size:0.72rem">'+fDate(p.paymentDate)+' • '+p.method+'</div>'+(p.notes?'<div style="color:var(--t2);font-size:0.72rem;font-style:italic">'+p.notes+'</div>':'')+'</div>'+
+      '<span class="badge bg">'+st+'</span>'+
+      '</div>';
+  }).join('');
 }
 
 async function loadPTrips() {
