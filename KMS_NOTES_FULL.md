@@ -122,3 +122,16 @@ Both fixes confirmed deployed and stable on staging and prod as of 2026-06-20. N
 - Admin should be able to write a customized text message for the notification (not just a fixed template)
 - Likely ties into the broader "admin-configurable notification templates" need already noted under Note 51
 - Needs design: trigger point (attendance check-in/out vs manual admin marking?), UI for status selection + message composer, notification delivery via existing INotificationService
+
+---
+
+## Note 51 — Subscription Creation Notification ✅ DONE (2026-06-20)
+- SubscriptionService.CreateAsync now sends a notification to the parent when a new subscription is registered (parallel to Note 48's payment-confirmation notification)
+- Uses existing INotificationService.SendToUserAsync, same pattern as PaymentService
+- AR/EN messages: "تم تسجيل اشتراك جديد" / "New Subscription Registered" with subscription type, child name, price
+- Verified on prod: subscription creation succeeds cleanly (200, no exceptions from notification code path)
+
+### Note 51 — Remaining scope:
+- Exam/academic results viewing (not started)
+- Direct messaging with teachers/admin (not started)
+- Admin-configurable notification message templates (not started — currently all notification text is hardcoded AR/EN in C#)
