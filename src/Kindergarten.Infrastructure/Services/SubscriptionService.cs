@@ -157,10 +157,41 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var sub = await _db.Subscriptions.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == id);
+        var sub = await _db.Subscriptions
+            .IgnoreQueryFilters().Include(s => s.Child)
+            .FirstOrDefaultAsync(s => s.Id == id);
         if (sub == null) return false;
+
+        var parentId  = sub.ParentId;
+        var childName = sub.Child?.Name ?? string.Empty;
+        var type      = sub.Type;
+
         _db.Subscriptions.Remove(sub);
         await _db.SaveChangesAsync();
+
+// Notify parent of cancellation (best effort)
+        try
+        {
+            if (!string.IsNullOrEmpty(parentId))
+            {
+                await _notify.SendTemplatedAsync(
+                    "subscription_cancelled",
+                    parentId,
+                    new Dictionary<string, string>
+                    {
+                        ["type"]      = type,
+                        ["childName"] = childName
+                    },
+                    new Dictionary<string, string>
+                    {
+                        ["type"]           = "subscription_cancelled",
+                        ["subscriptionId"] = id.ToString()
+                    }
+                );
+            }
+        }
+        catch { /* notification failed */ }
+
         return true;
     }
 

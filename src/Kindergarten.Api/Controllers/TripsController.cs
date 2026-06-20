@@ -117,17 +117,24 @@ public class TripsController : ControllerBase
 
         await _hub.Clients.All.SendAsync("TripStatusUpdated", id, "InProgress");
 
-        // 🔔 Notify all parents
-        await _notify.SendToAllParentsAsync(
-            titleAr: "بدأت الرحلة",
-            titleEn: "Trip Started",
-            bodyAr:  "السائق في الطريق إليكم",
-            bodyEn:  "The driver is on the way",
-            data: new Dictionary<string, string> {
-                { "type", "trip_started" },
-                { "tripId", id.ToString() }
+        // 🔔 Notify parents of children on this trip (not all tenant parents)
+        try
+        {
+            var parentIds = await _db.TripChildren
+                .IgnoreQueryFilters()
+                .Where(tc => tc.TripId == id)
+                .Select(tc => tc.Child.ParentId)
+                .Where(pid => pid != null)
+                .Distinct()
+                .ToListAsync();
+
+            var data = new Dictionary<string, string> { { "type", "trip_started" }, { "tripId", id.ToString() } };
+            foreach (var parentId in parentIds)
+            {
+                await _notify.SendTemplatedAsync("trip_started", parentId!, new Dictionary<string, string>(), data);
             }
-        );
+        }
+        catch { /* notification failed */ }
 
         return Ok(trip);
     }
@@ -141,17 +148,24 @@ public class TripsController : ControllerBase
 
         await _hub.Clients.All.SendAsync("TripStatusUpdated", id, "Completed");
 
-        // 🔔 Notify all parents
-        await _notify.SendToAllParentsAsync(
-            titleAr: "انتهت الرحلة",
-            titleEn: "Trip Completed",
-            bodyAr:  "تمت الرحلة بنجاح",
-            bodyEn:  "The trip has been completed successfully",
-            data: new Dictionary<string, string> {
-                { "type", "trip_completed" },
-                { "tripId", id.ToString() }
+        // 🔔 Notify parents of children on this trip (not all tenant parents)
+        try
+        {
+            var parentIds = await _db.TripChildren
+                .IgnoreQueryFilters()
+                .Where(tc => tc.TripId == id)
+                .Select(tc => tc.Child.ParentId)
+                .Where(pid => pid != null)
+                .Distinct()
+                .ToListAsync();
+
+            var data = new Dictionary<string, string> { { "type", "trip_ended" }, { "tripId", id.ToString() } };
+            foreach (var parentId in parentIds)
+            {
+                await _notify.SendTemplatedAsync("trip_ended", parentId!, new Dictionary<string, string>(), data);
             }
-        );
+        }
+        catch { /* notification failed */ }
 
         return Ok(trip);
     }

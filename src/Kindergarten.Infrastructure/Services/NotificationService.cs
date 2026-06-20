@@ -253,6 +253,15 @@ public static class DefaultTemplates
             "leave_request_reviewed" => ("تحديث حالة طلب الإذن", "Leave Request Update",
                 "تم {statusAr} طلب الإذن الخاص بك",
                 "Your leave request has been {statusEn}"),
+            "subscription_cancelled" => ("تم إلغاء الاشتراك", "Subscription Cancelled",
+                "تم إلغاء اشتراك {type} الخاص بـ {childName}",
+                "The {type} subscription for {childName} has been cancelled"),
+            "trip_started" => ("بدأت الرحلة", "Trip Started",
+                "السائق في الطريق إليكم",
+                "The driver is on the way"),
+            "trip_ended" => ("انتهت الرحلة", "Trip Completed",
+                "تمت الرحلة بنجاح",
+                "The trip has been completed successfully"),
             _ => ("إشعار", "Notification", "{message}", "{message}")
         };
     }
