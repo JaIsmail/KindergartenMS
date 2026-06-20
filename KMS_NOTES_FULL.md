@@ -97,3 +97,19 @@ Both fixes confirmed deployed and stable on staging and prod as of 2026-06-20. N
 - Top-left avatar circle (currently just shows initial letter, e.g. "A") needs a dropdown on click
 - Should show: full name, profile picture (placeholder/future feature), "تغيير كلمة المرور" (change password), "تسجيل الخروج" (sign out)
 - Applies to both admin.html and app.html headers
+
+---
+
+## Note 51 — Progress Update (2026-06-20)
+### Completed today:
+1. Security fix: PaymentsController.GetBySubscription ownership verification (parents can only see their own children's payments) — verified with real second-parent test
+2. Schema fix: dropped leftover Identity columns (TwoFactorEnabled, PhoneNumberConfirmed, SecurityStamp, NormalizedEmail, NormalizedUserName) from AspNetUsers on BOTH staging and prod — was causing 500 errors on Add User / registration
+3. Logic fix: subscription.PaymentStatus now correctly reflects partial payments — "PartiallyPaid" when sum(payments) < price, "Paid" only when fully covered. Previously any single payment marked the whole subscription Paid regardless of amount.
+4. UI: Payment History section built into app.html subscriptions page — click-to-expand per subscription showing: total price, total paid, remaining balance (color-coded red/green), and itemized payment list (amount, date, method, status badge, notes if present)
+5. Verified end-to-end on prod with real multi-payment scenario: 500+300+50 against 1000 SAR subscription correctly shows PartiallyPaid with 150 SAR remaining
+
+### Still pending (Note 51 full scope):
+- Exam/academic results viewing
+- Direct messaging with teachers/admin
+- Subscription-creation notification (separate from Note 48's payment-confirmation notification)
+- Admin-configurable notification message templates
