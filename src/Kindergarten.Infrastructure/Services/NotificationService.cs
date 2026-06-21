@@ -2,6 +2,7 @@ using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
 using Kindergarten.Core.DTOs;
+using Kindergarten.Core.Entities;
 using Kindergarten.Core.Interfaces;
 using Kindergarten.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -236,36 +237,7 @@ public static class DefaultTemplates
 {
     public static (string titleAr, string titleEn, string bodyAr, string bodyEn) Get(string key)
     {
- return key switch
-        {
-            "payment_confirmed" => ("تم تأكيد الدفع \u2705", "Payment Confirmed \u2705",
-                "تم استلام دفعة بمبلغ {amount} ريال لاشتراك {childName}",
-                "Payment of {amount} SAR received for {childName}'s subscription"),
-            "subscription_created" => ("تم تسجيل اشتراك جديد", "New Subscription Registered",
-                "تم تسجيل اشتراك {type} لـ {childName} بقيمة {price} ريال",
-                "A {type} subscription has been registered for {childName} for {price} SAR"),
-            "attendance_marked" => ("تحديث حالة الحضور", "Attendance Status Update",
-                "تم تسجيل حالة طفلك {childName}: {status}",
-                "Your child {childName}'s attendance status: {status}"),
-            "leave_request_submitted" => ("طلب إذن جديد", "New Leave Request",
-                "{employeeName} طلب إذناً لمدة {hours} ساعة",
-                "{employeeName} requested {hours}h leave"),
-            "leave_request_reviewed" => ("تحديث حالة طلب الإذن", "Leave Request Update",
-                "تم {statusAr} طلب الإذن الخاص بك",
-                "Your leave request has been {statusEn}"),
-            "subscription_cancelled" => ("تم إلغاء الاشتراك", "Subscription Cancelled",
-                "تم إلغاء اشتراك {type} الخاص بـ {childName}",
-                "The {type} subscription for {childName} has been cancelled"),
-            "trip_started" => ("بدأت الرحلة", "Trip Started",
-                "السائق في الطريق إليكم",
-                "The driver is on the way"),
-            "trip_ended" => ("انتهت الرحلة", "Trip Completed",
-                "تمت الرحلة بنجاح",
-                "The trip has been completed successfully"),
-            "child_registered" => ("تم تسجيل طفلك", "Child Registered",
-                "تم تسجيل {childName} بنجاح في الروضة",
-                "{childName} has been successfully registered at the kindergarten"),
-            _ => ("إشعار", "Notification", "{message}", "{message}")
-        };
+        // Single source of truth is now NotificationRegistry (NotificationKeyInfo.cs).
+        return NotificationRegistry.GetDefaults(key);
     }
 }
