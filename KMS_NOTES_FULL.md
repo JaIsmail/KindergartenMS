@@ -281,3 +281,32 @@ All 6 original sub-items of Note 7 are verified complete against live staging co
 ### Outcome
 All 6 original sub-items of Note 7 are verified complete against live staging code and database — not just marked done from memory. No code changes were required this session; the work had already been completed (likely as a side effect of Note 50's full Identity-removal refactor), but had never been explicitly verified item-by-item and closed out in the notes. This note can now be considered fully closed.
 
+
+---
+## Note 33: Composite DB Indexes (TenantId) ✅ COMPLETE (2026-06-21)
+## Note 34: Always-On on Azure App Service ✅ ALREADY DONE (verified 2026-06-21)
+
+### Note 34 — verification only, no changes needed
+- Checked both staging (`kms-api-staging-kg01`) and prod (`kms-api-prod-kg01`) via `az webapp config show --query alwaysOn`
+- Both already `true`; plan confirmed B2 Basic (`kms-asp`), which supports Always-On
+- No action required — this had already been done in a prior session, note was stale
+
+### Note 33 — implemented and verified on staging + prod
+Created 7 composite indexes via idempotent startup SQL block in `Program.cs` (`scope8`), following the project's established raw-SQL-with-IF-NOT-EXISTS pattern (migrations are unreliable for this codebase per prior findings):
+
+| Table | Index | Columns | Deviation from original spec |
+|---|---|---|---|
+| Children | `IX_Children_TenantId_IsActive` | TenantId, IsActive | none |
+| Trips | `IX_Trips_TenantId` | TenantId | `Status` excluded — column is `nvarchar(MAX)`, SQL Server disallows LOB types as index key columns |
+| TripChildren | `IX_TripChildren_TripId_TenantId` | TripId, TenantId | none |
+| Attendance | `IX_Attendance_TenantId_Date` | TenantId, Date | none |
+| Subscriptions | `IX_Subscriptions_TenantId_EndDate` | TenantId, EndDate | spec said `ExpiryDate` — column doesn't exist; used actual column `EndDate` |
+| LeaveRequests | `IX_LeaveRequests_TenantId` | TenantId | `Status` excluded — same `nvarchar(MAX)` issue as Trips |
+| UserDevices | `IX_UserDevices_UserId_TenantId` | UserId, TenantId | none |
+
+**Decision on the two Status-column deviations:** discussed with project owner — migrating `Trips.Status`/`LeaveRequests.Status` from `nvarchar(MAX)` to a bounded type (e.g. `nvarchar(50)`) would allow the full composite index as originally specified, but was deemed unnecessary risk at current scale (kindergarten-sized tenants, low hundreds of rows per tenant at most). TenantId-only index already eliminates the main cost (full table scan); the missing Status in the key only adds a cheap in-memory filter step over an already-narrow, tenant-scoped row set. Revisit if any tenant's Trips/LeaveRequests table grows into the tens of thousands of rows.
+
+**Process note — real bug caught during implementation:** first attempt used a single `pymssql` connection with default (non-autocommit) transaction mode; two of the seven `CREATE INDEX` statements failed (the Status-column issue above), which left the connection in a bad transaction state, and the final `conn.commit()` then threw `COMMIT TRANSACTION request has no corresponding BEGIN TRANSACTION` — silently rolling back all 5 indexes that had appeared to succeed (`✅` in script output was a false positive, not a query against actual server state). Caught by independently re-querying `sys.indexes` directly afterward rather than trusting script output. Fixed by re-running with `autocommit=True`, which persists each successful `CREATE INDEX` independently regardless of later failures, plus added existence checks for safe idempotent re-runs.
+
+**Verification:** confirmed all 7 indexes present via direct `sys.indexes` queries on staging immediately after creation, then again after deploy on prod (auto-created by the new `Program.cs` startup block on first boot) — both environments independently confirmed via fresh queries, not just deploy-success assumption.
+
