@@ -1,68 +1,136 @@
-# Notifications Module — Handoff Document (2026-06-20)
+# KMS Notification System — Handoff Documentation
 
-## Current State (Working, Deployed)
+**Last Updated:** 2026-06-21 (Phase 4 complete)
+**Status:** All 7 actionable notification trigger keys wired, tested, and deployed. Admin UI fully functional with dynamic template registry.
 
-### Backend Infrastructure (✅ Done & Deployed)
-- **NotificationTemplate entity** (`src/Kindergarten.Core/Entities/NotificationTemplate.cs`): Id, Key, TitleAr, TitleEn, BodyAr, BodyEn, TenantId, IsActive
-- **Table**: `NotificationTemplates` — created via startup SQL in Program.cs (IF NOT EXISTS pattern)
-- **INotificationService.SendTemplatedAsync(key, userId, replacements, data)** — looks up a custom template by key+tenant, falls back to hardcoded default if none exists, substitutes `{placeholder}` tokens, sends via existing `SendToUserAsync`
-- **DefaultTemplates.Get(key)** (static class in `NotificationService.cs`) — currently a simple `switch` statement with 3 hardcoded keys: `payment_confirmed`, `subscription_created`, `attendance_marked` (this last one has NO actual trigger wired yet — see below)
-- **NotificationTemplatesController** (`api/notification-templates`): GET (list), GET/{key}, PUT/{key} (upsert), DELETE/{key} (reset to default) — all require `Notifications.Send` permission, tenant-scoped
+---
 
-### Currently Wired Triggers (✅ Done)
-1. **`payment_confirmed`** — fires in `PaymentService.CreateAsync`, after a payment is recorded. Placeholders: `{amount}`, `{childName}`
-2. **`subscription_created`** — fires in `SubscriptionService.CreateAsync`, when a new subscription is created. Placeholders: `{type}`, `{childName}`, `{price}`
+## Current State (as of 2026-06-21)
 
-### Admin UI (✅ Done & Deployed)
-- New card "✏️ نصوص الإشعارات" added to **الإشعارات** page in admin.html (under existing device-list card)
-- Dropdown currently HARDCODED with 3 options matching the backend keys above (NOT dynamic yet — see "In Progress" below)
-- Edit title/body AR+EN, Save (PUT), Reset to Default (DELETE)
-- Tested end-to-end on prod: custom template saves, payment flow still works cleanly with templated call
+### ✅ Complete Features (all deployed to prod)
 
-## In Progress / Abandoned Mid-Edit (⚠️ Needs Attention)
-- Started building a richer `NotificationKeyInfo` registry class (key, category, description AR/EN, placeholders list, default text) to replace the simple switch statement, intended to power a NEW endpoint (`GET /api/notification-templates/registry` or similar) so the admin UI dropdown could be **dynamic** instead of hardcoded
-- **This edit was NEVER applied** — multiple `str_replace` attempts failed due to whitespace/encoding mismatches (Arabic literal vs `\u` escape sequences caused several failed match attempts)
-- Current code is back to the simple, working switch-statement version — nothing is broken, but the dynamic-registry goal is unrealized
-- If resuming: rebuild this cleanly, ideally writing the new file content via `create_file`/`str_replace` against a freshly-viewed copy of the file rather than guessing at exact whitespace
+**Notification triggers wired (7/9 keys):**
+- `payment_confirmed` — confirmed working
+- `subscription_created` — confirmed working  
+- `subscription_cancelled` — wired this session
+- `leave_request_submitted` — wired + bug fixed (was broadcasting to all parents, now correctly targets Leave.Approve holders)
+- `leave_request_reviewed` — newly wired (notifies employee of approve/reject)
+- `trip_started` — wired + critical bug fixed (scoping)
+- `trip_ended` — wired + critical bug fixed (scoping)
+- `child_registered` — wired + ParentName lookup bug fixed
 
-## Key Design Decision Made This Session
-**User wants TRUE admin-defined notification types** — not just text editing for developer-defined triggers, but the ability for admins to create their own named notification templates.
+**Registry infrastructure:**
+- `NotificationKeyInfo.cs`: Single source of truth defining all 9 keys (key, category, AR/EN descriptions, placeholders, defaults, status)
+- `NotificationRegistry` static class: Contains `All` list and helper methods (`Find`, `GetDefaults`)
+- `GET /api/notification-templates/registry` endpoint: Returns full registry merged with per-tenant custom-override status
+- `NotificationService.DefaultTemplates.Get()`: Now delegates to registry, eliminating duplication
 
-Agreed approach: **scan codebase for all realistic trigger points first, register them all as system triggers in code, THEN admins create named templates per trigger** (not fully free-form custom triggers — those require actual code-level events to fire from).
+**Admin UI:**
+- `admin.html` notification templates dropdown: Fully dynamic, populated from registry endpoint
+- Shows all 9 keys with AR descriptions, placeholders, status icons (⏳ Planned, ✅ Custom)
+- `loadNotificationRegistry()` function: Fetches & caches registry data, populates dropdown
+- Frontend bug fixed: `loadDevices()` early return was blocking template loader for accounts with zero FCM devices
 
-## Full Trigger Inventory Found This Session (NOT all wired yet)
-From scanning all `[HttpPost]`/`[HttpPut]`/`[HttpDelete]` actions across controllers:
+### ⏳ Planned Triggers (2/9 keys)
+- `attendance_marked` — blocked on Note 55 (child attendance feature doesn't exist yet)
 
-| Controller | Action | Potential Notification? | Status |
-|---|---|---|---|
-| PaymentsController | Create | payment_confirmed | ✅ Wired |
-| SubscriptionsController | Create | subscription_created | ✅ Wired |
-| SubscriptionsController | Delete | subscription_cancelled? | Not discussed |
-| LeaveRequestsController | Create | (admin notified — `SendToAllParentsAsync`, NOT templated, separate legacy code path) | Not migrated to template system |
-| LeaveRequestsController | Review (approve/reject) | leave_request_reviewed (notify employee) | Not discussed |
-| TripsController | Start | trip_started (notify parent) | Not discussed — mentioned in old Note 1 but never implemented |
-| TripsController | End | trip_ended (notify parent) | Not discussed |
-| ChildrenController | Create | child_registered? | Not discussed |
-| EmployeesController | checkin/checkout | STAFF attendance — NOT child attendance, clarified this session as unrelated to Note 55 |
+---
 
-## Note 55 — Child Attendance Notification — SCOPE CLARIFIED THIS SESSION
-**Critical finding**: there is currently NO child attendance (present/absent) tracking feature in the system at all. `EmployeesController`'s checkin/checkout is STAFF attendance (teachers, drivers, etc. clocking in), completely separate and unrelated.
+## Known Issues & Gaps
 
-Note 55 therefore requires building, from scratch:
-1. A new entity/table for child daily attendance status (present/absent), likely: ChildId, Date, Status, MarkedBy, TenantId
-2. A new controller/endpoint for staff to mark a child's status (manually, not auto-derived from anything currently existing)
-3. THEN wire `attendance_marked` template trigger to fire when that status is recorded
-4. Admin UI: a way to mark attendance (likely a new page, or extend the existing staff Attendance page) with status selection
-5. The notification itself (once attendance recording exists) is now straightforward given the templates infrastructure already built
+**FCM device registration gap (Note 48):**
+- Most accounts have zero registered devices
+- `loadNotificationRegistry()` is now unconditionally called (fixed in Phase 4), so the templates dropdown works even without devices
+- Real push notifications still won't reach parents without device registration, but that's a separate, pre-existing issue
 
-**This is a multi-step feature, not just "add a notification call."**
+**Unblocked by this work:**
+- Exam/academic results viewing
+- Direct messaging with teachers/admin
 
-## Other Notes Logged This Session (separate from notifications, for context)
-- **Note 54**: Account dropdown menu needed (full name, avatar placeholder, change password, sign out) — top-left avatar in admin.html/app.html headers
-- **EmployeesController naming**: cosmetic — name is legacy, no longer implies generic "Employee" role since RoleType isn't used for authorization; actual roles are Teacher/Accountant/Supervisor/etc via PermissionGroups. Could rename to AttendanceController/StaffController later, non-blocking.
+---
 
-## Recommended Starting Point for Next Session
-1. Re-verify current deployed state matches this document (grep checks above)
-2. Decide: build the dynamic registry properly now, or ship the 3 working hardcoded triggers as "v1" and treat registry expansion as its own follow-up
-3. If tackling Note 55: design the child-attendance entity/table/UI FIRST as a standalone feature, THEN wire its notification trigger using the existing SendTemplatedAsync infrastructure (no new notification plumbing needed, just a new key + trigger call site)
-4. Consider migrating LeaveRequestsController's notification (currently uses raw SendToAllParentsAsync, not templated) to the template system for consistency
+## Architecture Reference
+
+**Permission-based notification targeting:**
+- Use dedicated permission queries (e.g., `GetUserIdsWithPermissionAsync`) instead of role strings
+- Example: `leave_request_submitted` queries for `Leave.Approve` holders, falls back to `RoleType=="Admin"`
+- All permission checks embedded in JWT at login; stateless authorization
+
+**Notification scoping patterns (critical bugs fixed in Phase 4):**
+- **leave_request_submitted**: was `SendToAllParentsAsync` (wrong), now targets `Leave.Approve` holders
+- **trip_started/trip_ended**: were `SendToAllParentsAsync` (wrong), now filter to `parents of children on the specific trip` only
+- Pattern: Always narrow recipient lists to the specific context (permission, resource relationship, etc.), never tenant-wide broadcasts
+
+**Template system:**
+- `NotificationTemplate` entity: Per-tenant custom overrides (AR/EN title+body)
+- `NotificationRegistry`: Built-in defaults (code-defined, same for all tenants)
+- Rendering: `SendTemplatedAsync(key, userId, placeholders, metadata)` looks up custom template if exists, falls back to registry default, substitutes placeholders
+
+**Frontend template loading flow:**
+1. User navigates to الإشعارات
+2. `showPage('notifications')` → `loaders['notifications']()` → `loadDevices()`
+3. `loadDevices()` calls `loadNotificationRegistry()` (unconditionally, even if devices list is empty)
+4. `loadNotificationRegistry()` fetches `/api/notification-templates/registry`, populates dropdown, caches data
+5. User selects a key → `loadTemplateForKey()` pulls defaults from cache, allows editing
+
+---
+## Key Files
+
+**Backend:**
+- `src/Kindergarten.Core/Entities/NotificationKeyInfo.cs` — registry definition
+- `src/Kindergarten.Infrastructure/Services/NotificationService.cs` — `SendTemplatedAsync`, `DefaultTemplates` (now delegating)
+- `src/Kindergarten.Api/Controllers/NotificationTemplatesController.cs` — `GET /registry` endpoint
+- `src/Kindergarten.Infrastructure/Services/LeaveRequestService.cs` — has `GetUserIdsWithPermissionAsync` helper (reusable pattern)
+
+**Frontend:**
+- `src/Kindergarten.Api/wwwroot/admin.html` — lines ~2316 (`loadDevices`), ~2327 (`loadNotificationRegistry`), ~2340 (`loadTemplateForKey`), ~973 (`<select id="tplKey">`)
+
+**Documentation:**
+- `KMS_NOTES_FULL.md` — comprehensive session-by-session history (this file is the source of truth)
+- `NOTIFICATIONS_MODULE_HANDOFF.md` — this file (next-session quick reference)
+
+---
+
+## Testing Checklist for Next Work
+
+
+
+When adding new features or modifying notification logic:
+- ✅ Verify via `dotnet build` (backend changes)
+- ✅ Verify via `node --check` on admin.html (frontend changes)
+- ✅ Test on staging first with real tenant data (create test records, verify endpoints return correct shapes)
+- ✅ Browser test on prod admin UI (navigate to الإشعارات, confirm dropdown populates, select keys, verify form fields fill correctly)
+- ✅ Clean up test data after verification (direct SQL or API delete)
+- ✅ Verify git history is clean (small, focused commits with clear messages)
+
+---
+
+## Next Session Priorities
+
+1. **Note 55 — Attendance marking & notification:** Child attendance feature needs to exist first (admin marking status, optional custom message). Wire `attendance_marked` trigger once that's ready.
+2. **Note 26 — Granular CRUD permissions:** Currently some endpoints use basic role checks instead of fine-grained permissions. Standardize via `RequirePermission` attribute.
+3. **Note 9 Phase 2 — Moyasar payment integration:** Currently only manual payments. Integrate Moyasar gateway for real-time automated payments.
+
+---
+## Debugging Reference (Common Issues This Session)
+
+**"Dropdown is empty":**
+- Check Network tab → does `/api/notification-templates/registry` request appear? If no, `loadNotificationRegistry()` never ran.
+- Check browser Console → any JS errors? Silent failures in `api()` helper return `null` with no error logged.
+- Check if navigating to الإشعارات actually fires `loadDevices()` (confirmed via Network tab for `/api/devices` first request).
+- Remember: early `return` in `loadDevices()` if no devices exist was the root cause in Phase 4 — now fixed.
+
+**"Registry endpoint returns 403":**
+- Fresh login via curl to confirm token has `Notifications.Send` permission (decode JWT payload).
+- Browser stale token: log out fully, close tab, reopen, fresh login.
+
+**"Template text shows literal {placeholders} instead of real values":**
+- Dropdown showing `{childName},{amount}` in labels is expected (admin documentation)
+- Template form fields showing `{placeholders}` is expected (editable defaults)
+- Actual notification at runtime not substituting? Check `SendTemplatedAsync` placeholder dict in the trigger code (should have real values before calling `SendTemplatedAsync`)
+
+**Shell quoting issues with `!` character:**
+- Heredoc with `'NOEXPAND'` quoted delimiter prevents history expansion
+- If still broken, use base64 encoding: encode script → decode in shell → execute
+- Example: `echo "..." | base64 -d > /tmp/script.py && python3 /tmp/script.py`
+

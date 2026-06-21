@@ -135,3 +135,51 @@ Both fixes confirmed deployed and stable on staging and prod as of 2026-06-20. N
 - Exam/academic results viewing (not started)
 - Direct messaging with teachers/admin (not started)
 - Admin-configurable notification message templates (not started — currently all notification text is hardcoded AR/EN in C#)
+
+---
+## Note 51 (continued) — Notification Trigger Registry & Admin UI (Phase 4) ✅ COMPLETE (2026-06-21)
+
+### Completed in this session:
+**7 actionable notification trigger keys fully wired and tested:**
+1. `payment_confirmed` — pre-existing, confirmed working
+2. `subscription_created` — pre-existing, confirmed working
+3. `leave_request_submitted` — **bug fixed**: was calling `SendToAllParentsAsync` (broadcasting to ALL parents in tenant), now correctly targets `Leave.Approve` permission holders with Admin-role fallback for edge cases
+4. `leave_request_reviewed` — **newly wired**: notifies employee when their leave request is approved/rejected, uses `{statusAr}`/`{statusEn}` placeholders for bilingual status text
+5. `subscription_cancelled` — **newly wired**: notifies parent on subscription delete (captures child name + type before deletion, wrapped in try/catch)
+6. `trip_started` — **migrated to template system + critical bug fixed**: was calling `SendToAllParentsAsync` (broadcasting to ALL tenant parents), now correctly filters to only parents of children actually on the specific trip via `TripChildren.Where(...).Select(...).Distinct()`
+7. `trip_ended` — **same fixes as trip_started**: migrated templates, fixed broadcast-to-all bug
+8. `child_registered` — **newly wired + bug fixed**: notifies parent when child is created, also fixed pre-existing `ParentName` bug in `ChildService.CreateAsync` that looked up caller's ID instead of assigned parent's ID when admin assigns child to a different parent
+9. `attendance_marked` — remains correctly marked `Planned` (blocked on Note 55: child attendance feature doesn't exist yet)
+
+**Backend infrastructure — single source of truth for all 9 keys:**
+- New file: `src/Kindergarten.Core/Entities/NotificationKeyInfo.cs` defines `NotificationKeyInfo` class (key, category, AR/EN description, placeholders list, default AR/EN title+body, status enum `Wired`/`Planned`) and static `NotificationRegistry` class containing all 9 keys
+- Refactored `NotificationService.DefaultTemplates.Get(key)` to delegate to `NotificationRegistry.GetDefaults(key)` instead of maintaining duplicate hardcoded switch statement — eliminates prior duplication risk
+- New endpoint: `GET /api/notification-templates/registry` on `NotificationTemplatesController` returns static registry merged with per-tenant `hasCustomTemplate` flag, powering the dynamic admin UI dropdown
+
+**Admin UI — fully dynamic notification templates dropdown:**
+- Replaced hardcoded 3-option `<select>` in `admin.html` with dynamic population from `/api/notification-templates/registry`
+- New `loadNotificationRegistry()` function: fetches registry, populates dropdown with all 9 keys, builds option labels showing AR description + comma-separated placeholders
+- Status indicators in dropdown: ⏳ prefix for `Planned` keys, ✅ prefix for keys with custom per-tenant overrides
+- `loadTemplateForKey()` refactored to pull default text from cached registry data instead of hardcoded `tplDefaults` JS object (eliminated)
+- **Critical frontend bug discovered and fixed**: `loadDevices()` had an early `return` in its "no registered devices" branch that skipped `loadNotificationRegistry()` entirely — since most accounts in this project have zero registered FCM devices (known gap, Note 48), the entire templates dropdown was silently non-functional for the common case. Fixed by converting `return;` to `else {...}` structure, ensuring `loadNotificationRegistry()` runs unconditionally regardless of device count
+
+**Real test data used & verified (tenant 6 — مركز رواد العلم):**
+- AdminT1, teacher@rawad-center.com, JaberT1 (parent with 2 children + active FCM device)
+- Created & tested: leave requests (submitted → reviewed), trips (created → started → ended), child registration, subscription cancellation
+- All test data cleaned up after verification
+- Verified all endpoints via live curl tests against prod; browser-verified end-to-end (Network tab + dropdown population + correct status icons)
+
+**Key architectural decisions:**
+- Notification scoping bugs (leave_request_submitted, trip notifications) traced to recurring pattern: code was using `SendToAllParentsAsync` (tenant-wide broadcast) when it should target specific permission holders or specific-trip parents
+- Admin fallback: when no user holds a required permission, fall back to any user with `RoleType=="Admin"` as a safety net for fresh tenants
+- Registry as single source of truth: eliminated duplicate hardcoded text in 3 places (C# `DefaultTemplates`, JS `tplDefaults`, hardcoded HTML dropdown options) — now all 9 keys defined once in `NotificationKeyInfo.cs`
+
+### Related bugs fixed as side effects:
+- `ChildService.CreateAsync` `ParentName` lookup bug (was using caller's ID instead of resolved parent ID)
+- `LeaveRequestService` missing dedicated `GetUserIdsWithPermissionAsync` helper — added as reusable pattern for permission-based targeting
+
+### Remaining scope (Note 51 / notifications):
+- `attendance_marked` notification — unblocked once Note 55's child attendance feature is built
+- Exam/academic results viewing (not touched)
+- Direct messaging with teachers/admin (not touched)
+
