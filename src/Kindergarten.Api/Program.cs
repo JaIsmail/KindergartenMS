@@ -343,4 +343,33 @@ using (var scope7 = app.Services.CreateScope())
     }
     catch (Exception ex) { Console.WriteLine($"NotificationTemplates table warning: {ex.Message}"); }
 }
+
+// Note 33: composite TenantId-based indexes for query performance
+using (var scope8 = app.Services.CreateScope())
+{
+    var db8 = scope8.ServiceProvider.GetRequiredService<Kindergarten.Infrastructure.Data.ApplicationDbContext>();
+    var note33Indexes = new (string table, string name, string cols)[]
+    {
+        ("Children", "IX_Children_TenantId_IsActive", "(TenantId, IsActive)"),
+        ("Trips", "IX_Trips_TenantId", "(TenantId)"),
+        ("TripChildren", "IX_TripChildren_TripId_TenantId", "(TripId, TenantId)"),
+        ("Attendance", "IX_Attendance_TenantId_Date", "(TenantId, Date)"),
+        ("Subscriptions", "IX_Subscriptions_TenantId_EndDate", "(TenantId, EndDate)"),
+        ("LeaveRequests", "IX_LeaveRequests_TenantId", "(TenantId)"),
+        ("UserDevices", "IX_UserDevices_UserId_TenantId", "(UserId, TenantId)"),
+    };
+    foreach (var (table, name, cols) in note33Indexes)
+    {
+        try
+        {
+            db8.Database.ExecuteSqlRaw($@"
+                IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('{table}') AND name = '{name}')
+                CREATE NONCLUSTERED INDEX {name} ON {table} {cols}
+            ");
+            Console.WriteLine($"Index {name} verified");
+        }
+        catch (Exception ex) { Console.WriteLine($"Index {name} warning: {ex.Message}"); }
+    }
+}
+
 app.Run();
