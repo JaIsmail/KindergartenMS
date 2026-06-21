@@ -970,11 +970,7 @@ html[lang="en"] #toast{left:auto;right:2rem;}
       <p style="font-size:0.78rem;color:var(--text3);margin-bottom:1rem">تخصيص نص الإشعارات المرسلة تلقائياً للأهالي. اترك فارغاً لاستخدام النص الافتراضي.</p>
       <div class="form-field" style="margin-bottom:1rem">
         <label>نوع الإشعار</label>
-        <select id="tplKey" onchange="loadTemplateForKey()">
-          <option value="payment_confirmed">تأكيد الدفع — {amount}, {childName}</option>
-          <option value="subscription_created">تسجيل اشتراك جديد — {type}, {childName}, {price}</option>
-          <option value="attendance_marked">تحديث حضور — {childName}, {status}</option>
-        </select>
+        <select id="tplKey" onchange="loadTemplateForKey()"></select>
       </div>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
         <div class="form-field"><label>العنوان (عربي)</label><input type="text" id="tplTitleAr"></div>
@@ -2327,18 +2323,35 @@ async function loadDevices(){
   div.innerHTML = '<table><thead><tr><th>المستخدم</th><th>المنصة</th><th>آخر تحديث</th></tr></thead><tbody>'+
     data.map(d=>'<tr><td>'+d.userId.substring(0,8)+'...</td><td>'+d.platform+'</td><td>'+formatDate(d.updatedAt)+'</td></tr>').join('')+
   '</tbody></table>';
-  loadTemplateForKey();
+  loadNotificationRegistry();
 }
 
-const tplDefaults = {
-  payment_confirmed: {titleAr:'تم تأكيد الدفع ✅',titleEn:'Payment Confirmed ✅',bodyAr:'تم استلام دفعة بمبلغ {amount} ريال لاشتراك {childName}',bodyEn:"Payment of {amount} SAR received for {childName}'s subscription"},
-  subscription_created: {titleAr:'تم تسجيل اشتراك جديد',titleEn:'New Subscription Registered',bodyAr:'تم تسجيل اشتراك {type} لـ {childName} بقيمة {price} ريال',bodyEn:'A {type} subscription has been registered for {childName} for {price} SAR'},
-  attendance_marked: {titleAr:'تحديث حالة الحضور',titleEn:'Attendance Status Update',bodyAr:'تم تسجيل حالة طفلك {childName}: {status}',bodyEn:"Your child {childName}'s attendance status: {status}"}
-};
+var notificationRegistryCache = [];
+
+async function loadNotificationRegistry(){
+  const data = await api('/api/notification-templates/registry');
+  if(!data || !data.length) return;
+  notificationRegistryCache = data;
+  const sel = document.getElementById('tplKey');
+  sel.innerHTML = data.map(function(k){
+    var label = k.descriptionAr + (k.placeholders && k.placeholders.length ? ' — ' + k.placeholders.map(function(p){return '{'+p+'}';}).join(', ') : '');
+    if(k.status === 'Planned') label = '⏳ ' + label;
+    if(k.hasCustomTemplate) label = '✅ ' + label;
+    return '<option value="'+k.key+'">'+label+'</option>';
+  }).join('');
+  loadTemplateForKey();
+}
 async function loadTemplateForKey(){
   const key = document.getElementById('tplKey').value;
+  if(!key) return;
   const result = await api('/api/notification-templates/'+key);
-  const d = (result && result.id) ? result : tplDefaults[key];
+  const info = notificationRegistryCache.find(function(k){ return k.key === key; });
+  const d = (result && result.id) ? result : {
+    titleAr: info ? info.defaultTitleAr : '',
+    titleEn: info ? info.defaultTitleEn : '',
+    bodyAr:  info ? info.defaultBodyAr  : '',
+    bodyEn:  info ? info.defaultBodyEn  : ''
+  };
   document.getElementById('tplTitleAr').value = d.titleAr;
   document.getElementById('tplTitleEn').value = d.titleEn;
   document.getElementById('tplBodyAr').value = d.bodyAr;
