@@ -310,3 +310,24 @@ Created 7 composite indexes via idempotent startup SQL block in `Program.cs` (`s
 
 **Verification:** confirmed all 7 indexes present via direct `sys.indexes` queries on staging immediately after creation, then again after deploy on prod (auto-created by the new `Program.cs` startup block on first boot) — both environments independently confirmed via fresh queries, not just deploy-success assumption.
 
+
+---
+## Note 47: Subscription Period Picker ✅ ALREADY DONE — scope revised (2026-06-21)
+
+### Discovery: implementation already exists
+Investigated the live Add Subscription form (`admin.html`, `page-subscriptions`, ~line 440) before building anything new, and found the core feature already fully implemented:
+- `subTimePeriod` dropdown populated from `_subTimePeriods` (loaded via `loadSubTimePeriods()`), backed by the `DynamicList` / `SubscriptionPeriods` category (confirmed via `toggleListDateFields()` checking `cat==='SubscriptionPeriods'`)
+- `applySubPeriod()` (line 3111): selecting a named period auto-fills `subStart`/`subEnd` date inputs and locks them read-only; selecting "📅 مخصص" (Custom) unlocks them for manual entry
+- Live summary line on selection: "15 March 2026 ← 30 June 2026 (107 days)" format — functionally identical to what the original note spec asked for
+- This matches the note's "Dynamic Period Lists" requirement (admin-managed named periods, auto-fill, custom fallback) essentially exactly — likely built in an earlier session under Note 3 (Dynamic Lists) or a related pass, just never cross-referenced back to close Note 47
+
+### Scope decision: calendar widget + HH:MM time inputs — explicitly NOT built
+Built and tested a standalone interactive demo (drag-handle calendar on desktop, tap-to-select on mobile, HH:MM inputs) to evaluate against the existing implementation before deciding. Two deliberate cuts made after review:
+
+1. **HH:MM time inputs — dropped.** Checked `Subscriptions.StartDate`/`EndDate` column type (`datetime2`, technically time-capable) against real data: every existing subscription is saved at exactly `00:00:00`. Subscription billing periods are whole-day/term-based by nature (not partial-day attendance-style windows) — there's no real-world scenario where a subscription "starts at 8am" carries meaning. Adding time inputs would be UI complexity with no corresponding business logic.
+
+2. **Calendar widget (drag-handles/tap-to-select) — dropped.** With HH:MM removed, the calendar's main advantage over plain `<input type="date">` was marginal — the existing period-dropdown already handles the common case (named periods, one click, auto-fill + summary), and native date inputs are a zero-learning-curve fallback for the custom case that every admin already knows how to use. A custom drag/tap calendar would add interaction complexity and maintenance surface for a UX gain judged not worth it here.
+
+### Outcome
+No code changes required. Note 47 closed as already-satisfied by existing functionality, with two scope items (calendar UI, time-of-day precision) explicitly decided against after building and reviewing a working demo — not skipped by default, but cut deliberately after seeing the alternative.
+
