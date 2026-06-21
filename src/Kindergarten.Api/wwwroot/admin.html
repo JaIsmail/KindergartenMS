@@ -2318,11 +2318,11 @@ async function loadDevices(){
   const div = document.getElementById('devices-list');
   if(!data||!data.length){
     div.innerHTML = '<div class="empty"><div class="emoji">📱</div><h4>لا توجد أجهزة مسجلة</h4></div>';
-    return;
+  } else {
+    div.innerHTML = '<table><thead><tr><th>المستخدم</th><th>المنصة</th><th>آخر تحديث</th></tr></thead><tbody>'+
+      data.map(d=>'<tr><td>'+d.userId.substring(0,8)+'...</td><td>'+d.platform+'</td><td>'+formatDate(d.updatedAt)+'</td></tr>').join('')+
+    '</tbody></table>';
   }
-  div.innerHTML = '<table><thead><tr><th>المستخدم</th><th>المنصة</th><th>آخر تحديث</th></tr></thead><tbody>'+
-    data.map(d=>'<tr><td>'+d.userId.substring(0,8)+'...</td><td>'+d.platform+'</td><td>'+formatDate(d.updatedAt)+'</td></tr>').join('')+
-  '</tbody></table>';
   loadNotificationRegistry();
 }
 
