@@ -25,6 +25,34 @@ public class NotificationTemplatesController : ControllerBase
         return Ok(templates);
     }
 
+    [HttpGet("registry")]
+    [RequirePermission("Notifications.Send")]
+    public async Task<IActionResult> GetRegistry()
+    {
+        var tenantId = GetTenantId();
+        var customKeys = await _db.NotificationTemplates.IgnoreQueryFilters()
+            .Where(t => t.TenantId == tenantId && t.IsActive)
+            .Select(t => t.Key)
+            .ToListAsync();
+
+ var result = NotificationRegistry.All.Select(k => new
+        {
+            key            = k.Key,
+            category       = k.Category,
+            descriptionAr  = k.DescriptionAr,
+            descriptionEn  = k.DescriptionEn,
+            placeholders   = k.Placeholders,
+            defaultTitleAr = k.DefaultTitleAr,
+            defaultTitleEn = k.DefaultTitleEn,
+            defaultBodyAr  = k.DefaultBodyAr,
+            defaultBodyEn  = k.DefaultBodyEn,
+            status         = k.Status.ToString(),
+            hasCustomTemplate = customKeys.Contains(k.Key)
+        });
+
+   return Ok(result);
+    }
+
 
  [HttpGet("{key}")]
     [RequirePermission("Notifications.Send")]
