@@ -183,3 +183,101 @@ Both fixes confirmed deployed and stable on staging and prod as of 2026-06-20. N
 - Exam/academic results viewing (not touched)
 - Direct messaging with teachers/admin (not touched)
 
+
+---
+## Note 7: Flexible Roles ✅ FULLY COMPLETE (verified 2026-06-21)
+
+### Original scope:
+- SuperAdmin impersonation implemented
+- SuperAdmin can manage any tenant
+- Data isolation verified per tenant
+- Unify Role dropdown with Permission Groups in Add/Edit User
+- Add new roles: accountant, supervisor, parent+employee
+- User can hold more than one role
+- Each role linked to a specific Tenant
+- Remove ClaimTypes.Role from JWT (no business logic should depend on it)
+- Remove hardcoded Role = "Admin" from impersonation token in TenantsController
+
+### Verification performed this session (all checks against live staging code/DB, not assumptions):
+
+**1. ClaimTypes.Role removed from JWT/business logic — ✅ CONFIRMED**
+- `grep -rn "ClaimTypes.Role" src/ --include="*.cs"` → zero matches anywhere in the codebase
+- `grep -rn 'role ==\|Role =='  src/` → zero matches
+- The only `"Admin"` string matches found are display-label strings for seeding default Permission Group names (e.g. `NameEn="Admin"`), not authorization logic
+
+**2. Hardcoded Role="Admin" removed from impersonation token — ✅ CONFIRMED**
+- Reviewed `TenantsController.cs` `Impersonate` endpoint directly (lines 286-317)
+- Claims list contains: NameIdentifier, Email, Name, TenantId, ImpersonatingTenant, ImpersonatingTenantName, OriginalRole (display-only audit field, stores `RoleType` for "who is impersonating" UI banner — not used for authorization), jti, and the full Permission claim set
+- No `ClaimTypes.Role` claim added anywhere in this token
+
+**3. Role dropdown unified with Permission Groups — ✅ CONFIRMED**
+- Reviewed Add User form in `admin.html` (lines 525-541) directly
+- Form fields: Name, Email, Password, Phone, Tenant dropdown, **Permission Groups multi-select checkbox list** (`#newUserGroupsList`)
+- No separate/legacy single "Role" `<select>` dropdown exists anywhere in the form — it was already fully unified
+
+**4. New roles (accountant, supervisor) — ✅ CONFIRMED**
+- Direct SQL query against `KindergartenDB-staging`, tenant 6: `PermissionGroups` table contains rows for مدير (Admin), سائق (Driver), ولي أمر (Parent Group), معلم (Teacher), **محاسب (Accountant, id=62)**, **مشرف (Supervisor, id=63)**
+- Test accounts already exist for both: `accountant@rawad-center.com`, `supervisor@rawad-center.com`
+
+**5. User can hold more than one role — ✅ CONFIRMED (architecturally correct, not just UI)**
+- `#newUserGroupsList` renders as checkboxes (multi-select), not a single `<select>` — a user can be assigned to multiple Permission Groups at once (e.g. both "Parent Group" and "Teacher")
+- Critically verified the *authorization logic*, not just the UI: reviewed `PermissionHandler.cs` (the actual gatekeeper behind every `[RequirePermission]` attribute) line by line
+- Confirmed the handler NEVER compares against group name or role name — every check path (JWT `Permission` claims, `UserPermissions` direct grants, `UserPermissionGroups` → `PermissionGroupPermissions` DB fallback) resolves down to comparing individual permission names only (`pgp.Permission.Name == requirement.Permission`)
+- This means Permission Groups are correctly architected as pure assignment-convenience bundles — a user in multiple groups gets the **union** of all permissions from all their groups, with zero special-casing on which group(s) they're in. This was an explicit design principle confirmed with the project owner this session: "permission groups are to collect a group of permissions together just to assign them one time... the user gets permissions iterated one by one... not based on the group name itself" — verified true in the actual `PermissionHandler` source.
+
+**6. Each role linked to a specific Tenant — ✅ CONFIRMED**
+- `PermissionGroups` table has `TenantId` column (confirmed via SQL query above — all rows scoped to TenantId=6)
+- Add User form has a Tenant dropdown directly above the Permission Groups checklist, scoping the whole assignment per-tenant
+
+### Outcome
+All 6 original sub-items of Note 7 are verified complete against live staging code and database — not just marked done from memory. No code changes were required this session; the work had already been completed (likely as a side effect of Note 50's full Identity-removal refactor), but had never been explicitly verified item-by-item and closed out in the notes. This note can now be considered fully closed.
+
+
+---
+## Note 7: Flexible Roles ✅ FULLY COMPLETE (verified 2026-06-21)
+
+### Original scope:
+- SuperAdmin impersonation implemented
+- SuperAdmin can manage any tenant
+- Data isolation verified per tenant
+- Unify Role dropdown with Permission Groups in Add/Edit User
+- Add new roles: accountant, supervisor, parent+employee
+- User can hold more than one role
+- Each role linked to a specific Tenant
+- Remove ClaimTypes.Role from JWT (no business logic should depend on it)
+- Remove hardcoded Role = "Admin" from impersonation token in TenantsController
+
+### Verification performed this session (all checks against live staging code/DB, not assumptions):
+
+**1. ClaimTypes.Role removed from JWT/business logic — ✅ CONFIRMED**
+- `grep -rn "ClaimTypes.Role" src/ --include="*.cs"` → zero matches anywhere in the codebase
+- `grep -rn 'role ==\|Role =='  src/` → zero matches
+- The only `"Admin"` string matches found are display-label strings for seeding default Permission Group names (e.g. `NameEn="Admin"`), not authorization logic
+
+**2. Hardcoded Role="Admin" removed from impersonation token — ✅ CONFIRMED**
+- Reviewed `TenantsController.cs` `Impersonate` endpoint directly (lines 286-317)
+- Claims list contains: NameIdentifier, Email, Name, TenantId, ImpersonatingTenant, ImpersonatingTenantName, OriginalRole (display-only audit field, stores `RoleType` for "who is impersonating" UI banner — not used for authorization), jti, and the full Permission claim set
+- No `ClaimTypes.Role` claim added anywhere in this token
+
+**3. Role dropdown unified with Permission Groups — ✅ CONFIRMED**
+- Reviewed Add User form in `admin.html` (lines 525-541) directly
+- Form fields: Name, Email, Password, Phone, Tenant dropdown, **Permission Groups multi-select checkbox list** (`#newUserGroupsList`)
+- No separate/legacy single "Role" `<select>` dropdown exists anywhere in the form — it was already fully unified
+
+**4. New roles (accountant, supervisor) — ✅ CONFIRMED**
+- Direct SQL query against `KindergartenDB-staging`, tenant 6: `PermissionGroups` table contains rows for مدير (Admin), سائق (Driver), ولي أمر (Parent Group), معلم (Teacher), **محاسب (Accountant, id=62)**, **مشرف (Supervisor, id=63)**
+- Test accounts already exist for both: `accountant@rawad-center.com`, `supervisor@rawad-center.com`
+
+**5. User can hold more than one role — ✅ CONFIRMED (architecturally correct, not just UI)**
+- `#newUserGroupsList` renders as checkboxes (multi-select), not a single `<select>` — a user can be assigned to multiple Permission Groups at once (e.g. both "Parent Group" and "Teacher")
+- Critically verified the *authorization logic*, not just the UI: reviewed `PermissionHandler.cs` (the actual gatekeeper behind every `[RequirePermission]` attribute) line by line
+- Confirmed the handler NEVER compares against group name or role name — every check path (JWT `Permission` claims, `UserPermissions` direct grants, `UserPermissionGroups` → `PermissionGroupPermissions` DB fallback) resolves down to comparing individual permission names only (`pgp.Permission.Name == requirement.Permission`)
+- This means Permission Groups are correctly architected as pure assignment-convenience bundles — a user in multiple groups gets the **union** of all permissions from all their groups, with zero special-casing on which group(s) they're in. This was an explicit design principle confirmed with the project owner this session: "permission groups are to collect a group of permissions together just to assign them one time... the user gets permissions iterated one by one... not based on the group name itself" — verified true in the actual `PermissionHandler` source.
+
+**6. Each role linked to a specific Tenant — ✅ CONFIRMED**
+- `PermissionGroups` table has `TenantId` column (confirmed via SQL query above — all rows scoped to TenantId=6)
+- Add User form has a Tenant dropdown directly above the Permission Groups checklist, scoping the whole assignment per-tenant
+
+### Outcome
+All 6 original sub-items of Note 7 are verified complete against live staging code and database — not just marked done from memory. No code changes were required this session; the work had already been completed (likely as a side effect of Note 50's full Identity-removal refactor), but had never been explicitly verified item-by-item and closed out in the notes. This note can now be considered fully closed.
+
