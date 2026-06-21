@@ -10,10 +10,12 @@ public class ChildService : IChildService
 {
     private readonly ApplicationDbContext _db;
     private readonly ITenantService _tenantService;
-    public ChildService(ApplicationDbContext db, ITenantService tenantService)
+    private readonly INotificationService _notify;
+    public ChildService(ApplicationDbContext db, ITenantService tenantService, INotificationService notify)
     {
         _db = db;
         _tenantService = tenantService;
+        _notify = notify;
     }
 
     public async Task<IEnumerable<ChildResponseDto>> GetAllAsync(string? parentId)
@@ -90,9 +92,21 @@ public class ChildService : IChildService
         _db.Children.Add(child);
         await _db.SaveChangesAsync();
 
-        var parent = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == parentId);
+        var parent = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == resolvedParentId);
 
-        return new ChildResponseDto
+        // Notify the parent their child has been registered (best effort)
+        try
+        {
+            await _notify.SendTemplatedAsync(
+                "child_registered",
+                resolvedParentId,
+                new Dictionary<string, string> { { "childName", child.Name } },
+                new Dictionary<string, string> { { "type", "child_registered" }, { "childId", child.Id.ToString() } }
+            );
+        }
+        catch { /* notification failed */ }
+
+     return new ChildResponseDto
         {
             Id           = child.Id,
             Name         = child.Name,

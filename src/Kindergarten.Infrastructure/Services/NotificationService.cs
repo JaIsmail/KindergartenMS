@@ -262,6 +262,9 @@ public static class DefaultTemplates
             "trip_ended" => ("انتهت الرحلة", "Trip Completed",
                 "تمت الرحلة بنجاح",
                 "The trip has been completed successfully"),
+            "child_registered" => ("تم تسجيل طفلك", "Child Registered",
+                "تم تسجيل {childName} بنجاح في الروضة",
+                "{childName} has been successfully registered at the kindergarten"),
             _ => ("إشعار", "Notification", "{message}", "{message}")
         };
     }
