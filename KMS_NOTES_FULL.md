@@ -331,3 +331,46 @@ Built and tested a standalone interactive demo (drag-handle calendar on desktop,
 ### Outcome
 No code changes required. Note 47 closed as already-satisfied by existing functionality, with two scope items (calendar UI, time-of-day precision) explicitly decided against after building and reviewing a working demo — not skipped by default, but cut deliberately after seeing the alternative.
 
+
+---
+## Note 26: Granular CRUD Permissions ✅ COMPLETE (2026-06-21)
+
+### Investigation first — found scope was much narrower than the note implied
+Pulled the real, current Permission table (59 rows) before writing any code. Discovered the granular `Entity.Action` convention the note asked for was **already fully implemented** for Children, Subscriptions, Payments, Users (all 4 controllers fully CRUD-split, every endpoint correctly gated). Only two genuine gaps remained, found by cross-referencing the Permission table against actual controller `[RequirePermission]` usage:
+- **TripsController**: only 1 of 10 endpoints (`GetById`) had any `[RequirePermission]` attribute. The other 9 had only the class-level `[Authorize]`, meaning any authenticated user of any role could call them, regardless of whether they held `Trips.Manage`/`Trips.Track` permission rows that existed in the DB but were never actually checked
+- **DynamicListsController** (`Lists.Manage`): fully protected already, just using one bundled permission instead of split CRUD actions
+
+A third gap (`Discounts.Manage`) has no controller at all — discount feature doesn't exist yet, logged separately as future work.
+
+### Permission architecture confirmed
+Verified directly from source before changing anything: `Permission`/`PermissionGroup`/`PermissionGroupPermission`/`UserPermissionGroup` is a pure many-to-many join-table architecture. `PermissionHandler.cs` resolves every check down to individual permission names only, never group identity — Permission Groups are purely assignment bundles.
+
+### New permissions created (9 total)
+Trips: `Trips.Add`, `Trips.Start`, `Trips.End`, `Trips.UpdateChildStatus`, `Trips.Maintain`, `Trips.Delete` (kept View/Track)
+Lists: `Lists.Add`, `Lists.Edit`, `Lists.Delete` (kept View)
+
+### Code changes (9 files)
+- `TripsController.cs`: added `[RequirePermission]` to 8 endpoints; new `DELETE /api/trips/{id}` (didn't exist) with ownership-check pattern matching Payments/Subscriptions
+- `ITripService.cs`/`TripService.cs`: new `DeleteAsync`, cleans up TripChildren/TripLocations first
+- `DynamicListsController.cs`: split Lists.Manage into Add/Edit/Delete
+- `PermissionsController.cs`: updated seed-list
+- `Program.cs` — critical: separate authorization-policy registration list, easy to miss, would have caused runtime errors (no matching policy) if not updated alongside the seed list
+- `PermissionGroupsController.cs`: updated default Driver group template (also fixed pre-existing missing Trips.View)
+- `admin.html`/`app.html`: updated UI permission checks
+
+### Database migration & corrections (staging, tenant 6)
+1. Seeded 9 new permissions via existing endpoint (50→59)
+2. Initial re-grant mechanically copied old Trips.Manage holders (Admin/Driver/Supervisor) onto all 6 new permissions
+3. Manually corrected Driver down through 3 rounds after explicit discussion: removed Trips.Add, removed Trips.Delete entirely (not even own trips), removed Trips.Maintain — final Driver Trips set: Start/End/UpdateChildStatus/Track
+4. Full regression sweep caught a real gap: Driver lacked Trips.View, needed by GetMyTrips — never explicitly discussed, only found by testing every endpoint not just the happy path. Added.
+5. Old Trips.Manage/Lists.Manage removed from all groups but Permission rows kept (not hard-deleted) for reversibility — confirmed zero remaining code references via full grep sweep first
+
+### End-to-end verification (real staging data, cleaned up after)
+Full lifecycle: Admin creates trip → Driver starts (200) → Driver ends (200) → Driver delete attempt (403, correct) → Admin deletes for cleanup (200). Plus full regression across Admin/Driver/Parent on all trip endpoints — all correct.
+
+### Final Driver Trips permission set
+Start, End, UpdateChildStatus, Track, View — field-operational only.
+
+### Lesson reinforced
+Mechanically copying old broad-permission group memberships onto new granular permissions is a starting point, not a finished design — needed explicit per-role confirmation. A full endpoint-by-endpoint regression sweep (not just the scenario being designed for) caught what the design conversation alone missed.
+
