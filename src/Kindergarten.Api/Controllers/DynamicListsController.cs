@@ -45,7 +45,7 @@ public class DynamicListsController : ControllerBase
 
     // Create item
     [HttpPost]
-    [RequirePermission("Lists.Manage")]
+    [RequirePermission("Lists.Add")]
     public async Task<IActionResult> Create([FromBody] DynamicList dto)
     {
         var item = new DynamicList
@@ -67,7 +67,7 @@ public class DynamicListsController : ControllerBase
 
     // Update item
     [HttpPut("{id}")]
-    [RequirePermission("Lists.Manage")]
+    [RequirePermission("Lists.Edit")]
     public async Task<IActionResult> Update(int id, [FromBody] DynamicList dto)
     {
         var item = await _db.DynamicLists.FindAsync(id);
@@ -85,7 +85,7 @@ public class DynamicListsController : ControllerBase
 
     // Delete item
     [HttpDelete("{id}")]
-    [RequirePermission("Lists.Manage")]
+    [RequirePermission("Lists.Delete")]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.DynamicLists.FindAsync(id);
@@ -97,7 +97,7 @@ public class DynamicListsController : ControllerBase
 
     // Seed default lists
     [HttpPost("seed")]
-    [RequirePermission("Lists.Manage")]
+    [RequirePermission("Lists.Add")]
     public async Task<IActionResult> Seed()
     {
         var tenantId = GetTenantId();

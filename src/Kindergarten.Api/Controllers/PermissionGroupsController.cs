@@ -304,7 +304,7 @@ public class PermissionGroupsController : ControllerBase
             (new() { NameAr="مدير النظام", NameEn="Admin",      Description="مدير الروضة",   TenantId=tenantId },
              allPerms.Select(x => x.Name).ToList()),
             (new() { NameAr="سائق",        NameEn="Driver",     Description="سائق الحافلة",  TenantId=tenantId },
-             new List<string> { "Trips.Manage","Trips.Track","Children.View","Leave.Submit","Attendance.CheckIn","Attendance.ViewOwn" }),
+             new List<string> { "Trips.View","Trips.Add","Trips.Start","Trips.End","Trips.UpdateChildStatus","Trips.Track","Children.View","Leave.Submit","Attendance.CheckIn","Attendance.ViewOwn" }),
             (new() { NameAr="ولي أمر",     NameEn="Parent",     Description="ولي أمر الطفل", TenantId=tenantId },
              new List<string> { "Children.View","Subscriptions.View","Trips.View" }),
             (new() { NameAr="معلم",        NameEn="Teacher",    Description="معلم الروضة",   TenantId=tenantId },

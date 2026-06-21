@@ -85,6 +85,19 @@ public class TripService : ITripService
         return await GetByIdAsync(id);
     }
 
+    public async Task<(bool success, string? driverId)> DeleteAsync(int id)
+    {
+        var trip = await _db.Trips.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id);
+        if (trip == null) return (false, null);
+        var driverId = trip.DriverId;
+        var children = _db.TripChildren.Where(tc => tc.TripId == id);
+        var locations = _db.TripLocations.Where(tl => tl.TripId == id);
+        _db.TripChildren.RemoveRange(children);
+        _db.TripLocations.RemoveRange(locations);
+        _db.Trips.Remove(trip);
+        await _db.SaveChangesAsync();
+        return (true, driverId);
+    }
     public async Task<bool> UpdateChildStatusAsync(UpdateChildStatusDto dto)
     {
         var tc = await _db.TripChildren

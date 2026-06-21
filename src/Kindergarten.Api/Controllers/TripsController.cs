@@ -36,7 +36,7 @@ public class TripsController : ControllerBase
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     [HttpPost]
-    [Authorize]
+    [RequirePermission("Trips.Add")]
     public async Task<IActionResult> Create([FromBody] CreateTripDto dto)
     {
         var trip = await _tripService.CreateAsync(dto);
@@ -44,7 +44,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [RequirePermission("Trips.View")]
     public async Task<IActionResult> GetAll()
     {
         var trips = await _tripService.GetAllTripsAsync();
@@ -61,7 +61,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPost("fix-pending")]
-    [Authorize]
+    [RequirePermission("Trips.Maintain")]
     public async Task<IActionResult> FixPendingStatuses()
     {
         var trips = await _db.Trips
@@ -93,7 +93,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet("parent")]
-    [Authorize]
+    [RequirePermission("Trips.View")]
     public async Task<IActionResult> GetByParent()
     {
         var trips = await _tripService.GetAllTripsAsync();
@@ -101,7 +101,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet("driver")]
-    [Authorize]
+    [RequirePermission("Trips.View")]
     public async Task<IActionResult> GetMyTrips()
     {
         var trips = await _tripService.GetByDriverAsync(GetUserId());
@@ -109,7 +109,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPut("{id}/start")]
-    [Authorize]
+    [RequirePermission("Trips.Start")]
     public async Task<IActionResult> StartTrip(int id)
     {
         var trip = await _tripService.StartTripAsync(id);
@@ -140,7 +140,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPut("{id}/end")]
-    [Authorize]
+    [RequirePermission("Trips.End")]
     public async Task<IActionResult> EndTrip(int id)
     {
         var trip = await _tripService.EndTripAsync(id);
@@ -171,7 +171,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpPost("child-status")]
-    [Authorize]
+    [RequirePermission("Trips.UpdateChildStatus")]
     public async Task<IActionResult> UpdateChildStatus([FromBody] UpdateChildStatusDto dto)
     {
         var result = await _tripService.UpdateChildStatusAsync(dto);
@@ -219,12 +219,28 @@ public class TripsController : ControllerBase
     }
 
     [HttpPost("location")]
-    [Authorize]
+    [RequirePermission("Trips.Track")]
     public async Task<IActionResult> UpdateLocation([FromBody] UpdateLocationDto dto)
     {
         var result = await _tripService.SaveLocationAsync(dto);
         if (!result) return BadRequest();
         await _hub.Clients.All.SendAsync("LocationUpdated", dto.TripId, dto.Latitude, dto.Longitude);
         return Ok(new { message = "Location updated" });
+    }
+
+    [HttpDelete("{id}")]
+    [RequirePermission("Trips.Delete")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var canManageAny = User.HasClaim("Permission", "Trips.Add");
+        if (!canManageAny)
+        {
+            var existing = await _tripService.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+            if (existing.DriverId != GetUserId()) return Forbid();
+        }
+        var (success, _) = await _tripService.DeleteAsync(id);
+        if (!success) return NotFound();
+        return Ok(new { message = "Trip deleted" });
     }
 }

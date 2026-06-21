@@ -1229,7 +1229,7 @@ function getFirstAccessiblePage() {
   if(hasAdminPermission('Children.View')) return 'children';
   if(hasAdminPermission('Attendance.ViewAll') || hasAdminPermission('Attendance.CheckIn') || hasAdminPermission('Attendance.ViewOwn')) return 'attendance';
   if(hasAdminPermission('Leave.ViewAll') || hasAdminPermission('Leave.Submit')) return 'leave';
-  if(hasAdminPermission('Trips.View') || hasAdminPermission('Trips.Manage') || hasAdminPermission('Trips.Track')) return 'trips';
+  if(hasAdminPermission('Trips.View') || hasAdminPermission('Trips.Add') || hasAdminPermission('Trips.Track')) return 'trips';
   if(hasAdminPermission('Subscriptions.View')) return 'subscriptions';
   if(hasAdminPermission('Payments.View')) return 'payments';
   if(hasAdminPermission('Users.View')) return 'users';
@@ -2039,7 +2039,7 @@ function applyPagePermissions() {
   if(addUserForm) addUserForm.style.display = canAddUser ? '' : 'none';
 
   // ── Lists ─────────────────────────────────────────────────────
-  const canManageLists = hasAdminPermission('Lists.Manage');
+  const canManageLists = hasAdminPermission('Lists.Add');
   const addListBtn = document.querySelector('#page-lists .btn-primary');
   if(addListBtn) addListBtn.style.display = canManageLists ? '' : 'none';
 
@@ -2070,7 +2070,7 @@ function applyPagePermissions() {
   const canApproveLv = hasAdminPermission('Leave.Approve');
 
   // ── Trips ─────────────────────────────────────────────────────
-  const canManageTrips = hasAdminPermission('Trips.Manage');
+  const canManageTrips = hasAdminPermission('Trips.Add');
   const addTripBtn = document.querySelector('[onclick*="openCreateTripModal"]');
   if(addTripBtn) addTripBtn.style.display = canManageTrips ? '' : 'none';
 

@@ -81,9 +81,9 @@ builder.Services.AddAuthorization(options =>
         // Leave
         "Leave.Submit","Leave.ViewAll","Leave.Approve",
         // Trips
-        "Trips.View","Trips.Manage","Trips.Track",
+        "Trips.View","Trips.Add","Trips.Start","Trips.End","Trips.UpdateChildStatus","Trips.Maintain","Trips.Delete","Trips.Track",
         // Lists
-        "Lists.View","Lists.Manage",
+        "Lists.View","Lists.Add","Lists.Edit","Lists.Delete",
         // Permissions
         "Permissions.View","Permissions.Edit",
         "Groups.View","Groups.Add","Groups.Edit","Groups.Delete","Groups.Assign",
